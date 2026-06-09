@@ -1,0 +1,15 @@
+# --- API ---
+fastapi>=0.115
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9
+# --- Gemini (AI Studio o Vertex AI) ---
+google-genai>=1.0
+# --- Deforestación (Google Earth Engine) ---
+earthengine-api>=1.0
+# --- Geo + Dossier ---
+shapely>=2.0
+reportlab>=4.0
+requests>=2.31
+# --- Google Cloud (opcional: Firestore + Storage) ---
+google-cloud-firestore>=2.16
+google-cloud-storage>=2.16

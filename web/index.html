@@ -1,0 +1,45 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Origen — dossier EUDR</title>
+<style>
+ body{font-family:system-ui,-apple-system,sans-serif;max-width:640px;margin:2rem auto;padding:0 1rem;color:#1a1a1a;line-height:1.5}
+ h1{font-size:22px;font-weight:600;margin-bottom:.2rem}
+ .sub{color:#666;font-size:14px;margin-bottom:1.4rem}
+ label{display:block;margin:.9rem 0 .35rem;font-size:14px;font-weight:500}
+ textarea{width:100%;padding:.7rem;font-size:15px;border:1px solid #ccc;border-radius:8px;box-sizing:border-box}
+ button{margin-top:1rem;padding:.7rem 1.3rem;font-size:15px;border:0;border-radius:8px;background:#0a8a55;color:#fff;cursor:pointer}
+ button:disabled{background:#9ec9b6;cursor:default}
+ .card{margin-top:1.5rem;padding:1rem 1.1rem;border:1px solid #e3e3e0;border-radius:10px;display:none}
+ .risk{font-weight:600}.ok{color:#0a7a4a}.warn{color:#b6770a}.bad{color:#c0392b}
+ a.dl{display:inline-block;margin-top:.7rem;padding:.6rem 1rem;background:#111;color:#fff;border-radius:8px;text-decoration:none;font-size:14px}
+ .muted{color:#777;font-size:13px;margin-top:.3rem}
+</style></head><body>
+<h1>Origen — dossier EUDR</h1>
+<p class="sub">Describe tu lote de café o cacao. La IA arma el paquete de datos (geolocalización + verificación de deforestación + dossier) listo para tu comprador europeo.</p>
+<label for="notes">Datos del lote</label>
+<textarea id="notes" rows="5" placeholder="Ej: Soy María Quispe, cooperativa Aurora, Cusco. Parcela de cacao en -13.52,-71.95 de 1.8 ha. Cosecha 2026."></textarea>
+<button id="go">Generar dossier</button>
+<div id="out" class="card"></div>
+<script>
+const API = location.origin, go = document.getElementById('go'), out = document.getElementById('out');
+go.onclick = async () => {
+  const notes = document.getElementById('notes').value.trim();
+  if(!notes){ document.getElementById('notes').focus(); return; }
+  go.disabled = true; go.textContent = 'Procesando…';
+  out.style.display = 'block'; out.textContent = 'Extrayendo datos con IA…';
+  try{
+    const fd = new FormData(); fd.append('notes', notes);
+    const r1 = await (await fetch(API+'/intake', {method:'POST', body:fd})).json();
+    out.textContent = 'Lote ' + r1.lot_id + ' · ' + r1.plots + ' parcela(s). Analizando deforestación…';
+    const r2 = await (await fetch(API+'/lots/'+r1.lot_id+'/process', {method:'POST'})).json();
+    const cls = r2.overall_risk === 'negligible' ? 'ok' : (r2.overall_risk === 'high' ? 'bad' : 'warn');
+    let h = '<div>Productor: <b>' + (r1.producer || '—') + '</b></div>';
+    h += '<div>Riesgo general: <span class="risk ' + cls + '">' + r2.overall_risk.toUpperCase() + '</span></div>';
+    h += '<div class="muted">' + r2.findings.map(f => f.plot_id + ': ' + f.risk).join(' · ') + '</div>';
+    h += '<a class="dl" href="' + API + '/lots/' + r1.lot_id + '/dossier">Descargar dossier PDF</a>';
+    out.innerHTML = h;
+  }catch(e){ out.textContent = 'Error: ' + e; }
+  go.disabled = false; go.textContent = 'Generar dossier';
+};
+</script>
+</body></html>

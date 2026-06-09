@@ -13,6 +13,7 @@ CUTOFF_YEAR    = int(os.getenv("DEFORESTATION_CUTOFF_YEAR", "2020"))
 GFW_API_KEY    = os.getenv("GFW_API_KEY", "")
 GFW_VERSION    = os.getenv("GFW_VERSION", "v1.11")
 LOSS_THRESHOLD_HA = float(os.getenv("LOSS_THRESHOLD_HA", "0.1"))
+ALERTS_THRESHOLD  = int(os.getenv("ALERTS_THRESHOLD", "3"))
 GCS_BUCKET     = os.getenv("GCS_BUCKET", "")
 DATA_DIR       = os.getenv("DATA_DIR", "./_data")
 

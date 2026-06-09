@@ -62,22 +62,43 @@ def _gfw_loss_ha(geometry):
     rows = r.json().get("data", [])
     return float(rows[0].get("loss") or 0.0) if rows else 0.0
 
+def _gfw_alerts(geometry):
+    """Cuenta alertas de deforestacion reciente (GFW Integrated Alerts: RADD/GLAD) posteriores al corte."""
+    import requests
+    cutoff = f"{config.CUTOFF_YEAR}-12-31"
+    url = f"{GFW_BASE}/dataset/gfw_integrated_alerts/latest/query/json"
+    sql = ("SELECT count(*) AS n FROM results "
+           f"WHERE gfw_integrated_alerts__date > '{cutoff}' "
+           "AND gfw_integrated_alerts__confidence <> 'low'")
+    r = requests.post(url,
+                      headers={"x-api-key": config.GFW_API_KEY, "Content-Type": "application/json"},
+                      json={"sql": sql, "geometry": geometry}, timeout=30)
+    r.raise_for_status()
+    rows = r.json().get("data", [])
+    return int(rows[0].get("n") or 0) if rows else 0
+
 def _gfw_check(lot: Lot):
+    """Combina dos fuentes: perdida de bosque (Hansen) + alertas recientes (Integrated Alerts)."""
     out = []
     for pl in lot.plots:
-        try:
-            loss = _gfw_loss_ha(_plot_polygon(pl))
-            if loss >= config.LOSS_THRESHOLD_HA:
-                out.append(DeforestationFinding(pl.plot_id, "high", True,
-                    f"Perdida de bosque post-{config.CUTOFF_YEAR}: {loss:.2f} ha (GFW/Hansen)"))
-            elif loss > 0:
-                out.append(DeforestationFinding(pl.plot_id, "review", False,
-                    f"Perdida menor post-{config.CUTOFF_YEAR}: {loss:.3f} ha (GFW/Hansen) - revisar"))
-            else:
-                out.append(DeforestationFinding(pl.plot_id, "negligible", False,
-                    f"Sin perdida post-{config.CUTOFF_YEAR} (GFW/Hansen)"))
-        except Exception as e:
-            out.append(DeforestationFinding(pl.plot_id, "review", False, f"GFW error: {e}"))
+        geom = _plot_polygon(pl)
+        loss = alerts = None; errs = []
+        try: loss = _gfw_loss_ha(geom)
+        except Exception as e: errs.append(f"perdida:{e}")
+        try: alerts = _gfw_alerts(geom)
+        except Exception as e: errs.append(f"alertas:{e}")
+        if loss is None and alerts is None:
+            out.append(DeforestationFinding(pl.plot_id, "review", False, ("GFW error: " + "; ".join(errs))[:140]))
+            continue
+        lv = loss or 0.0; av = alerts or 0
+        high = (lv >= config.LOSS_THRESHOLD_HA) or (av >= config.ALERTS_THRESHOLD)
+        mid = (lv > 0) or (av > 0)
+        risk = "high" if high else ("review" if mid else "negligible")
+        parts = [f"perdida {lv:.2f} ha" if lv > 0 else "sin perdida"]
+        if alerts is not None:
+            parts.append(f"{av} alertas recientes" if av > 0 else "sin alertas recientes")
+        detail = f"post-{config.CUTOFF_YEAR}: " + ", ".join(parts) + " (GFW: Hansen + alertas integradas)"
+        out.append(DeforestationFinding(pl.plot_id, risk, high, detail))
     return out
 
 # ---------- Fallbacks ----------

@@ -19,6 +19,10 @@ def home():
 def capturar():
     return _page("capturar.html")
 
+@app.get("/normativa")
+def normativa():
+    return _page("normativa.html")
+
 @app.get("/healthz")
 def healthz():
     return {"ok": True, "model": config.GEMINI_MODEL, "gemini_ready": config.gemini_ready()}

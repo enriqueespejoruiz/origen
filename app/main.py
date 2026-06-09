@@ -13,7 +13,7 @@ def _page(name):
 
 @app.get("/")
 def home():
-    return _page("index.html")
+    return _page("landing.html")
 
 @app.get("/capturar")
 def capturar():

@@ -1,31 +1,78 @@
 <!doctype html><html lang="es"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Origen — captura de parcelas</title>
+<meta name="theme-color" content="#0B3D2E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
- :root{--pine:#0B3D2E;--leaf:#2E8B5E;--gold:#C2A04C;--ivory:#F5F2EB;--ink:#16211B;--line:#E3DECF}
- *{box-sizing:border-box}
- body{font-family:system-ui,-apple-system,sans-serif;margin:0;color:var(--ink);background:var(--ivory)}
- header{background:var(--pine);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:9}
- header .logo{background:var(--ivory);border-radius:9px;padding:4px;line-height:0}
- header .wm{font-family:'Sora',system-ui,sans-serif;font-weight:600;font-size:18px;letter-spacing:-.3px}
- header .sub{font-size:12px;opacity:.8}
- .dot{font-size:12px;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.18);margin-left:auto}
- main{max-width:560px;margin:0 auto;padding:14px}
- .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
- h3{font-family:'Sora',system-ui,sans-serif;margin:0 0 6px;font-size:16px}
- label{display:block;font-size:13px;color:#5b5f58;margin:10px 0 4px}
- input,select{width:100%;padding:11px;font-size:16px;border:1px solid #cfcabb;border-radius:9px;background:#fff}
- button{width:100%;padding:13px;font-size:16px;font-weight:600;border:0;border-radius:10px;background:var(--pine);color:#fff;margin-top:12px;font-family:'Sora',system-ui,sans-serif}
- button.sec{background:#fff;color:var(--pine);border:1.5px solid var(--pine)}
- .gps{font-size:14px;background:#eef4ef;border:1px solid #d6e4da;border-radius:9px;padding:10px;margin-top:8px;color:#0a5236}
- .row{display:flex;gap:8px}.row>div{flex:1}
- .item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid #eee;font-size:14px}
- .b{font-size:12px;padding:4px 10px;border-radius:20px;white-space:nowrap;font-weight:500}
- .pend{background:#f6efdb;color:#8a6d18}.ok{background:#e6f3ea;color:#0a5236}.hi{background:#fae9e7;color:#b23a2b}.rev{background:#f6efdb;color:#8a6d18}
- img.prev{width:100%;border-radius:9px;margin-top:8px}
- .muted{color:#8a8d85;font-size:13px}
+/* tokens (mirror de /assets/design-tokens.css) */
+:root{
+  --brand-pine:#0B3D2E;--brand-pine-2:#0E4A38;--brand-leaf:#2E8B5E;--brand-leaf-2:#46B681;
+  --brand-gold:#C2A04C;--brand-gold-2:#E0C277;--brand-ivory:#F5F2EB;--brand-ink:#16211B;
+  --brand-line:#E3DECF;--brand-muted:#6F726B;
+  --risk-clean:#2E8B5E;--risk-review:#C2A04C;--risk-high:#C0392B;
+  --font-heading:'Sora',system-ui,-apple-system,sans-serif;
+  --font-body:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --radius-md:12px;--radius-lg:16px;--radius-pill:999px;
+  --shadow-sm:0 6px 18px rgba(11,61,46,.08);
+}
+*{box-sizing:border-box}
+body{font-family:var(--font-body);margin:0;color:var(--brand-ink);background:var(--brand-ivory);
+  -webkit-font-smoothing:antialiased;line-height:1.55}
+:focus-visible{outline:2.5px solid var(--brand-gold);outline-offset:2px}
+/* header */
+header{position:sticky;top:0;z-index:9;color:#fff;padding:13px 16px;display:flex;align-items:center;gap:11px;
+  background:
+    radial-gradient(120% 180% at 100% 0,rgba(46,139,94,.40),transparent 60%),
+    linear-gradient(180deg,var(--brand-pine-2),var(--brand-pine));
+  border-bottom:1px solid rgba(255,255,255,.10);box-shadow:0 6px 22px rgba(4,20,14,.28)}
+header .logo{background:var(--brand-ivory);border-radius:10px;padding:4px;line-height:0;
+  box-shadow:0 0 0 1px rgba(255,255,255,.12)}
+header .wm{font-family:var(--font-heading);font-weight:600;font-size:18px;letter-spacing:-.3px}
+header .sub{font-size:12px;opacity:.82;font-family:var(--font-heading)}
+.dot{font-size:12px;padding:5px 12px;border-radius:var(--radius-pill);background:rgba(255,255,255,.18);
+  margin-left:auto;font-weight:500;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.dot::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--brand-leaf-2);flex:none}
+main{max-width:560px;margin:0 auto;padding:16px 14px 40px}
+.card{background:#fff;border:1px solid var(--brand-line);border-radius:var(--radius-lg);padding:16px;
+  margin-bottom:14px;box-shadow:var(--shadow-sm)}
+h3{font-family:var(--font-heading);margin:0 0 4px;font-size:17px;display:flex;align-items:center;gap:9px}
+h3 .pin{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;flex:none;
+  background:rgba(46,139,94,.12);color:var(--brand-pine)}
+label{display:block;font-size:13px;color:#5b5f58;margin:12px 0 5px;font-weight:500}
+input,select{width:100%;padding:13px;font-size:16px;border:1.5px solid #d3cebf;border-radius:var(--radius-md);
+  background:#fff;color:var(--brand-ink);transition:border-color .15s,box-shadow .15s;font-family:var(--font-body)}
+input:focus,select:focus{outline:none;border-color:var(--brand-leaf);box-shadow:0 0 0 3px rgba(46,139,94,.16)}
+select{appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%230B3D2E' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:40px}
+button{width:100%;padding:14px;font-size:16px;font-weight:600;border:0;border-radius:var(--radius-md);
+  background:linear-gradient(180deg,var(--brand-pine-2),var(--brand-pine));color:#fff;margin-top:14px;
+  font-family:var(--font-heading);cursor:pointer;transition:transform .14s,box-shadow .14s,opacity .14s;
+  box-shadow:0 8px 22px rgba(11,61,46,.22);display:inline-flex;align-items:center;justify-content:center;gap:9px}
+button:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(11,61,46,.30)}
+button:active{transform:translateY(0)}
+button.sec{background:#fff;color:var(--brand-pine);border:1.5px solid var(--brand-pine);box-shadow:none}
+button.sec:hover{background:#f3f6f3}
+.gps{font-size:14px;background:#eaf3ee;border:1px solid #cfe4d8;border-radius:var(--radius-md);
+  padding:11px 13px;margin-top:10px;color:#0a5236;font-weight:500;display:flex;align-items:center;gap:8px}
+.row{display:flex;gap:10px}.row>div{flex:1}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.qhead b{font-family:var(--font-heading);font-size:15px}
+.qhead button{width:auto;margin:0;padding:10px 15px;font-size:14px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;
+  border-top:1px solid #efece2;font-size:14.5px}
+.item:first-child{border-top:0}
+.b{font-size:12px;padding:5px 11px;border-radius:var(--radius-pill);white-space:nowrap;font-weight:600}
+.pend{background:#f7efd8;color:#856312}.ok{background:#e4f4ea;color:#0a5236}
+.hi{background:#fbe8e4;color:#a8341f}.rev{background:#f7efd8;color:#856312}
+img.prev{width:100%;border-radius:var(--radius-md);margin-top:10px;border:1px solid var(--brand-line)}
+.muted{color:#8a8d85;font-size:13px}
+.filerow{margin-top:6px}
+input[type=file]{padding:11px;font-size:14px;background:#fafaf7}
+input[type=file]::file-selector-button{font-family:var(--font-heading);font-weight:600;border:0;
+  background:rgba(46,139,94,.12);color:var(--brand-pine);padding:8px 12px;border-radius:9px;margin-right:12px;cursor:pointer}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
 <header>
   <span class="logo"><svg viewBox="0 0 64 64" width="26" height="26" aria-hidden="true">
@@ -34,33 +81,33 @@
     <path d="M32 31c-5 0-9-3-9.5-8 5.5 0 9 2.5 9.5 8z" fill="#C2A04C"/>
     <path d="M32 28c5 0 9-3 9.5-8-5.5 0-9 2.5-9.5 8z" fill="#2E8B5E"/></svg></span>
   <span class="wm">Origen</span><span class="sub">captura</span>
-  <span class="dot" id="net">●</span>
+  <span class="dot" id="net" role="status" aria-live="polite">●</span>
 </header>
 <main>
   <div class="card">
-    <label>Cooperativa</label>
-    <input id="coop" placeholder="Nombre de la cooperativa">
+    <label for="coop">Cooperativa</label>
+    <input id="coop" placeholder="Nombre de la cooperativa" autocomplete="organization">
   </div>
   <div class="card">
-    <h3>Nueva parcela</h3>
-    <label>Productor</label>
-    <input id="prod" placeholder="Nombre del productor">
+    <h3><span class="pin" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-5.6 8-12a8 8 0 1 0-16 0c0 6.4 8 12 8 12Z" stroke="currentColor" stroke-width="1.9"/><circle cx="12" cy="10" r="2.6" stroke="currentColor" stroke-width="1.9"/></svg></span>Nueva parcela</h3>
+    <label for="prod">Productor</label>
+    <input id="prod" placeholder="Nombre del productor" autocomplete="name">
     <div class="row">
-      <div><label>Producto</label>
+      <div><label for="com">Producto</label>
         <select id="com"><option value="coffee">Café</option><option value="cacao">Cacao</option></select></div>
-      <div><label>Área (ha)</label><input id="area" type="number" inputmode="decimal" placeholder="ej. 2"></div>
+      <div><label for="area">Área (ha)</label><input id="area" type="number" inputmode="decimal" placeholder="ej. 2"></div>
     </div>
-    <button class="sec" id="gps">Capturar ubicación GPS</button>
-    <div class="gps" id="gpsout" style="display:none"></div>
-    <label>Foto del predio (opcional)</label>
-    <input id="photo" type="file" accept="image/*" capture="environment">
-    <img class="prev" id="prev" style="display:none" alt="">
-    <button id="save">Guardar parcela</button>
+    <button class="sec" id="gps"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 22s8-5.6 8-12a8 8 0 1 0-16 0c0 6.4 8 12 8 12Z" stroke="currentColor" stroke-width="1.9"/><circle cx="12" cy="10" r="2.6" stroke="currentColor" stroke-width="1.9"/></svg>Capturar ubicación GPS</button>
+    <div class="gps" id="gpsout" style="display:none" aria-live="polite"></div>
+    <label for="photo">Foto del predio (opcional)</label>
+    <div class="filerow"><input id="photo" type="file" accept="image/*" capture="environment"></div>
+    <img class="prev" id="prev" style="display:none" alt="Vista previa de la foto del predio">
+    <button id="save"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12l4.5 4.5L19 7" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>Guardar parcela</button>
   </div>
   <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center">
+    <div class="qhead">
       <b id="qtitle">Parcelas (0)</b>
-      <button class="sec" style="width:auto;margin:0;padding:9px 14px" id="sync">Sincronizar</button>
+      <button class="sec" id="sync">Sincronizar</button>
     </div>
     <div id="list"></div>
     <p class="muted" id="hint">Las parcelas se guardan en tu teléfono y se envían solas cuando hay señal.</p>
@@ -81,7 +128,7 @@ $('gps').onclick=()=>{
   $('gps').textContent='Obteniendo ubicación…';
   navigator.geolocation.getCurrentPosition(p=>{
     coords={lat:p.coords.latitude,lon:p.coords.longitude,acc:Math.round(p.coords.accuracy)};
-    $('gpsout').style.display='block';
+    $('gpsout').style.display='flex';
     $('gpsout').textContent='✓ '+coords.lat.toFixed(5)+', '+coords.lon.toFixed(5)+'  (±'+coords.acc+' m)';
     $('gps').textContent='Volver a capturar ubicación';
   },e=>{$('gps').textContent='Capturar ubicación GPS';alert('No se pudo obtener GPS: '+e.message);},

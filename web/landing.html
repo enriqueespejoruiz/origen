@@ -1,162 +1,440 @@
 <!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Origen — trazabilidad EUDR para café y cacao</title>
-<meta name="description" content="Origen genera el paquete de datos EUDR (geolocalización, verificación de deforestación y dossier) para tus cooperativas de café y cacao, capturado desde el celular.">
+<meta name="description" content="Origen genera el paquete de datos EUDR (geolocalización, verificación de deforestación y dossier) para tus cooperativas de café y cacao, capturado desde el celular, en minutos.">
+<meta name="theme-color" content="#07211A">
+<meta property="og:title" content="Origen — trazabilidad EUDR para café y cacao">
+<meta property="og:description" content="Del origen a Europa, libre de deforestación. Captura parcelas en campo, verifica deforestación con datos satelitales y arma el dossier para tu comprador europeo.">
+<meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
- :root{--pine:#0B3D2E;--pine2:#0E4A38;--leaf:#2E8B5E;--gold:#C2A04C;--ivory:#F5F2EB;--ink:#16211B;--line:#E3DECF;--mut:#6f726b}
- *{box-sizing:border-box}
- html{scroll-behavior:smooth}
- body{font-family:system-ui,-apple-system,sans-serif;margin:0;color:var(--ink);background:var(--ivory);line-height:1.6;-webkit-font-smoothing:antialiased}
- h1,h2,h3{font-family:'Sora',system-ui,sans-serif;font-weight:600;line-height:1.08;margin:0;letter-spacing:-.02em}
- a{color:inherit}
- .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
- /* nav */
- .nav{position:sticky;top:0;z-index:20;background:rgba(9,38,29,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.07)}
- .nav .wrap{display:flex;align-items:center;gap:14px;padding:14px 22px}
- .nav .wm{font-family:'Sora';font-weight:700;font-size:20px;color:#fff;letter-spacing:-.02em}
- .nav .nl{margin-left:auto;display:flex;gap:26px;align-items:center;font-size:14px}
- .nav .nl a{text-decoration:none;color:#bcd2c6}
- .nav .nl a.cta{background:var(--gold);color:#241c06;padding:9px 17px;border-radius:10px;font-weight:600}
- .logo{background:#fff;border-radius:9px;padding:3px;line-height:0}
- /* hero */
- .hero{position:relative;overflow:hidden;color:#fff;
-   background:radial-gradient(60% 55% at 14% 8%,rgba(46,139,94,.30),transparent 60%),
-   radial-gradient(48% 48% at 92% 16%,rgba(194,160,76,.20),transparent 55%),
-   radial-gradient(90% 70% at 50% 108%,rgba(14,74,56,.55),transparent 72%),
-   linear-gradient(180deg,#0A3325,#06190F)}
- .hero::before{content:'';position:absolute;inset:0;pointer-events:none;
-   background:radial-gradient(38% 40% at 72% 6%,rgba(46,139,94,.22),transparent 60%);animation:glow 9s ease-in-out infinite alternate}
- @keyframes glow{from{opacity:.45}to{opacity:1}}
- .hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center;padding:60px 0 96px}
- .eyebrow{color:var(--gold);font-weight:600;font-size:13px;letter-spacing:.14em;text-transform:uppercase}
- .hero h1{font-weight:700;font-size:clamp(34px,5.4vw,58px);max-width:14ch;margin-top:16px}
- .hero p{font-size:clamp(16px,1.6vw,19px);color:#d7e3db;max-width:50ch;margin:20px 0 30px}
- .btns a{text-decoration:none;font-weight:600;border-radius:12px;padding:14px 24px;display:inline-block;font-size:15px;font-family:'Sora';transition:transform .15s ease}
- .btns a:hover{transform:translateY(-2px)}
- .b1{background:var(--gold);color:#241c06}.b2{border:1.5px solid rgba(255,255,255,.4);color:#fff;margin-left:10px}
- .kpis{display:flex;gap:26px;flex-wrap:wrap;margin-top:34px;font-size:13.5px;color:#bcd2c6}
- .kpis b{color:#fff;font-weight:600;display:block}
- .anim{opacity:0;animation:fadeUp .7s cubic-bezier(.2,.7,.2,1) forwards}
- .d1{animation-delay:.05s}.d2{animation-delay:.15s}.d3{animation-delay:.25s}.d4{animation-delay:.35s}
- @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
- /* phone */
- .phone{position:relative;z-index:1;justify-self:center;width:252px;background:#06190F;border-radius:36px;padding:11px;
-   box-shadow:0 30px 90px rgba(0,0,0,.55),0 0 70px rgba(46,139,94,.22);border:1px solid rgba(255,255,255,.08)}
- .screen{background:var(--ivory);border-radius:26px;overflow:hidden}
- .ph-h{background:var(--pine);color:#fff;padding:11px 13px;display:flex;align-items:center;gap:8px;font-family:'Sora';font-weight:600;font-size:13px}
- .ph-dot{margin-left:auto;font-size:10px;background:rgba(255,255,255,.18);padding:2px 8px;border-radius:20px;font-weight:400}
- .ph-b{padding:12px}
- .ph-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px;margin-bottom:9px}
- .ph-card .t{font-family:'Sora';font-weight:600;font-size:12.5px;margin-bottom:7px}
- .ph-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:5px 0}
- .ph-row .c{color:var(--mut);font-size:11px}
- .badge{font-size:10.5px;padding:3px 9px;border-radius:20px;font-weight:600}
- .ok{background:#e6f3ea;color:#0a5236}.gd{background:#f6efdb;color:#8a6d18}
- /* sections */
- section{padding:74px 0}
- .eyebrow.dark{color:var(--leaf)}
- h2{font-size:clamp(26px,3.2vw,34px);margin:8px 0}
- .lead{max-width:62ch;color:#3b3f39;font-size:17px}
- .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:30px}
- .step{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;transition:transform .18s ease,box-shadow .18s ease}
- .step:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(11,61,46,.10)}
- .step .n{width:38px;height:38px;border-radius:11px;background:var(--pine);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-family:'Sora'}
- .step h3{font-size:18px;margin:14px 0 6px}.step p{font-size:14.5px;color:#3b3f39;margin:0}
- /* dark band */
- .band{background:radial-gradient(70% 80% at 100% 0,rgba(46,139,94,.22),transparent 60%),linear-gradient(180deg,#0B3D2E,#0A3325);color:#fff}
- .band .eyebrow{color:var(--gold)}
- .why{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:30px}
- .why div{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:20px;font-size:15px;color:#e7efe9}
- .why b{color:#fff}
- /* faq */
- details{background:#fff;border:1px solid var(--line);border-radius:14px;padding:2px 18px;margin-bottom:10px}
- summary{font-family:'Sora';font-weight:600;font-size:16px;padding:15px 0;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:14px}
- summary::-webkit-details-marker{display:none}
- summary::after{content:'+';color:var(--gold);font-size:22px;line-height:1}
- details[open] summary::after{content:'–'}
- details p{margin:0 0 16px;color:#3b3f39;font-size:15px}
- /* cta */
- .cta{position:relative;overflow:hidden;background:radial-gradient(60% 90% at 50% 0,rgba(194,160,76,.22),transparent 60%),linear-gradient(180deg,#0E4A38,#0A3325);color:#fff;border-radius:22px;padding:56px 30px;text-align:center;margin:0 0 40px}
- .cta a{background:var(--gold);color:#241c06;text-decoration:none;font-weight:600;padding:15px 28px;border-radius:12px;display:inline-block;margin-top:20px;font-family:'Sora';transition:transform .15s ease}
- .cta a:hover{transform:translateY(-2px)}
- footer{padding:28px 0;color:var(--mut);font-size:13px;border-top:1px solid var(--line);display:flex;gap:20px;flex-wrap:wrap}
- footer a{color:var(--mut);text-decoration:none}
- @media(max-width:780px){.hero-grid{grid-template-columns:1fr;gap:30px;padding:44px 0 70px}.steps,.why{grid-template-columns:1fr}.nav .nl a:not(.cta){display:none}}
-</style></head><body>
+/* ============================================================================
+   Origen — design tokens (mirror of /assets/design-tokens.css = source of truth).
+   No hex sueltos: usa las variables. ===================================== */
+:root{
+  /* marca */
+  --brand-pine:#0B3D2E; --brand-pine-2:#0E4A38; --brand-leaf:#2E8B5E; --brand-leaf-2:#46B681;
+  --brand-gold:#C2A04C; --brand-gold-2:#E0C277; --brand-ivory:#F5F2EB; --brand-ink:#16211B;
+  --brand-line:#E3DECF; --brand-muted:#6F726B;
+  /* semáforo de riesgo */
+  --risk-clean:#46B681; --risk-review:#E0C277; --risk-high:#E07A5F;
+  /* tipografía */
+  --font-heading:'Sora',system-ui,-apple-system,sans-serif;
+  --font-body:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  /* radios y espaciado */
+  --radius-sm:9px; --radius-md:12px; --radius-lg:16px; --radius-xl:22px; --radius-pill:999px;
+  --space-xs:8px; --space-sm:12px; --space-md:16px; --space-lg:24px; --space-xl:40px;
+  /* === canvas oscuro (capa de producto, no en tokens base) === */
+  --bg-0:#04140E; --bg-1:#07211A; --bg-2:#0B2C22;
+  --text-1:#F3F1E9; --text-2:#B7C8BD; --text-3:#8AA096;
+  --glass:rgba(255,255,255,.045); --glass-2:rgba(255,255,255,.07);
+  --hair:rgba(255,255,255,.10); --hair-2:rgba(255,255,255,.18);
+  --glow-leaf:rgba(46,139,94,.30); --glow-gold:rgba(194,160,76,.20);
+  --shadow-lg:0 30px 90px rgba(0,0,0,.55);
+  --maxw:1160px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);margin:0;color:var(--text-1);background:var(--bg-1);line-height:1.65;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden}
+h1,h2,h3{font-family:var(--font-heading);font-weight:600;line-height:1.08;margin:0;letter-spacing:-.02em}
+a{color:inherit}
+img,svg{max-width:100%}
+:focus-visible{outline:2.5px solid var(--brand-gold-2);outline-offset:3px;border-radius:6px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+.skip{position:absolute;left:-999px;top:8px;z-index:60;background:var(--brand-gold);color:#241c06;
+  padding:10px 16px;border-radius:10px;font-weight:600;font-family:var(--font-heading)}
+.skip:focus{left:16px}
+
+/* ---- decoración de fondo global ---- */
+.bg-grid{position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background-image:radial-gradient(rgba(255,255,255,.045) 1px,transparent 1px);
+  background-size:34px 34px;
+  -webkit-mask-image:radial-gradient(120% 80% at 50% 0,#000 35%,transparent 78%);
+          mask-image:radial-gradient(120% 80% at 50% 0,#000 35%,transparent 78%)}
+.bg-base{position:fixed;inset:0;z-index:-3;pointer-events:none;
+  background:radial-gradient(60% 50% at 12% 4%,var(--glow-leaf),transparent 60%),
+             radial-gradient(46% 46% at 92% 10%,var(--glow-gold),transparent 58%),
+             linear-gradient(180deg,#07231B 0%,var(--bg-1) 32%,var(--bg-0) 100%)}
+
+/* ---- nav ---- */
+.nav{position:sticky;top:0;z-index:30;background:rgba(6,25,19,.72);
+  backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);
+  border-bottom:1px solid var(--hair)}
+.nav .wrap{display:flex;align-items:center;gap:14px;padding:13px 24px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo{background:rgba(245,242,235,.96);border-radius:10px;padding:4px;line-height:0;
+  box-shadow:0 0 0 1px rgba(255,255,255,.10),0 6px 18px rgba(0,0,0,.35)}
+.wm{font-family:var(--font-heading);font-weight:700;font-size:20px;color:#fff;letter-spacing:-.02em}
+.nl{margin-left:auto;display:flex;gap:8px;align-items:center;font-size:14.5px}
+.nl a{text-decoration:none;color:var(--text-2);padding:9px 13px;border-radius:10px;transition:color .18s,background .18s}
+.nl a:hover{color:#fff;background:var(--glass)}
+.nl .live{display:inline-flex;align-items:center;gap:7px;color:var(--text-2);font-size:13px;
+  padding:7px 12px;border:1px solid var(--hair);border-radius:var(--radius-pill);background:var(--glass)}
+.nl .live i{width:7px;height:7px;border-radius:50%;background:var(--brand-leaf-2);
+  box-shadow:0 0 0 0 rgba(70,182,129,.6);animation:pulse 2.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(70,182,129,.55)}70%{box-shadow:0 0 0 7px rgba(70,182,129,0)}100%{box-shadow:0 0 0 0 rgba(70,182,129,0)}}
+.btn{display:inline-flex;align-items:center;gap:9px;text-decoration:none;font-weight:600;
+  font-family:var(--font-heading);border-radius:12px;transition:transform .16s ease,box-shadow .16s ease,background .16s}
+.btn-gold{background:linear-gradient(180deg,var(--brand-gold-2),var(--brand-gold));color:#231a04;
+  padding:10px 18px;box-shadow:0 8px 24px rgba(194,160,76,.28)}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(194,160,76,.42)}
+.btn-ghost{border:1.5px solid var(--hair-2);color:#fff;padding:10px 18px;background:var(--glass)}
+.btn-ghost:hover{transform:translateY(-2px);background:var(--glass-2);border-color:rgba(255,255,255,.32)}
+
+/* ---- hero ---- */
+.hero{position:relative;overflow:hidden}
+.hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:1.06fr .94fr;gap:48px;
+  align-items:center;padding:84px 24px 104px}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;color:var(--brand-gold-2);font-weight:600;
+  font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;font-family:var(--font-heading);
+  padding:7px 13px 7px 11px;border:1px solid rgba(194,160,76,.32);border-radius:var(--radius-pill);
+  background:rgba(194,160,76,.07)}
+.eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--brand-gold-2)}
+.hero h1{font-weight:700;font-size:clamp(36px,5.6vw,64px);max-width:15ch;margin-top:22px;line-height:1.04}
+.grad{background:linear-gradient(96deg,var(--brand-gold-2) 8%,var(--brand-leaf-2) 96%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .sub{font-size:clamp(16px,1.55vw,19px);color:var(--text-2);max-width:52ch;margin:24px 0 32px}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.btn-lg{padding:15px 26px;font-size:15.5px}
+.trust{display:flex;gap:14px 30px;flex-wrap:wrap;margin-top:38px}
+.trust .t{display:flex;align-items:flex-start;gap:10px;max-width:200px}
+.trust .ic{flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+  background:var(--glass);border:1px solid var(--hair);color:var(--brand-leaf-2)}
+.trust b{display:block;color:#fff;font-size:13.5px;font-weight:600;font-family:var(--font-heading)}
+.trust span{color:var(--text-3);font-size:12.5px}
+
+/* phone mock */
+.stage{position:relative;justify-self:center;width:100%;max-width:340px;aspect-ratio:1/1.18;display:grid;place-items:center}
+.stage::before{content:'';position:absolute;width:78%;height:78%;border-radius:50%;
+  background:radial-gradient(circle,rgba(70,182,129,.34),transparent 62%);filter:blur(26px);z-index:0}
+.phone{position:relative;z-index:1;width:262px;background:#051710;border-radius:40px;padding:11px;
+  box-shadow:var(--shadow-lg),0 0 80px rgba(46,139,94,.22);border:1px solid rgba(255,255,255,.10);
+  animation:float 7s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.phone::after{content:'';position:absolute;top:13px;left:50%;transform:translateX(-50%);
+  width:84px;height:6px;border-radius:6px;background:rgba(255,255,255,.14)}
+.screen{background:var(--brand-ivory);border-radius:30px;overflow:hidden;color:var(--brand-ink)}
+.ph-h{background:var(--brand-pine);color:#fff;padding:13px 14px 12px;display:flex;align-items:center;gap:8px;
+  font-family:var(--font-heading);font-weight:600;font-size:13px}
+.ph-dot{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:10.5px;
+  background:rgba(255,255,255,.16);padding:3px 9px;border-radius:var(--radius-pill);font-weight:500}
+.ph-dot i{width:6px;height:6px;border-radius:50%;background:var(--brand-leaf-2)}
+.ph-b{padding:13px}
+.ph-card{background:#fff;border:1px solid var(--brand-line);border-radius:13px;padding:12px;margin-bottom:10px;
+  box-shadow:0 6px 18px rgba(11,61,46,.06)}
+.ph-card .t{font-family:var(--font-heading);font-weight:600;font-size:12.5px;margin-bottom:8px}
+.ph-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 0}
+.ph-row+.ph-row{border-top:1px solid #f0ece0}
+.ph-row .c{color:var(--brand-muted);font-size:11px}
+.badge{font-size:10.5px;padding:3px 10px;border-radius:var(--radius-pill);font-weight:600;white-space:nowrap}
+.badge.ok{background:#e4f4ea;color:#0a5236}.badge.gd{background:#f7efd8;color:#856312}
+.ph-sync{text-align:center;font-size:12px;color:#0a5236;font-weight:600;display:flex;align-items:center;justify-content:center;gap:7px}
+.float-chip{position:absolute;z-index:2;right:-6px;bottom:34px;background:rgba(8,32,24,.86);
+  border:1px solid var(--hair-2);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border-radius:14px;padding:11px 14px;display:flex;align-items:center;gap:11px;
+  box-shadow:0 18px 40px rgba(0,0,0,.45);animation:float 7s ease-in-out infinite .6s}
+.float-chip .fi{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;
+  background:linear-gradient(180deg,var(--brand-gold-2),var(--brand-gold));color:#231a04}
+.float-chip b{display:block;font-family:var(--font-heading);font-size:12.5px;color:#fff}
+.float-chip span{font-size:11px;color:var(--text-3)}
+
+/* ---- tira de credibilidad ---- */
+.strip{border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);background:rgba(255,255,255,.02)}
+.strip .wrap{padding:22px 24px;display:flex;align-items:center;gap:18px 34px;flex-wrap:wrap;justify-content:center}
+.strip .lbl{color:var(--text-3);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
+  font-family:var(--font-heading);font-weight:600}
+.strip .item{display:inline-flex;align-items:center;gap:9px;color:var(--text-2);font-size:14px;font-weight:500;opacity:.92}
+.strip .item svg{color:var(--brand-leaf-2)}
+
+/* ---- secciones ---- */
+section{padding:88px 0}
+.shead{max-width:64ch}
+.s-eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--brand-leaf-2);font-weight:600;
+  font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;font-family:var(--font-heading)}
+.s-eyebrow::before{content:'';width:18px;height:1.5px;background:var(--brand-leaf-2)}
+h2{font-size:clamp(27px,3.4vw,40px);margin:14px 0 0}
+.lead{max-width:60ch;color:var(--text-2);font-size:17px;margin-top:14px}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:8px}
+.stat{background:var(--glass);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:24px 22px;
+  position:relative;overflow:hidden}
+.stat::before{content:'';position:absolute;left:0;top:0;width:100%;height:2px;
+  background:linear-gradient(90deg,var(--brand-gold-2),transparent 70%)}
+.stat .num{font-family:var(--font-heading);font-weight:700;font-size:clamp(30px,3.4vw,40px);
+  color:#fff;letter-spacing:-.02em;line-height:1}
+.stat .num span{color:var(--brand-gold-2)}
+.stat .lab{color:var(--text-2);font-size:13.5px;margin-top:10px;line-height:1.45}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:42px}
+.step{background:var(--glass);border:1px solid var(--hair);border-radius:var(--radius-xl);padding:28px;
+  position:relative;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.step:hover{transform:translateY(-5px);box-shadow:0 24px 60px rgba(0,0,0,.4);border-color:var(--hair-2)}
+.step .n{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-weight:700;
+  font-family:var(--font-heading);font-size:19px;color:#231a04;
+  background:linear-gradient(180deg,var(--brand-gold-2),var(--brand-gold));box-shadow:0 8px 22px rgba(194,160,76,.26)}
+.step h3{font-size:19px;margin:18px 0 8px;color:#fff}
+.step p{font-size:14.5px;color:var(--text-2);margin:0}
+.step .line{position:absolute;top:51px;right:-9px;width:18px;height:2px;background:var(--hair-2);z-index:2}
+.steps .step:last-child .line{display:none}
+
+/* semáforo */
+.semaforo{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:30px}
+.sf{background:var(--glass);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:20px;
+  border-left:3px solid var(--c)}
+.sf .dot{display:inline-flex;align-items:center;gap:9px;font-family:var(--font-heading);font-weight:600;
+  color:#fff;font-size:15px}
+.sf .dot i{width:11px;height:11px;border-radius:50%;background:var(--c);box-shadow:0 0 14px var(--c)}
+.sf p{margin:9px 0 0;color:var(--text-2);font-size:13.5px}
+
+/* why band */
+.band{position:relative;overflow:hidden;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);
+  background:radial-gradient(80% 120% at 100% 0,rgba(46,139,94,.16),transparent 56%),rgba(255,255,255,.018)}
+.why{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:42px}
+.why .card{background:var(--glass);border:1px solid var(--hair);border-radius:var(--radius-lg);padding:24px;
+  display:flex;gap:16px;align-items:flex-start;transition:transform .2s,border-color .2s}
+.why .card:hover{transform:translateY(-3px);border-color:var(--hair-2)}
+.why .ic{flex:none;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;
+  background:rgba(70,182,129,.12);border:1px solid rgba(70,182,129,.28);color:var(--brand-leaf-2)}
+.why b{color:#fff;font-family:var(--font-heading);font-size:16px;display:block;margin-bottom:5px}
+.why p{margin:0;color:var(--text-2);font-size:14.5px}
+
+/* faq */
+.faq{max-width:780px;margin-top:36px}
+details{background:var(--glass);border:1px solid var(--hair);border-radius:var(--radius-lg);
+  padding:2px 20px;margin-bottom:11px;transition:border-color .2s,background .2s}
+details[open]{border-color:var(--hair-2);background:var(--glass-2)}
+summary{font-family:var(--font-heading);font-weight:600;font-size:16px;padding:17px 0;cursor:pointer;
+  list-style:none;display:flex;justify-content:space-between;gap:14px;align-items:center;color:#fff}
+summary::-webkit-details-marker{display:none}
+summary::after{content:'';flex:none;width:22px;height:22px;border-radius:7px;border:1px solid var(--hair-2);
+  background:
+    linear-gradient(var(--brand-gold-2),var(--brand-gold-2)) center/11px 2px no-repeat,
+    linear-gradient(var(--brand-gold-2),var(--brand-gold-2)) center/2px 11px no-repeat;
+  transition:transform .25s ease}
+details[open] summary::after{transform:rotate(135deg)}
+details p{margin:0 0 18px;color:var(--text-2);font-size:15px}
+
+/* cta final */
+.cta-final{position:relative;overflow:hidden;border-radius:26px;padding:64px 32px;text-align:center;margin-bottom:64px;
+  border:1px solid var(--hair-2);
+  background:radial-gradient(70% 120% at 50% 0,rgba(194,160,76,.22),transparent 60%),
+             radial-gradient(80% 120% at 50% 110%,rgba(46,139,94,.22),transparent 60%),
+             linear-gradient(180deg,var(--brand-pine-2),#08251B)}
+.cta-final h2{color:#fff;max-width:18ch;margin:0 auto}
+.cta-final p{color:var(--text-2);max-width:52ch;margin:16px auto 26px;font-size:16.5px}
+
+/* footer */
+footer{border-top:1px solid var(--hair);padding:34px 0;color:var(--text-3);font-size:13.5px}
+footer .wrap{display:flex;gap:18px 28px;flex-wrap:wrap;align-items:center}
+footer .fb{display:flex;align-items:center;gap:9px;color:var(--text-2)}
+footer a{color:var(--text-3);text-decoration:none;transition:color .18s}
+footer a:hover{color:#fff}
+footer .sp{margin-left:auto}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+.reveal.d1{transition-delay:.06s}.reveal.d2{transition-delay:.14s}.reveal.d3{transition-delay:.22s}.reveal.d4{transition-delay:.3s}
+
+@media(max-width:880px){
+  .hero .wrap{grid-template-columns:1fr;gap:44px;padding:56px 24px 76px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .steps,.why,.semaforo{grid-template-columns:1fr}
+  .step .line{display:none}
+  .nl a.hide-sm{display:none}
+}
+@media(max-width:480px){ .stats{grid-template-columns:1fr} .float-chip{right:0} }
+
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;scroll-behavior:auto!important}
+  .reveal{opacity:1;transform:none;transition:none}
+  .phone,.float-chip{animation:none!important}
+}
+</style></head>
+<body>
+<a class="skip" href="#main">Saltar al contenido</a>
+<div class="bg-base" aria-hidden="true"></div>
+<div class="bg-grid" aria-hidden="true"></div>
 
 <header class="nav"><div class="wrap">
-  <span class="logo"><svg viewBox="0 0 64 64" width="28" height="28" aria-hidden="true">
-    <path d="M32 6C20.4 6 11 15 11 26.2 11 40 32 58 32 58s21-18 21-31.8C53 15 43.6 6 32 6z" fill="#0B3D2E"/>
-    <path d="M32 41V27" stroke="#EAF3EC" stroke-width="3" stroke-linecap="round"/>
-    <path d="M32 31c-5 0-9-3-9.5-8 5.5 0 9 2.5 9.5 8z" fill="#C2A04C"/>
-    <path d="M32 28c5 0 9-3 9.5-8-5.5 0-9 2.5-9.5 8z" fill="#2E8B5E"/></svg></span>
-  <span class="wm">Origen</span>
-  <span class="nl"><a href="#como">Cómo funciona</a><a href="/normativa">Normativa EUDR</a><a class="cta" href="/capturar">Capturar parcelas</a></span>
+  <a class="brand" href="/" aria-label="Origen — inicio">
+    <span class="logo"><svg viewBox="0 0 64 64" width="28" height="28" aria-hidden="true">
+      <path d="M32 6C20.4 6 11 15 11 26.2 11 40 32 58 32 58s21-18 21-31.8C53 15 43.6 6 32 6z" fill="#0B3D2E"/>
+      <path d="M32 41V27" stroke="#EAF3EC" stroke-width="3" stroke-linecap="round"/>
+      <path d="M32 31c-5 0-9-3-9.5-8 5.5 0 9 2.5 9.5 8z" fill="#C2A04C"/>
+      <path d="M32 28c5 0 9-3 9.5-8-5.5 0-9 2.5-9.5 8z" fill="#2E8B5E"/></svg></span>
+    <span class="wm">Origen</span>
+  </a>
+  <nav class="nl" aria-label="Principal">
+    <span class="live"><i aria-hidden="true"></i>MVP en vivo</span>
+    <a class="hide-sm" href="#como">Cómo funciona</a>
+    <a class="hide-sm" href="/normativa">Normativa EUDR</a>
+    <a class="btn btn-gold" href="/capturar">Capturar parcelas</a>
+  </nav>
 </div></header>
 
-<section class="hero"><div class="wrap"><div class="hero-grid">
-  <div>
-    <div class="eyebrow anim d1">Trazabilidad de origen · EUDR</div>
-    <h1 class="anim d2">Mantén tu café y cacao en el mercado europeo.</h1>
-    <p class="anim d3">Origen genera el paquete de datos que exige el reglamento antideforestación de la UE —geolocalización de parcelas, verificación de deforestación y dossier para tu comprador— capturado desde el celular, en minutos.</p>
-    <div class="btns anim d4"><a class="b1" href="/capturar">Empezar a capturar</a><a class="b2" href="mailto:diegodelperucito@gmail.com">Conversemos</a></div>
-    <div class="kpis anim d4"><span><b>Dato satelital real</b>GFW / Hansen</span><span><b>En español</b>para cooperativas</span><span><b>Sin señal</b>funciona en campo</span></div>
-  </div>
-  <div class="phone anim d3"><div class="screen">
-    <div class="ph-h">Origen · captura <span class="ph-dot">en línea</span></div>
-    <div class="ph-b">
-      <div class="ph-card"><div class="t">Coop. Aurora · Cusco</div>
-        <div class="ph-row"><div>María Quispe<div class="c">−13.520, −71.950</div></div><span class="badge ok">limpio</span></div>
-        <div class="ph-row"><div>José Mamani<div class="c">−13.531, −71.962</div></div><span class="badge ok">limpio</span></div>
-        <div class="ph-row"><div>Rosa Huamán<div class="c">−13.498, −71.944</div></div><span class="badge gd">revisar</span></div>
+<main id="main">
+
+<section class="hero" aria-labelledby="h1">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow reveal d1">Trazabilidad de origen · EUDR</span>
+      <h1 id="h1" class="reveal d2">Mantén tu café y cacao <span class="grad">en el mercado europeo.</span></h1>
+      <p class="sub reveal d3">Origen genera el paquete de datos que exige el reglamento antideforestación de la UE —geolocalización de parcelas, verificación satelital de deforestación y dossier para tu comprador— capturado desde el celular, en minutos.</p>
+      <div class="cta-row reveal d4">
+        <a class="btn btn-gold btn-lg" href="/capturar">Empezar a capturar
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a class="btn btn-ghost btn-lg" href="mailto:diegodelperucito@gmail.com">Conversemos</a>
       </div>
-      <div style="text-align:center;font-size:12px;color:#0a5236;font-weight:600">3 parcelas · sincronizadas ✓</div>
+      <div class="trust reveal d4">
+        <div class="t"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 22s8-5.6 8-12a8 8 0 1 0-16 0c0 6.4 8 12 8 12Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.6" stroke="currentColor" stroke-width="1.8"/></svg></span><div><b>Dato satelital real</b><span>GFW / Hansen</span></div></div>
+        <div class="t"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/></svg></span><div><b>En español</b><span>para cooperativas</span></div></div>
+        <div class="t"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19a4 4 0 0 1-.6-7.95 5.5 5.5 0 0 1 10.8-1.3A4.2 4.2 0 0 1 19 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9 14l3-3 3 3M12 11v8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>Sin señal</b><span>funciona en campo</span></div></div>
+      </div>
     </div>
-  </div></div>
-</div></div></section>
 
-<section id="como"><div class="wrap">
-  <div class="eyebrow dark">Cómo funciona</div>
-  <h2>De la parcela al dossier, en tres pasos.</h2>
-  <div class="steps">
-    <div class="step"><div class="n">1</div><h3>Captura en campo</h3><p>El técnico recorre las parcelas y registra cada una con el GPS del celular y una foto. Funciona sin señal.</p></div>
-    <div class="step"><div class="n">2</div><h3>Verificación</h3><p>Cruzamos cada parcela con mapas satelitales de deforestación (Hansen) y marcamos limpio, revisar o deforestación.</p></div>
-    <div class="step"><div class="n">3</div><h3>Dossier listo</h3><p>Generamos el dossier y el GeoJSON que tu comprador presenta en el sistema de la UE (TRACES).</p></div>
+    <div class="stage reveal d3">
+      <div class="phone">
+        <div class="screen">
+          <div class="ph-h">Origen · captura <span class="ph-dot"><i aria-hidden="true"></i>en línea</span></div>
+          <div class="ph-b">
+            <div class="ph-card"><div class="t">Coop. Aurora · Cusco</div>
+              <div class="ph-row"><div>María Quispe<div class="c">−13.520, −71.950</div></div><span class="badge ok">limpio</span></div>
+              <div class="ph-row"><div>José Mamani<div class="c">−13.531, −71.962</div></div><span class="badge ok">limpio</span></div>
+              <div class="ph-row"><div>Rosa Huamán<div class="c">−13.498, −71.944</div></div><span class="badge gd">revisar</span></div>
+            </div>
+            <div class="ph-sync"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12l4.5 4.5L19 7" stroke="#0a5236" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>3 parcelas · sincronizadas</div>
+          </div>
+        </div>
+      </div>
+      <div class="float-chip" aria-hidden="true">
+        <span class="fi"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M14 3v6h6" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span>
+        <div><b>Dossier EUDR</b><span>listo para TRACES</span></div>
+      </div>
+    </div>
   </div>
-</div></section>
+</section>
 
-<section class="band"><div class="wrap">
-  <div class="eyebrow">Por qué Origen</div>
-  <h2>Hecho para cooperativas, no para ingenieros.</h2>
-  <div class="why">
-    <div><b>Dato real y abierto.</b> Deforestación verificada con datos satelitales de licencia abierta — sin candados ni costos ocultos.</div>
-    <div><b>En minutos, en español.</b> Sin planillas ni consultoras caras: el técnico captura y el dossier se arma solo.</div>
-    <div><b>Pensado para el campo.</b> Captura sin internet y sincroniza cuando vuelve la señal.</div>
-    <div><b>Mantiene tu mercado.</b> Le entregas a tu comprador europeo justo lo que la ley le exige.</div>
+<div class="strip" aria-label="Tecnología y fuentes">
+  <div class="wrap">
+    <span class="lbl">Construido con</span>
+    <span class="item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l2.2 6.3L21 11l-6.8 1.7L12 19l-2.2-6.3L3 11l6.8-1.7L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Gemini · Vertex AI</span>
+    <span class="item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s8-5.6 8-12a8 8 0 1 0-16 0c0 6.4 8 12 8 12Z" stroke="currentColor" stroke-width="1.6"/><path d="M9 11c0-3 6-3 6 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Global Forest Watch · Hansen</span>
+    <span class="item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 16a4 4 0 0 1-.5-7.97 6 6 0 0 1 11.6-1.2A4.5 4.5 0 0 1 18 16H6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Google Cloud Run</span>
+    <span class="item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M8 10h8M8 14h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>UE TRACES-ready</span>
   </div>
-</div></section>
+</div>
 
-<section><div class="wrap">
-  <div class="eyebrow dark">Preguntas frecuentes</div>
-  <h2>Lo que más nos preguntan.</h2>
-  <div style="margin-top:28px;max-width:760px">
-    <details><summary>¿Necesito internet en la parcela?</summary><p>No. El técnico captura todo en el celular —GPS y foto— sin señal, y las parcelas se envían solas cuando vuelve la conexión.</p></details>
-    <details><summary>¿Qué pasa si una parcela tiene deforestación?</summary><p>Se marca como "revisar" o "deforestación" para que la verifiques antes de enviarla a tu comprador. Origen es la herramienta de detección; la decisión final es tuya y del operador europeo.</p></details>
-    <details><summary>¿Quién presenta la declaración en la UE?</summary><p>El operador europeo (tu comprador/importador) la presenta en el sistema de la UE. Origen le entrega el paquete de datos listo para que pueda hacerlo.</p></details>
-    <details><summary>¿Sirve para café y cacao?</summary><p>Sí, y para cualquier producto del EUDR cuyo origen sea una parcela. Hoy nos enfocamos en café y cacao.</p></details>
+<section id="como" aria-labelledby="h-como">
+  <div class="wrap">
+    <div class="shead reveal">
+      <span class="s-eyebrow">Cómo funciona</span>
+      <h2 id="h-como">De la parcela al dossier, en tres pasos.</h2>
+      <p class="lead">Sin planillas, sin consultoras caras. El técnico captura en campo y la IA arma el paquete que tu comprador europeo necesita.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal d1"><span class="line" aria-hidden="true"></span><div class="n">1</div><h3>Captura en campo</h3><p>El técnico recorre las parcelas y registra cada una con el GPS del celular y una foto. Funciona sin señal.</p></div>
+      <div class="step reveal d2"><span class="line" aria-hidden="true"></span><div class="n">2</div><h3>Verificación</h3><p>Cruzamos cada parcela con mapas satelitales de deforestación (Hansen) y marcamos limpio, revisar o deforestación.</p></div>
+      <div class="step reveal d3"><div class="n">3</div><h3>Dossier listo</h3><p>Generamos el dossier y el GeoJSON que tu comprador presenta en el sistema de la UE (TRACES).</p></div>
+    </div>
+    <div class="semaforo">
+      <div class="sf reveal d1" style="--c:var(--risk-clean)"><span class="dot"><i></i>Limpio</span><p>Sin pérdida de bosque tras el 31-dic-2020. Lista para el dossier.</p></div>
+      <div class="sf reveal d2" style="--c:var(--risk-review)"><span class="dot"><i></i>Revisar</span><p>Señal dudosa cerca del límite. La verificas antes de enviar a tu comprador.</p></div>
+      <div class="sf reveal d3" style="--c:var(--risk-high)"><span class="dot"><i></i>Deforestación</span><p>Pérdida de bosque detectada. Se marca para excluir o sustentar.</p></div>
+    </div>
   </div>
-</div></section>
+</section>
 
-<div class="wrap"><div class="cta">
-  <h2 style="color:#fff">Empieza a registrar tus parcelas hoy.</h2>
-  <p style="opacity:.92;max-width:52ch;margin:12px auto 0;color:#e7efe9">Sin instalar nada. Abre el enlace en el celular del técnico y captura tu primera parcela.</p>
-  <a href="/capturar">Capturar parcelas</a>
+<section aria-label="Cifras EUDR" style="padding-top:0">
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat reveal d1"><div class="num" data-count="7">0</div><div class="lab">Commodities que regula el EUDR (café, cacao, soya, palma, madera, ganado, caucho)</div></div>
+      <div class="stat reveal d2"><div class="num"><span data-count="100">0</span>%</div><div class="lab">Datos de deforestación de licencia abierta — sin candados ni costos ocultos</div></div>
+      <div class="stat reveal d3"><div class="num">2020</div><div class="lab">Deforestación permitida solo hasta el 31 de diciembre de ese año</div></div>
+      <div class="stat reveal d4"><div class="num">2026</div><div class="lab">Cumplimiento obligatorio para operadores grandes y medianos (30 dic)</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="h-why">
+  <div class="wrap">
+    <div class="shead reveal">
+      <span class="s-eyebrow">Por qué Origen</span>
+      <h2 id="h-why">Hecho para cooperativas, no para ingenieros.</h2>
+    </div>
+    <div class="why">
+      <div class="card reveal d1"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" stroke="currentColor" stroke-width="1.7"/></svg></span><div><b>Dato real y abierto</b><p>Deforestación verificada con datos satelitales de licencia abierta — sin candados ni costos ocultos.</p></div></div>
+      <div class="card reveal d2"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13 2L3 14h7l-1 8 11-13h-7l0-7Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span><div><b>En minutos, en español</b><p>Sin planillas ni consultoras caras: el técnico captura y el dossier se arma solo.</p></div></div>
+      <div class="card reveal d3"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19a4 4 0 0 1-.6-7.95 5.5 5.5 0 0 1 10.8-1.3A4.2 4.2 0 0 1 19 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M12 8v8m-3-3 3 3 3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>Pensado para el campo</b><p>Captura sin internet y sincroniza sola cuando vuelve la señal.</p></div></div>
+      <div class="card reveal d4"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span><div><b>Mantiene tu mercado</b><p>Le entregas a tu comprador europeo justo lo que la ley le exige, a tiempo.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="h-faq">
+  <div class="wrap">
+    <div class="shead reveal">
+      <span class="s-eyebrow">Preguntas frecuentes</span>
+      <h2 id="h-faq">Lo que más nos preguntan.</h2>
+    </div>
+    <div class="faq reveal">
+      <details><summary>¿Necesito internet en la parcela?</summary><p>No. El técnico captura todo en el celular —GPS y foto— sin señal, y las parcelas se envían solas cuando vuelve la conexión.</p></details>
+      <details><summary>¿Qué pasa si una parcela tiene deforestación?</summary><p>Se marca como «revisar» o «deforestación» para que la verifiques antes de enviarla a tu comprador. Origen es la herramienta de detección; la decisión final es tuya y del operador europeo.</p></details>
+      <details><summary>¿Quién presenta la declaración en la UE?</summary><p>El operador europeo (tu comprador/importador) la presenta en el sistema de la UE. Origen le entrega el paquete de datos listo para que pueda hacerlo.</p></details>
+      <details><summary>¿Sirve para café y cacao?</summary><p>Sí, y para cualquier producto del EUDR cuyo origen sea una parcela. Hoy nos enfocamos en café y cacao.</p></details>
+    </div>
+  </div>
+</section>
+
+<div class="wrap"><div class="cta-final reveal">
+  <h2>Empieza a registrar tus parcelas hoy.</h2>
+  <p>Sin instalar nada. Abre el enlace en el celular del técnico y captura tu primera parcela en minutos.</p>
+  <a class="btn btn-gold btn-lg" href="/capturar">Capturar parcelas
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 </div></div>
 
-<div class="wrap"><footer>
-  <span>Origen · Del origen a Europa, libre de deforestación.</span>
-  <a href="#como">Cómo funciona</a><a href="/normativa">Normativa EUDR</a><a href="/capturar">Capturar</a>
-</footer></div>
+</main>
+
+<footer><div class="wrap">
+  <span class="fb"><svg viewBox="0 0 64 64" width="22" height="22" aria-hidden="true"><path d="M32 6C20.4 6 11 15 11 26.2 11 40 32 58 32 58s21-18 21-31.8C53 15 43.6 6 32 6z" fill="#46B681"/><path d="M32 41V27" stroke="#EAF3EC" stroke-width="3" stroke-linecap="round"/><path d="M32 31c-5 0-9-3-9.5-8 5.5 0 9 2.5 9.5 8z" fill="#C2A04C"/></svg>Origen · Del origen a Europa, libre de deforestación.</span>
+  <span class="sp"></span>
+  <a href="#como">Cómo funciona</a>
+  <a href="/normativa">Normativa EUDR</a>
+  <a href="/capturar">Capturar</a>
+</div></footer>
+
+<script>
+(function(){
+  var rm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var els = document.querySelectorAll('.reveal');
+  if(rm || !('IntersectionObserver' in window)){
+    els.forEach(function(e){e.classList.add('in')});
+  }else{
+    var io = new IntersectionObserver(function(en){
+      en.forEach(function(x){ if(x.isIntersecting){ x.target.classList.add('in'); io.unobserve(x.target); } });
+    },{threshold:.12,rootMargin:'0px 0px -8% 0px'});
+    els.forEach(function(e){io.observe(e)});
+  }
+  // count-up
+  function countUp(el){
+    var target = +el.getAttribute('data-count'), dur = 1100, t0 = null;
+    function tick(t){ if(!t0)t0=t; var p=Math.min((t-t0)/dur,1);
+      el.textContent = Math.round((1-Math.pow(1-p,3))*target); if(p<1)requestAnimationFrame(tick); }
+    requestAnimationFrame(tick);
+  }
+  var nums = document.querySelectorAll('[data-count]');
+  if(rm || !('IntersectionObserver' in window)){
+    nums.forEach(function(n){n.textContent=n.getAttribute('data-count')});
+  }else{
+    var io2 = new IntersectionObserver(function(en){
+      en.forEach(function(x){ if(x.isIntersecting){ countUp(x.target); io2.unobserve(x.target); } });
+    },{threshold:.6});
+    nums.forEach(function(n){io2.observe(n)});
+  }
+})();
+</script>
 </body></html>

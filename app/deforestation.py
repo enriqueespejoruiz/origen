@@ -19,19 +19,9 @@ def check_plots(lot: Lot):
 # ---------- Global Forest Watch (Hansen tree cover loss, licencia abierta CC-BY) ----------
 
 def _resolve_version():
-    global _VERSION
-    if _VERSION:
-        return _VERSION
-    _VERSION = config.GFW_VERSION
-    try:
-        import re, requests
-        r = requests.get(f"{GFW_BASE}/dataset/umd_tree_cover_loss", timeout=15)
-        vers = [v for v in r.json().get("data", {}).get("versions", []) if re.match(r"^v\d", v)]
-        if vers:
-            _VERSION = sorted(vers, key=lambda v: [int(x) for x in re.findall(r"\d+", v)])[-1]
-    except Exception:
-        pass
-    return _VERSION
+    # Usamos la version configurada (estable y consultable). La "latest" puede
+    # estar restringida por GFW (403), por eso NO auto-saltamos a la mas nueva.
+    return config.GFW_VERSION
 
 def _plot_polygon(plot):
     """Convierte la parcela en un poligono GeoJSON. Punto -> cuadro del tamano de la parcela."""
@@ -97,7 +87,8 @@ def _gfw_check(lot: Lot):
         parts = [f"perdida {lv:.2f} ha" if lv > 0 else "sin perdida"]
         if alerts is not None:
             parts.append(f"{av} alertas recientes" if av > 0 else "sin alertas recientes")
-        detail = f"post-{config.CUTOFF_YEAR}: " + ", ".join(parts) + " (GFW: Hansen + alertas integradas)"
+        src = "Hansen + alertas integradas" if alerts is not None else "Hansen"
+        detail = f"post-{config.CUTOFF_YEAR}: " + ", ".join(parts) + f" (GFW: {src})"
         out.append(DeforestationFinding(pl.plot_id, risk, high, detail))
     return out
 

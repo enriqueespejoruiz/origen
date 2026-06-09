@@ -1,20 +1,57 @@
-import os, uuid, json
+import os, uuid, json, base64
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 from . import gemini, deforestation, dossier, storage, config
 from .models import Lot, Plot, GeoPoint
 
 app = FastAPI(title="Origen - EUDR + Export Copilot")
-
 WEB_DIR = os.path.join(os.path.dirname(__file__), "..", "web")
+
+def _page(name):
+    return FileResponse(os.path.join(WEB_DIR, name), media_type="text/html")
 
 @app.get("/")
 def home():
-    return FileResponse(os.path.join(WEB_DIR, "index.html"), media_type="text/html")
+    return _page("index.html")
+
+@app.get("/capturar")
+def capturar():
+    return _page("capturar.html")
 
 @app.get("/healthz")
 def healthz():
     return {"ok": True, "model": config.GEMINI_MODEL, "gemini_ready": config.gemini_ready()}
+
+# ---- Captura estructurada de campo (tecnico de la cooperativa) ----
+
+class CaptureIn(BaseModel):
+    producer: str = ""
+    cooperative: str = ""
+    commodity: str = "coffee"
+    region: str = ""
+    area_ha: float | None = None
+    lat: float
+    lon: float
+    photo_base64: str | None = None
+
+@app.post("/capture")
+def capture(c: CaptureIn):
+    lot_id = "LOT-" + uuid.uuid4().hex[:8].upper()
+    plot = Plot("P1", [GeoPoint(c.lat, c.lon)], c.area_ha)
+    lot = Lot(lot_id, c.producer, c.cooperative, c.commodity, "PE", c.region, [plot], "", "")
+    if c.photo_base64:
+        try:
+            up = os.path.join(config.DATA_DIR, "uploads"); os.makedirs(up, exist_ok=True)
+            data = c.photo_base64.split(",", 1)[-1]
+            with open(os.path.join(up, f"{lot_id}.jpg"), "wb") as f:
+                f.write(base64.b64decode(data))
+        except Exception:
+            pass
+    storage.save_lot(lot)
+    return {"lot_id": lot_id, "producer": lot.producer_name}
+
+# ---- Intake por texto libre (Gemini) ----
 
 @app.post("/intake")
 async def intake(notes: str = Form(""), images: list[UploadFile] = File(default=[])):

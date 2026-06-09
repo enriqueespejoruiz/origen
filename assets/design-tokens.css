@@ -1,0 +1,23 @@
+/* Origen design tokens — derivados de docs/brand-guidelines.md (source of truth).
+   Importa este archivo y usa las variables; no escribas hex sueltos. */
+:root{
+  /* color */
+  --brand-pine:#0B3D2E;
+  --brand-pine-2:#0E4A38;
+  --brand-leaf:#2E8B5E;
+  --brand-gold:#C2A04C;
+  --brand-ivory:#F5F2EB;
+  --brand-ink:#16211B;
+  --brand-line:#E3DECF;
+  --brand-muted:#6F726B;
+  /* semáforo de riesgo */
+  --risk-clean:#2E8B5E;
+  --risk-review:#C2A04C;
+  --risk-high:#C0392B;
+  /* tipografía */
+  --font-heading:'Sora',system-ui,-apple-system,sans-serif;
+  --font-body:system-ui,-apple-system,sans-serif;
+  /* radios y espaciado */
+  --radius-sm:9px; --radius-md:12px; --radius-lg:16px; --radius-pill:20px;
+  --space-xs:8px; --space-sm:12px; --space-md:16px; --space-lg:24px; --space-xl:40px;
+}

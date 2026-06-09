@@ -1,0 +1,23 @@
+{
+  "$comment": "Origen design tokens — derivados de docs/brand-guidelines.md (source of truth).",
+  "color": {
+    "pine": "#0B3D2E",
+    "pine-2": "#0E4A38",
+    "leaf": "#2E8B5E",
+    "gold": "#C2A04C",
+    "ivory": "#F5F2EB",
+    "ink": "#16211B",
+    "line": "#E3DECF",
+    "muted": "#6F726B",
+    "risk-clean": "#2E8B5E",
+    "risk-review": "#C2A04C",
+    "risk-high": "#C0392B"
+  },
+  "font": {
+    "heading": "Sora, system-ui, -apple-system, sans-serif",
+    "body": "system-ui, -apple-system, sans-serif"
+  },
+  "radius": { "sm": "9px", "md": "12px", "lg": "16px", "pill": "20px" },
+  "space": { "xs": "8px", "sm": "12px", "md": "16px", "lg": "24px", "xl": "40px" },
+  "type-scale": { "h1": "44px", "h2": "30px", "h3": "17px", "body": "16px" }
+}

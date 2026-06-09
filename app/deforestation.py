@@ -58,8 +58,7 @@ def _gfw_alerts(geometry):
     cutoff = f"{config.CUTOFF_YEAR}-12-31"
     url = f"{GFW_BASE}/dataset/gfw_integrated_alerts/latest/query/json"
     sql = ("SELECT SUM(area__ha) AS ha FROM results "
-           f"WHERE gfw_integrated_alerts__date > '{cutoff}' "
-           "AND gfw_integrated_alerts__confidence <> 'low'")
+           f"WHERE gfw_integrated_alerts__date > '{cutoff}'")
     r = requests.post(url,
                       headers={"x-api-key": config.GFW_API_KEY, "Content-Type": "application/json"},
                       json={"sql": sql, "geometry": geometry}, timeout=30)

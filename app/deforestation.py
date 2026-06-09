@@ -53,42 +53,58 @@ def _gfw_loss_ha(geometry):
     return float(rows[0].get("loss") or 0.0) if rows else 0.0
 
 def _gfw_alerts(geometry):
-    """Cuenta alertas de deforestacion reciente (GFW Integrated Alerts: RADD/GLAD) posteriores al corte."""
+    """Hectareas con alertas de deforestacion reciente (GFW Integrated Alerts: RADD/GLAD) tras el corte."""
     import requests
     cutoff = f"{config.CUTOFF_YEAR}-12-31"
     url = f"{GFW_BASE}/dataset/gfw_integrated_alerts/latest/query/json"
-    sql = ("SELECT count(*) AS n FROM results "
+    sql = ("SELECT SUM(area__ha) AS ha FROM results "
            f"WHERE gfw_integrated_alerts__date > '{cutoff}' "
            "AND gfw_integrated_alerts__confidence <> 'low'")
     r = requests.post(url,
                       headers={"x-api-key": config.GFW_API_KEY, "Content-Type": "application/json"},
                       json={"sql": sql, "geometry": geometry}, timeout=30)
-    if not r.ok: raise RuntimeError(f"{r.status_code}: {r.text[:150]}")
+    if not r.ok: raise RuntimeError(f"{r.status_code}: {r.text[:120]}")
     rows = r.json().get("data", [])
-    return int(rows[0].get("n") or 0) if rows else 0
+    return float(rows[0].get("ha") or 0.0) if rows else 0.0
+
+def _gfw_protected(geometry):
+    """True si la parcela intersecta un area protegida (WDPA): senal de legalidad EUDR."""
+    import requests
+    url = f"{GFW_BASE}/dataset/wdpa_protected_areas/latest/query/json"
+    r = requests.post(url,
+                      headers={"x-api-key": config.GFW_API_KEY, "Content-Type": "application/json"},
+                      json={"sql": "SELECT count(*) AS n FROM results", "geometry": geometry}, timeout=30)
+    if not r.ok: raise RuntimeError(f"{r.status_code}: {r.text[:120]}")
+    rows = r.json().get("data", [])
+    return (int(rows[0].get("n") or 0) > 0) if rows else False
 
 def _gfw_check(lot: Lot):
-    """Combina dos fuentes: perdida de bosque (Hansen) + alertas recientes (Integrated Alerts)."""
+    """Combina fuentes: perdida (Hansen) + alertas recientes (Integrated Alerts) + areas protegidas (WDPA)."""
     out = []
     for pl in lot.plots:
         geom = _plot_polygon(pl)
-        loss = alerts = None; errs = []
+        loss = alerts = prot = None
         try: loss = _gfw_loss_ha(geom)
-        except Exception as e: errs.append(f"perdida:{e}")
+        except Exception as e: print("GFW loss error:", e)
         try: alerts = _gfw_alerts(geom)
-        except Exception as e: errs.append(f"alertas:{e}")
+        except Exception as e: print("GFW alerts error:", e)
+        try: prot = _gfw_protected(geom)
+        except Exception as e: print("GFW wdpa error:", e)
         if loss is None and alerts is None:
-            out.append(DeforestationFinding(pl.plot_id, "review", False, ("GFW error: " + "; ".join(errs))[:140]))
+            out.append(DeforestationFinding(pl.plot_id, "review", False,
+                "GFW: sin respuesta de las fuentes (revisar manualmente)"))
             continue
-        lv = loss or 0.0; av = alerts or 0
-        high = (lv >= config.LOSS_THRESHOLD_HA) or (av >= config.ALERTS_THRESHOLD)
-        mid = (lv > 0) or (av > 0)
+        lv = loss or 0.0; av = alerts or 0.0
+        high = (lv >= config.LOSS_THRESHOLD_HA) or (av >= config.LOSS_THRESHOLD_HA)
+        mid = (lv > 0) or (av > 0) or (prot is True)
         risk = "high" if high else ("review" if mid else "negligible")
         parts = [f"perdida {lv:.2f} ha" if lv > 0 else "sin perdida"]
+        srcs = ["Hansen"]
         if alerts is not None:
-            parts.append(f"{av} alertas recientes" if av > 0 else "sin alertas recientes")
-        src = "Hansen + alertas integradas" if alerts is not None else "Hansen"
-        detail = f"post-{config.CUTOFF_YEAR}: " + ", ".join(parts) + f" (GFW: {src})"
+            parts.append(f"alertas {av:.2f} ha" if av > 0 else "sin alertas recientes"); srcs.append("alertas")
+        if prot is not None:
+            parts.append("EN area protegida" if prot else "fuera de areas protegidas"); srcs.append("WDPA")
+        detail = f"post-{config.CUTOFF_YEAR}: " + ", ".join(parts) + " (GFW: " + " + ".join(srcs) + ")"
         out.append(DeforestationFinding(pl.plot_id, risk, high, detail))
     return out
 

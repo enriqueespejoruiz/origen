@@ -48,7 +48,7 @@ def _gfw_loss_ha(geometry):
     r = requests.post(url,
                       headers={"x-api-key": config.GFW_API_KEY, "Content-Type": "application/json"},
                       json={"sql": sql, "geometry": geometry}, timeout=30)
-    r.raise_for_status()
+    if not r.ok: raise RuntimeError(f"{r.status_code}: {r.text[:150]}")
     rows = r.json().get("data", [])
     return float(rows[0].get("loss") or 0.0) if rows else 0.0
 
@@ -63,7 +63,7 @@ def _gfw_alerts(geometry):
     r = requests.post(url,
                       headers={"x-api-key": config.GFW_API_KEY, "Content-Type": "application/json"},
                       json={"sql": sql, "geometry": geometry}, timeout=30)
-    r.raise_for_status()
+    if not r.ok: raise RuntimeError(f"{r.status_code}: {r.text[:150]}")
     rows = r.json().get("data", [])
     return int(rows[0].get("n") or 0) if rows else 0
 

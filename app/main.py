@@ -23,6 +23,10 @@ def capturar():
 def normativa():
     return _page("normativa.html")
 
+@app.get("/empezar")
+def empezar():
+    return _page("empezar.html")
+
 @app.get("/healthz")
 def healthz():
     return {"ok": True, "model": config.GEMINI_MODEL, "gemini_ready": config.gemini_ready()}
@@ -54,6 +58,40 @@ def capture(c: CaptureIn):
             pass
     storage.save_lot(lot)
     return {"lot_id": lot_id, "producer": lot.producer_name}
+
+# ---- Captacion de leads (onboarding desde la landing) ----
+
+class LeadIn(BaseModel):
+    name: str = ""
+    org: str = ""
+    email: str = ""
+    phone: str = ""
+    role: str = ""
+    commodity: str = ""
+    plots: str = ""
+    message: str = ""
+
+@app.post("/lead")
+def lead(l: LeadIn):
+    import datetime
+    rec = l.model_dump(); rec["ts"] = datetime.datetime.utcnow().isoformat() + "Z"
+    print("LEAD " + json.dumps(rec, ensure_ascii=False))  # queda en los logs de Cloud Run
+    saved = False
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            firestore.Client(project=config.GCP_PROJECT).collection("leads").add(rec)
+            saved = True
+        except Exception:
+            pass
+    if not saved:
+        try:
+            os.makedirs(config.DATA_DIR, exist_ok=True)
+            with open(os.path.join(config.DATA_DIR, "leads.jsonl"), "a") as f:
+                f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+        except Exception:
+            pass
+    return {"ok": True}
 
 # ---- Intake por texto libre (Gemini) ----
 
@@ -88,7 +126,14 @@ def get_dossier(lot_id: str):
     p = os.path.join(config.DATA_DIR, "dossiers", f"{lot_id}_dossier.pdf")
     if not os.path.exists(p):
         raise HTTPException(404, "Genera el dossier con POST /lots/{id}/process primero")
-    return FileResponse(p, media_type="application/pdf")
+    return FileResponse(p, media_type="application/pdf", filename=f"{lot_id}_dossier.pdf")
+
+@app.get("/lots/{lot_id}/geojson")
+def get_geojson(lot_id: str):
+    p = os.path.join(config.DATA_DIR, "dossiers", f"{lot_id}.geojson")
+    if not os.path.exists(p):
+        raise HTTPException(404, "Genera el dossier con POST /lots/{id}/process primero")
+    return FileResponse(p, media_type="application/geo+json", filename=f"{lot_id}.geojson")
 
 def _load(lot_id: str) -> Lot:
     fp = os.path.join(config.DATA_DIR, f"{lot_id}.json")

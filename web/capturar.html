@@ -68,6 +68,9 @@ button.sec:hover{background:#f3f6f3}
 .hi{background:#fbe8e4;color:#a8341f}.rev{background:#f7efd8;color:#856312}
 img.prev{width:100%;border-radius:var(--radius-md);margin-top:10px;border:1px solid var(--brand-line)}
 .muted{color:#8a8d85;font-size:13px}
+.dl{display:flex;gap:16px;margin-top:7px}
+.dl a{font-size:13px;color:var(--brand-pine);font-weight:600;text-decoration:none}
+.dl a:hover{text-decoration:underline}
 .filerow{margin-top:6px}
 input[type=file]{padding:11px;font-size:14px;background:#fafaf7}
 input[type=file]::file-selector-button{font-family:var(--font-heading);font-weight:600;border:0;
@@ -123,16 +126,26 @@ const save=()=>localStorage.setItem('origen_queue',JSON.stringify(queue));
 function netUI(){const o=navigator.onLine;$('net').textContent=o?'en línea':'sin señal';$('net').style.background=o?'rgba(255,255,255,.18)':'rgba(0,0,0,.3)';}
 addEventListener('online',()=>{netUI();sync();});addEventListener('offline',netUI);netUI();
 
+let gpsWatch=null;
+function gpsStop(){ if(gpsWatch!=null){navigator.geolocation.clearWatch(gpsWatch);gpsWatch=null;} }
 $('gps').onclick=()=>{
   if(!navigator.geolocation){alert('Tu teléfono no permite GPS en el navegador');return;}
-  $('gps').textContent='Obteniendo ubicación…';
-  navigator.geolocation.getCurrentPosition(p=>{
-    coords={lat:p.coords.latitude,lon:p.coords.longitude,acc:Math.round(p.coords.accuracy)};
-    $('gpsout').style.display='flex';
-    $('gpsout').textContent='✓ '+coords.lat.toFixed(5)+', '+coords.lon.toFixed(5)+'  (±'+coords.acc+' m)';
-    $('gps').textContent='Volver a capturar ubicación';
-  },e=>{$('gps').textContent='Capturar ubicación GPS';alert('No se pudo obtener GPS: '+e.message);},
-  {enableHighAccuracy:true,timeout:15000,maximumAge:0});
+  gpsStop(); coords=null;
+  $('gps').textContent='Afinando GPS…';
+  $('gpsout').style.display='flex';
+  $('gpsout').style.background='#eaf3ee'; $('gpsout').style.color='#0a5236';
+  $('gpsout').textContent='Buscando señal… mantente quieto, a cielo abierto.';
+  const t0=Date.now();
+  gpsWatch=navigator.geolocation.watchPosition(p=>{
+    const acc=Math.round(p.coords.accuracy);
+    if(!coords || acc<coords.acc) coords={lat:p.coords.latitude,lon:p.coords.longitude,acc:acc};
+    const a=coords.acc, ok=a<=10, mid=a<=25;
+    $('gpsout').style.background = ok?'#eaf3ee':(mid?'#f7efd8':'#fbe8e4');
+    $('gpsout').style.color = ok?'#0a5236':(mid?'#856312':'#a8341f');
+    $('gpsout').textContent=(ok?'✓ ':'… ')+coords.lat.toFixed(5)+', '+coords.lon.toFixed(5)+'  (±'+a+' m)'+(ok?'':' afinando…');
+    if(a<=10 || Date.now()-t0>20000){ gpsStop(); $('gps').textContent='Volver a capturar ubicación'; }
+  },e=>{ gpsStop(); $('gps').textContent='Capturar ubicación GPS'; $('gpsout').textContent='No se pudo obtener GPS: '+e.message; },
+  {enableHighAccuracy:true,timeout:20000,maximumAge:0});
 };
 
 $('photo').onchange=e=>{
@@ -154,7 +167,7 @@ $('save').onclick=()=>{
     commodity:$('com').value,area_ha:parseFloat($('area').value)||null,
     lat:coords.lat,lon:coords.lon,photo_base64:photo,status:'pendiente'});
   save();render();
-  $('prod').value='';$('area').value='';photo=null;coords=null;
+  gpsStop();$('prod').value='';$('area').value='';photo=null;coords=null;
   $('prev').style.display='none';$('gpsout').style.display='none';$('gps').textContent='Capturar ubicación GPS';
   if(navigator.onLine)sync();
 };
@@ -171,7 +184,12 @@ function render(){
       else if(i.risk)b='<span class="b ok">limpio</span>';
       else b='<span class="b ok">enviado</span>';
     }
-    return '<div class="item"><div>'+i.producer+'<div class="muted">'+i.lat.toFixed(4)+', '+i.lon.toFixed(4)+'</div></div>'+b+'</div>';
+    let dl='';
+    if(i.status==='enviado'&&i.lot_id){
+      dl='<div class="dl"><a href="/lots/'+i.lot_id+'/dossier" target="_blank" rel="noopener">Dossier PDF</a>'+
+         '<a href="/lots/'+i.lot_id+'/geojson" target="_blank" rel="noopener">Datos (GeoJSON)</a></div>';
+    }
+    return '<div class="item"><div>'+i.producer+'<div class="muted">'+i.lat.toFixed(4)+', '+i.lon.toFixed(4)+'</div>'+dl+'</div>'+b+'</div>';
   }).join('');
 }
 

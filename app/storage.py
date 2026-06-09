@@ -15,6 +15,21 @@ def save_lot(lot):
         json.dump(asdict(lot), f, indent=2, default=str)
     return "local"
 
+def load_lot(lot_id):
+    """Lee un lote desde Firestore si esta disponible; si no, del archivo local."""
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            doc = firestore.Client(project=config.GCP_PROJECT).collection("lots").document(lot_id).get()
+            if doc.exists:
+                return doc.to_dict()
+        except Exception:
+            pass
+    fp = os.path.join(config.DATA_DIR, f"{lot_id}.json")
+    if os.path.exists(fp):
+        return json.load(open(fp))
+    return None
+
 def upload_file(path):
     if config.GCS_BUCKET:
         try:

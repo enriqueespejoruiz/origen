@@ -136,10 +136,9 @@ def get_geojson(lot_id: str):
     return FileResponse(p, media_type="application/geo+json", filename=f"{lot_id}.geojson")
 
 def _load(lot_id: str) -> Lot:
-    fp = os.path.join(config.DATA_DIR, f"{lot_id}.json")
-    if not os.path.exists(fp):
+    d = storage.load_lot(lot_id)
+    if not d:
         raise HTTPException(404, "Lote no encontrado")
-    d = json.load(open(fp))
     plots = [Plot(p["plot_id"], [GeoPoint(**pt) for pt in p["points"]], p.get("area_ha")) for p in d["plots"]]
     return Lot(d["lot_id"], d["producer_name"], d["cooperative"], d["commodity"],
                d.get("country", "PE"), d.get("region", ""), plots,

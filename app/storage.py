@@ -40,3 +40,31 @@ def upload_file(path):
         except Exception:
             pass
     return path
+
+def save_blob(lot_id, name, data: bytes):
+    """Guarda un archivo generado (pdf/geojson) de forma durable para servirlo desde cualquier instancia."""
+    import base64
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            firestore.Client(project=config.GCP_PROJECT).collection("files").document(lot_id)\
+                .set({name: base64.b64encode(data).decode()}, merge=True)
+            return "firestore"
+        except Exception:
+            pass
+    return "local"
+
+def load_blob(lot_id, name):
+    """Lee un archivo generado desde el almacenamiento durable (Firestore). None si no existe."""
+    import base64
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            doc = firestore.Client(project=config.GCP_PROJECT).collection("files").document(lot_id).get()
+            if doc.exists:
+                v = doc.to_dict().get(name)
+                if v:
+                    return base64.b64decode(v)
+        except Exception:
+            pass
+    return None

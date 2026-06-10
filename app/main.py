@@ -1,6 +1,6 @@
 import os, uuid, json, base64
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 from . import gemini, deforestation, dossier, storage, config
 from .models import Lot, Plot, GeoPoint
@@ -136,22 +136,57 @@ def process(lot_id: str):
     gj = dossier.build_geojson(lot, out)
     pdf = dossier.build_pdf(lot, findings, narrative, profile, out)
     storage.upload_file(gj); storage.upload_file(pdf)
+    try:
+        storage.save_blob(lot_id, "dossier.pdf", open(pdf, "rb").read())
+        storage.save_blob(lot_id, "data.geojson", open(gj, "rb").read())
+    except Exception:
+        pass
     return {"lot_id": lot_id, "overall_risk": dossier.overall_risk(findings),
             "geojson": gj, "pdf": pdf, "findings": [f.__dict__ for f in findings]}
+
+def _ensure_outputs(lot_id: str):
+    """Regenera dossier+geojson desde el lote durable si faltan en disco (instancias efimeras de Cloud Run)."""
+    out = os.path.join(config.DATA_DIR, "dossiers")
+    pdf = os.path.join(out, f"{lot_id}_dossier.pdf")
+    gj  = os.path.join(out, f"{lot_id}.geojson")
+    if os.path.exists(pdf) and os.path.exists(gj):
+        return pdf, gj
+    lot = _load(lot_id)
+    findings = deforestation.check_plots(lot)
+    narrative = gemini.generate_dossier_narrative(lot, findings)
+    profile = gemini.generate_buyer_profile(lot)
+    gj = dossier.build_geojson(lot, out)
+    pdf = dossier.build_pdf(lot, findings, narrative, profile, out)
+    try:
+        storage.save_blob(lot_id, "dossier.pdf", open(pdf, "rb").read())
+        storage.save_blob(lot_id, "data.geojson", open(gj, "rb").read())
+    except Exception:
+        pass
+    return pdf, gj
 
 @app.get("/lots/{lot_id}/dossier")
 def get_dossier(lot_id: str):
     p = os.path.join(config.DATA_DIR, "dossiers", f"{lot_id}_dossier.pdf")
-    if not os.path.exists(p):
-        raise HTTPException(404, "Genera el dossier con POST /lots/{id}/process primero")
+    if os.path.exists(p):
+        return FileResponse(p, media_type="application/pdf", filename=f"{lot_id}_dossier.pdf")
+    blob = storage.load_blob(lot_id, "dossier.pdf")
+    if blob:
+        return Response(blob, media_type="application/pdf",
+                        headers={"Content-Disposition": f'inline; filename="{lot_id}_dossier.pdf"'})
+    p, _ = _ensure_outputs(lot_id)
     return FileResponse(p, media_type="application/pdf", filename=f"{lot_id}_dossier.pdf")
 
 @app.get("/lots/{lot_id}/geojson")
 def get_geojson(lot_id: str):
     p = os.path.join(config.DATA_DIR, "dossiers", f"{lot_id}.geojson")
-    if not os.path.exists(p):
-        raise HTTPException(404, "Genera el dossier con POST /lots/{id}/process primero")
-    return FileResponse(p, media_type="application/geo+json", filename=f"{lot_id}.geojson")
+    if os.path.exists(p):
+        return FileResponse(p, media_type="application/geo+json", filename=f"{lot_id}.geojson")
+    blob = storage.load_blob(lot_id, "data.geojson")
+    if blob:
+        return Response(blob, media_type="application/geo+json",
+                        headers={"Content-Disposition": f'inline; filename="{lot_id}.geojson"'})
+    _, gj = _ensure_outputs(lot_id)
+    return FileResponse(gj, media_type="application/geo+json", filename=f"{lot_id}.geojson")
 
 def _load(lot_id: str) -> Lot:
     d = storage.load_lot(lot_id)

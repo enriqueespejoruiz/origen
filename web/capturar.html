@@ -75,6 +75,10 @@ img.prev{width:100%;border-radius:var(--radius-md);margin-top:10px;border:1px so
 input[type=file]{padding:11px;font-size:14px;background:#fafaf7}
 input[type=file]::file-selector-button{font-family:var(--font-heading);font-weight:600;border:0;
   background:rgba(46,139,94,.12);color:var(--brand-pine);padding:8px 12px;border-radius:9px;margin-right:12px;cursor:pointer}
+.seg{display:flex;gap:8px;margin-top:14px}
+.segb{flex:1;width:auto;margin:0;padding:11px;font-size:14px;background:#fff;color:var(--brand-pine);
+  border:1.5px solid #d3cebf;box-shadow:none;font-family:var(--font-heading)}
+.segb.on{background:var(--brand-pine);color:#fff;border-color:var(--brand-pine)}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
 <header>
@@ -100,8 +104,20 @@ input[type=file]::file-selector-button{font-family:var(--font-heading);font-weig
         <select id="com"><option value="coffee">Café</option><option value="cacao">Cacao</option></select></div>
       <div><label for="area">Área (ha)</label><input id="area" type="number" inputmode="decimal" placeholder="ej. 2"></div>
     </div>
-    <button class="sec" id="gps"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 22s8-5.6 8-12a8 8 0 1 0-16 0c0 6.4 8 12 8 12Z" stroke="currentColor" stroke-width="1.9"/><circle cx="12" cy="10" r="2.6" stroke="currentColor" stroke-width="1.9"/></svg>Capturar ubicación GPS</button>
-    <div class="gps" id="gpsout" style="display:none" aria-live="polite"></div>
+    <div class="seg" id="seg">
+      <button type="button" class="segb on" data-m="point">Punto (≤4 ha)</button>
+      <button type="button" class="segb" data-m="poly">Polígono (&gt;4 ha)</button>
+    </div>
+    <div id="pointBox">
+      <button class="sec" id="gps"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 22s8-5.6 8-12a8 8 0 1 0-16 0c0 6.4 8 12 8 12Z" stroke="currentColor" stroke-width="1.9"/><circle cx="12" cy="10" r="2.6" stroke="currentColor" stroke-width="1.9"/></svg>Capturar ubicación GPS</button>
+      <div class="gps" id="gpsout" style="display:none" aria-live="polite"></div>
+    </div>
+    <div id="polyBox" style="display:none">
+      <button class="sec" id="vtx"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Marcar esquina (vértice)</button>
+      <div class="gps" id="vtxout" style="display:none" aria-live="polite"></div>
+      <div id="vlist"></div>
+      <p class="muted">Párate en cada esquina del predio y marca el vértice. Mínimo 3; lo ideal, todas las esquinas.</p>
+    </div>
     <label for="photo">Foto del predio (opcional)</label>
     <div class="filerow"><input id="photo" type="file" accept="image/*" capture="environment"></div>
     <img class="prev" id="prev" style="display:none" alt="Vista previa de la foto del predio">
@@ -148,6 +164,48 @@ $('gps').onclick=()=>{
   {enableHighAccuracy:true,timeout:20000,maximumAge:0});
 };
 
+let mode='point', verts=[], vWatch=null;
+document.querySelectorAll('.segb').forEach(b=>b.onclick=()=>{
+  mode=b.dataset.m;
+  document.querySelectorAll('.segb').forEach(x=>x.classList.toggle('on',x===b));
+  $('pointBox').style.display = mode==='point'?'block':'none';
+  $('polyBox').style.display  = mode==='poly'?'block':'none';
+});
+$('area').addEventListener('input',()=>{
+  if((parseFloat($('area').value)||0)>4 && mode==='point') document.querySelector('.segb[data-m="poly"]').click();
+});
+function polyAreaHa(v){ if(v.length<3)return 0; const R=6378137,toR=Math.PI/180; let a=0;
+  for(let i=0;i<v.length;i++){const p1=v[i],p2=v[(i+1)%v.length]; a+=(p2.lon-p1.lon)*toR*(2+Math.sin(p1.lat*toR)+Math.sin(p2.lat*toR));}
+  return Math.abs(a*R*R/2.0)/10000; }
+function renderV(){
+  const ha=polyAreaHa(verts);
+  let h=verts.map((v,i)=>'<div class="item"><div>Esquina '+(i+1)+'<div class="muted">'+v.lat.toFixed(5)+', '+v.lon.toFixed(5)+'  (±'+v.acc+' m)</div></div><span class="b ok">✓</span></div>').join('');
+  if(verts.length) h+='<div class="item"><div><b>'+verts.length+' vértices</b><div class="muted">área medida ≈ '+ha.toFixed(2)+' ha</div></div>'+(verts.length>=3?'<button class="sec" id="vdel" style="width:auto;margin:0;padding:8px 12px;font-size:13px">Quitar último</button>':'<span class="b pend">faltan '+(3-verts.length)+'</span>')+'</div>';
+  $('vlist').innerHTML=h;
+  const d=$('vdel'); if(d)d.onclick=()=>{verts.pop();renderV();};
+  if(ha>0 && !$('area').value) $('area').value=ha.toFixed(2);
+}
+$('vtx').onclick=()=>{
+  if(!navigator.geolocation){alert('Tu teléfono no permite GPS en el navegador');return;}
+  if(vWatch!=null){navigator.geolocation.clearWatch(vWatch);vWatch=null;}
+  let best=null; const t0=Date.now();
+  $('vtx').textContent='Afinando…'; $('vtxout').style.display='flex';
+  $('vtxout').style.background='#eaf3ee'; $('vtxout').style.color='#0a5236';
+  $('vtxout').textContent='Buscando señal en esta esquina… mantente quieto.';
+  vWatch=navigator.geolocation.watchPosition(p=>{
+    const acc=Math.round(p.coords.accuracy);
+    if(!best||acc<best.acc)best={lat:p.coords.latitude,lon:p.coords.longitude,acc:acc};
+    $('vtxout').textContent='Señal ±'+best.acc+' m'+(best.acc<=10?' ✓':' afinando…');
+    if(best.acc<=10||Date.now()-t0>10000){
+      navigator.geolocation.clearWatch(vWatch);vWatch=null;
+      verts.push(best); renderV();
+      $('vtx').textContent='Marcar esquina (vértice)';
+      $('vtxout').textContent='Vértice '+verts.length+' guardado (±'+best.acc+' m)';
+    }
+  },e=>{ if(vWatch!=null){navigator.geolocation.clearWatch(vWatch);vWatch=null;} $('vtx').textContent='Marcar esquina (vértice)'; $('vtxout').textContent='No se pudo: '+e.message; },
+  {enableHighAccuracy:true,timeout:12000,maximumAge:0});
+};
+
 $('photo').onchange=e=>{
   const f=e.target.files[0]; if(!f)return;
   const img=new Image();
@@ -161,14 +219,21 @@ $('photo').onchange=e=>{
 };
 
 $('save').onclick=()=>{
-  if(!coords){alert('Primero captura la ubicación GPS, parado en la parcela');return;}
   if(!$('prod').value.trim()){alert('Pon el nombre del productor');return;}
-  queue.push({id:Date.now(),producer:$('prod').value.trim(),cooperative:$('coop').value.trim(),
-    commodity:$('com').value,area_ha:parseFloat($('area').value)||null,
-    lat:coords.lat,lon:coords.lon,photo_base64:photo,status:'pendiente'});
-  save();render();
-  gpsStop();$('prod').value='';$('area').value='';photo=null;coords=null;
-  $('prev').style.display='none';$('gpsout').style.display='none';$('gps').textContent='Capturar ubicación GPS';
+  let item={id:Date.now(),producer:$('prod').value.trim(),cooperative:$('coop').value.trim(),
+    commodity:$('com').value,area_ha:parseFloat($('area').value)||null,photo_base64:photo,status:'pendiente'};
+  if(mode==='poly'){
+    if(verts.length<3){alert('Marca al menos 3 esquinas del predio (caminando el perímetro)');return;}
+    item.points=verts.map(v=>({lat:v.lat,lon:v.lon})); item.geom='poly';
+    item.lat=verts.reduce((s,v)=>s+v.lat,0)/verts.length; item.lon=verts.reduce((s,v)=>s+v.lon,0)/verts.length;
+  }else{
+    if(!coords){alert('Primero captura la ubicación GPS, parado en la parcela');return;}
+    item.lat=coords.lat; item.lon=coords.lon; item.geom='point';
+  }
+  queue.push(item); save(); render();
+  gpsStop(); $('prod').value='';$('area').value='';photo=null;coords=null;verts=[];renderV();
+  $('prev').style.display='none';$('gpsout').style.display='none';$('vtxout').style.display='none';
+  $('gps').textContent='Capturar ubicación GPS';
   if(navigator.onLine)sync();
 };
 
@@ -189,7 +254,7 @@ function render(){
       dl='<div class="dl"><a href="/lots/'+i.lot_id+'/dossier" target="_blank" rel="noopener">Dossier PDF</a>'+
          '<a href="/lots/'+i.lot_id+'/geojson" target="_blank" rel="noopener">Datos (GeoJSON)</a></div>';
     }
-    return '<div class="item"><div>'+i.producer+'<div class="muted">'+i.lat.toFixed(4)+', '+i.lon.toFixed(4)+'</div>'+dl+'</div>'+b+'</div>';
+    return '<div class="item"><div>'+i.producer+'<div class="muted">'+(i.geom==='poly'?('polígono · '+(i.points?i.points.length:0)+' vért.'):(i.lat.toFixed(4)+', '+i.lon.toFixed(4)))+'</div>'+dl+'</div>'+b+'</div>';
   }).join('');
 }
 
@@ -200,7 +265,7 @@ async function sync(){
     try{
       const r=await fetch('/capture',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({producer:i.producer,cooperative:i.cooperative,commodity:i.commodity,
-          area_ha:i.area_ha,lat:i.lat,lon:i.lon,photo_base64:i.photo_base64})});
+          area_ha:i.area_ha,lat:i.lat,lon:i.lon,points:i.points||null,photo_base64:i.photo_base64})});
       if(!r.ok)continue;
       const d=await r.json(); i.lot_id=d.lot_id; i.status='enviado'; i.photo_base64=null; save(); render();
       try{const p=await (await fetch('/lots/'+d.lot_id+'/process',{method:'POST'})).json(); i.risk=p.overall_risk; save(); render();}catch(e){}

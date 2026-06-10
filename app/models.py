@@ -23,6 +23,7 @@ class Lot:
     plots: List[Plot] = field(default_factory=list)
     harvest_season: str = ""
     raw_notes: str = ""
+    quantity: str = ""              # cantidad estimada del lote (p. ej. "1,200 kg")
 
 @dataclass
 class DeforestationFinding:

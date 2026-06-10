@@ -83,7 +83,7 @@ def build_pdf(lot, findings, narrative, profile, out_dir):
 
     E += [Paragraph("Producto", H),
           kv([("Producto", hs[2]), ("Código HS", hs[0]), ("Nombre científico", hs[1]),
-              ("País de producción", lot.country), ("Cantidad", "— (a indicar por lote)")])]
+              ("País de producción", lot.country), ("Cantidad", lot.quantity or "— (a indicar por lote)")])]
     E += [Paragraph("Origen y cadena", H),
           kv([("Productor", lot.producer_name or "—"), ("Cooperativa / proveedor", lot.cooperative or "—"),
               ("Región", lot.region or "—"), ("N° de parcelas", str(len(lot.plots)))])]
@@ -93,10 +93,16 @@ def build_pdf(lot, findings, narrative, profile, out_dir):
     E += [Paragraph("Parcelas y verificación", H)]
     rows = [[Paragraph(x, TH) for x in ["Parcela", "Latitud", "Longitud", "Área (ha)", "Riesgo", "Detalle / fuente"]]]
     for f, pl in zip(findings, lot.plots):
-        pt = pl.points[0] if pl.points else None
-        rows.append([Paragraph(_esc(f.plot_id), TD),
-                     Paragraph(f"{pt.lat:.5f}" if pt else "—", TD),
-                     Paragraph(f"{pt.lon:.5f}" if pt else "—", TD),
+        poly = len(pl.points) >= 3
+        if pl.points:
+            clat = sum(p.lat for p in pl.points) / len(pl.points)
+            clon = sum(p.lon for p in pl.points) / len(pl.points)
+        else:
+            clat = clon = None
+        label = _esc(f.plot_id) + (f'<br/><font size="7" color="#6F726B">polígono · {len(pl.points)} vért.</font>' if poly else "")
+        rows.append([Paragraph(label, TD),
+                     Paragraph(f"{clat:.5f}" if clat is not None else "—", TD),
+                     Paragraph(f"{clon:.5f}" if clon is not None else "—", TD),
                      Paragraph(f"{pl.area_ha}" if pl.area_ha else "—", TD),
                      Paragraph(_esc(f.risk), TD),
                      Paragraph(_esc(f.detail), TD)])
@@ -105,10 +111,16 @@ def build_pdf(lot, findings, narrative, profile, out_dir):
                               ("VALIGN",(0,0),(-1,-1),"MIDDLE"),("LEFTPADDING",(0,0),(-1,-1),5),
                               ("RIGHTPADDING",(0,0),(-1,-1),5),("TOPPADDING",(0,0),(-1,-1),4),
                               ("BOTTOMPADDING",(0,0),(-1,-1),4),("ROWBACKGROUNDS",(0,1),(-1,-1),[colors.white, IVORY])]))
-    E += [ptab, Spacer(1, 5), Paragraph("Fecha de corte de deforestación: 31 de diciembre de 2020.", S)]
+    E += [ptab, Spacer(1, 5),
+          Paragraph("Geometría: las parcelas mayores a 4 ha se registran como polígono de límites (vértices GPS); "
+                    "las coordenadas mostradas corresponden al centroide. "
+                    "Fecha de corte de deforestación: 31 de diciembre de 2020.", S)]
 
-    E += [Paragraph("Evaluación de diligencia debida", H), Paragraph(_esc(narrative), P), Spacer(1, 4),
-          Paragraph("Legalidad: producción declarada conforme a la legislación del país de origen (a verificar con el proveedor).", S)]
+    E += [Paragraph("Evaluación de diligencia debida", H), Paragraph(_esc(narrative), P)]
+    E += [Paragraph("Legalidad y tenencia — a validar con el proveedor", H),
+          kv([("Título o derecho de uso del predio", ""),
+              ("Conformidad ambiental y forestal", ""),
+              ("Conformidad laboral y derechos de terceros", "")], fill=True)]
 
     E += [Paragraph("Fuentes de datos", H),
           Paragraph("Verificación basada en Hansen Global Forest Change (UMD/Google, vía Global Forest Watch). "

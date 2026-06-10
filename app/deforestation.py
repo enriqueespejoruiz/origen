@@ -3,6 +3,7 @@ from . import config
 from .models import Lot, DeforestationFinding
 
 GFW_BASE = "https://data-api.globalforestwatch.org"
+JRC_COG = "https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/FOREST/GFC2020/LATEST/single-cog/JRC_GFC2020_V3_COG.tif"
 _VERSION = None
 
 def check_plots(lot: Lot):
@@ -77,21 +78,41 @@ def _gfw_protected(geometry):
     rows = r.json().get("data", [])
     return (int(rows[0].get("n") or 0) > 0) if rows else False
 
+def _jrc_forest(lat, lon):
+    """True si el punto era bosque en 2020 segun el mapa de referencia de la UE (JRC GFC2020 V3, COG)."""
+    import os as _os
+    _os.environ.setdefault("GDAL_DISABLE_READDIR_ON_OPEN", "EMPTY_DIR")
+    _os.environ.setdefault("CPL_VSIL_CURL_ALLOWED_EXTENSIONS", ".tif")
+    _os.environ.setdefault("GDAL_HTTP_TIMEOUT", "25")
+    import rasterio
+    from rasterio.warp import transform as _tf
+    with rasterio.open("/vsicurl/" + JRC_COG) as src:
+        epsg = src.crs.to_epsg() if src.crs else 4326
+        if epsg and epsg != 4326:
+            xs, ys = _tf("EPSG:4326", src.crs, [lon], [lat]); pt = (xs[0], ys[0])
+        else:
+            pt = (lon, lat)
+        val = next(src.sample([pt]))[0]
+    return int(val) == 1
+
 def _gfw_check(lot: Lot):
-    """Combina fuentes: perdida (Hansen) + alertas recientes (Integrated Alerts) + areas protegidas (WDPA)."""
+    """Combina fuentes: perdida (Hansen) + alertas (Integrated Alerts) + WDPA + baseline JRC 2020."""
     out = []
     for pl in lot.plots:
         geom = _plot_polygon(pl)
-        loss = alerts = prot = None
+        pt = pl.points[0] if pl.points else None
+        loss = alerts = prot = jrc = None
         try: loss = _gfw_loss_ha(geom)
         except Exception as e: print("GFW loss error:", e)
         try: alerts = _gfw_alerts(geom)
         except Exception as e: print("GFW alerts error:", e)
         try: prot = _gfw_protected(geom)
         except Exception as e: print("GFW wdpa error:", e)
+        try: jrc = _jrc_forest(pt.lat, pt.lon) if pt else None
+        except Exception as e: print("JRC error:", e)
         if loss is None and alerts is None:
             out.append(DeforestationFinding(pl.plot_id, "review", False,
-                "GFW: sin respuesta de las fuentes (revisar manualmente)"))
+                "Sin respuesta de las fuentes satelitales (revisar manualmente)"))
             continue
         lv = loss or 0.0; av = alerts or 0.0
         high = (lv >= config.LOSS_THRESHOLD_HA) or (av >= config.LOSS_THRESHOLD_HA)
@@ -103,7 +124,9 @@ def _gfw_check(lot: Lot):
             parts.append(f"alertas {av:.2f} ha" if av > 0 else "sin alertas recientes"); srcs.append("alertas")
         if prot is not None:
             parts.append("EN area protegida" if prot else "fuera de areas protegidas"); srcs.append("WDPA")
-        detail = f"post-{config.CUTOFF_YEAR}: " + ", ".join(parts) + " (GFW: " + " + ".join(srcs) + ")"
+        if jrc is not None:
+            parts.append("bosque 2020 (JRC)" if jrc else "no bosque 2020 (JRC)"); srcs.append("JRC")
+        detail = f"post-{config.CUTOFF_YEAR}: " + ", ".join(parts) + " (fuentes: " + " + ".join(srcs) + ")"
         out.append(DeforestationFinding(pl.plot_id, risk, high, detail))
     return out
 

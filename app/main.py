@@ -41,13 +41,19 @@ class CaptureIn(BaseModel):
     area_ha: float | None = None
     lat: float
     lon: float
+    points: list[dict] | None = None     # vertices [{lat,lon}] del poligono (parcelas >4 ha)
+    quantity: str = ""                     # cantidad estimada del lote
     photo_base64: str | None = None
 
 @app.post("/capture")
 def capture(c: CaptureIn):
     lot_id = "LOT-" + uuid.uuid4().hex[:8].upper()
-    plot = Plot("P1", [GeoPoint(c.lat, c.lon)], c.area_ha)
-    lot = Lot(lot_id, c.producer, c.cooperative, c.commodity, "PE", c.region, [plot], "", "")
+    if c.points and len(c.points) >= 3:
+        pts = [GeoPoint(float(p["lat"]), float(p["lon"])) for p in c.points]
+    else:
+        pts = [GeoPoint(c.lat, c.lon)]
+    plot = Plot("P1", pts, c.area_ha)
+    lot = Lot(lot_id, c.producer, c.cooperative, c.commodity, "PE", c.region, [plot], "", "", c.quantity)
     if c.photo_base64:
         try:
             up = os.path.join(config.DATA_DIR, "uploads"); os.makedirs(up, exist_ok=True)
@@ -142,4 +148,4 @@ def _load(lot_id: str) -> Lot:
     plots = [Plot(p["plot_id"], [GeoPoint(**pt) for pt in p["points"]], p.get("area_ha")) for p in d["plots"]]
     return Lot(d["lot_id"], d["producer_name"], d["cooperative"], d["commodity"],
                d.get("country", "PE"), d.get("region", ""), plots,
-               d.get("harvest_season", ""), d.get("raw_notes", ""))
+               d.get("harvest_season", ""), d.get("raw_notes", ""), d.get("quantity", ""))

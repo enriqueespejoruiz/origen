@@ -127,7 +127,59 @@ def list_lots(coop_id, limit=300):
         except Exception:
             pass
     import glob
-    for fp in glob.glob(os.path.join(config.DATA_DIR, "*.json")):
+    for fp in glob.glob(os.path.join(config.DATA_DIR, "LOT-*.json")):
+        try:
+            d = json.load(open(fp))
+            if isinstance(d, dict) and d.get("lot_id") and d.get("coop_id") == coop_id:
+                out.append(d)
+        except Exception:
+            pass
+    return out
+
+# ---------- Envíos / consignaciones (agregación de lotes) ----------
+
+def save_consignment(c):
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            firestore.Client(project=config.GCP_PROJECT).collection("consignments").document(c.consignment_id).set(asdict(c))
+            return "firestore"
+        except Exception:
+            pass
+    os.makedirs(config.DATA_DIR, exist_ok=True)
+    with open(os.path.join(config.DATA_DIR, f"{c.consignment_id}.json"), "w") as f:
+        json.dump(asdict(c), f, indent=2, default=str)
+    return "local"
+
+def load_consignment(cid):
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            doc = firestore.Client(project=config.GCP_PROJECT).collection("consignments").document(cid).get()
+            if doc.exists:
+                return doc.to_dict()
+        except Exception:
+            pass
+    fp = os.path.join(config.DATA_DIR, f"{cid}.json")
+    if os.path.exists(fp):
+        return json.load(open(fp))
+    return None
+
+def list_consignments(coop_id, limit=300):
+    out = []
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            from google.cloud.firestore_v1.base_query import FieldFilter
+            q = (firestore.Client(project=config.GCP_PROJECT).collection("consignments")
+                 .where(filter=FieldFilter("coop_id", "==", coop_id)).limit(limit))
+            for d in q.stream():
+                out.append(d.to_dict())
+            return out
+        except Exception:
+            pass
+    import glob
+    for fp in glob.glob(os.path.join(config.DATA_DIR, "ENV-*.json")):
         try:
             d = json.load(open(fp))
             if isinstance(d, dict) and d.get("coop_id") == coop_id:

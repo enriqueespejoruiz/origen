@@ -72,6 +72,31 @@ td .who{color:var(--text-3);font-size:12px}
 #coopBox input:focus{outline:none;border-color:var(--brand-leaf-2)}
 #coopBox button{width:100%;margin-top:10px;justify-content:center}
 .gnote{color:var(--text-3);font-size:12px;margin-top:16px}
+/* selección de lotes + envíos */
+th.sel,td.sel{width:40px;text-align:center;padding-left:14px;padding-right:0}
+input[type=checkbox]{width:17px;height:17px;accent-color:var(--brand-leaf-2);cursor:pointer}
+.sectit{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:30px 0 0}
+.sectit h2{font-size:19px}
+.sectit .hint{color:var(--text-3);font-size:13px}
+.b.high2{background:rgba(224,122,95,.18);color:var(--risk-high)}
+.b.review2{background:rgba(224,194,119,.16);color:var(--risk-review)}
+.b.clean2{background:rgba(70,182,129,.16);color:var(--risk-clean)}
+.b.wait{background:var(--glass);color:var(--text-3)}
+#selbar{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:40;display:none;
+ align-items:center;gap:14px;background:rgba(11,61,46,.97);border:1px solid var(--hair);
+ border-radius:14px;padding:10px 12px 10px 18px;box-shadow:0 18px 50px rgba(0,0,0,.5);backdrop-filter:blur(8px)}
+#selbar .t{font-size:14px;color:#fff;font-family:var(--fh);font-weight:600}
+#cmodal{position:fixed;inset:0;z-index:70;display:none;place-items:center;background:rgba(4,20,14,.62);padding:22px}
+.ccard{background:var(--bg-2);border:1px solid var(--hair);color:#fff;border-radius:18px;padding:24px;max-width:440px;width:100%}
+.ccard h3{font-size:19px;margin:0 0 4px}
+.ccard p.s{color:var(--text-2);font-size:13.5px;margin:0 0 8px}
+.ccard label{display:block;font-size:12.5px;color:var(--text-2);margin:12px 0 5px;font-weight:500}
+.ccard input,.ccard select{width:100%;padding:11px 12px;font-size:15px;border:1px solid var(--hair);border-radius:10px;
+ background:rgba(0,0,0,.22);color:#fff;font-family:var(--fb)}
+.ccard input:focus,.ccard select:focus{outline:none;border-color:var(--brand-leaf-2)}
+.ccard .acts{display:flex;gap:10px;margin-top:18px}
+.ccard .acts button{flex:1;justify-content:center}
+.row2{display:flex;gap:10px}.row2>div{flex:1}
 </style></head><body>
 
 <div id="gate">
@@ -113,22 +138,61 @@ td .who{color:var(--text-3);font-size:12px}
 <main class="wrap" id="app" style="display:none">
   <div class="head">
     <div class="eyebrow">Panel de la cooperativa</div>
-    <h1 id="title">Tus lotes</h1>
-    <p class="muted">Cada lote capturado, verificado contra las 4 fuentes, con su dossier listo para tu comprador.</p>
+    <h1 id="title">Tu cooperativa</h1>
+    <p class="muted">Cada lote verificado contra las 4 fuentes, y los envíos consolidados listos para tu comprador.</p>
   </div>
+
+  <div class="sectit"><h2 id="lotsTitle">Tus lotes</h2>
+    <span class="hint">Marca los lotes que entran en un envío y pulsa «Crear envío».</span></div>
   <div class="card">
     <table>
-      <thead><tr><th>Lote</th><th>Productor</th><th>Producto</th><th>Riesgo</th><th>Fecha</th><th>Descargas</th></tr></thead>
+      <thead><tr><th class="sel"><input type="checkbox" id="selAll" title="Seleccionar todo"></th>
+        <th>Lote</th><th>Productor</th><th>Producto</th><th>Riesgo</th><th>Fecha</th><th>Descargas</th></tr></thead>
       <tbody id="rows"></tbody>
     </table>
     <div class="empty" id="empty" style="display:none">
       Aún no hay lotes. <a href="/capturar" style="color:var(--brand-leaf-2)">Captura tu primera parcela →</a>
     </div>
   </div>
+
+  <div class="sectit"><h2 id="consTitle">Envíos</h2>
+    <span class="hint">Una operación puede acopiar de muchas parcelas y regiones: el EUDR pide un dossier consolidado por envío.</span></div>
+  <div class="card">
+    <table>
+      <thead><tr><th>Envío</th><th>Destino</th><th>Lotes</th><th>Parcelas</th><th>Volumen</th><th>Veredicto</th><th>Descargas</th></tr></thead>
+      <tbody id="consrows"></tbody>
+    </table>
+    <div class="empty" id="consempty" style="display:none">
+      Aún no hay envíos. Marca lotes arriba y crea tu primer envío consolidado.
+    </div>
+  </div>
 </main>
 
 <div id="modal"><div class="mcard"><div class="spin" id="mspin"></div><div id="mtext">Generando…</div>
   <button class="btn btn-ghost mclose" id="mclose" style="display:none">Cerrar</button></div></div>
+
+<div id="selbar">
+  <span class="t" id="selcount">0 lotes</span>
+  <button class="btn btn-ghost" id="selclear">Limpiar</button>
+  <button class="btn btn-gold" id="selcreate">Crear envío</button>
+</div>
+
+<div id="cmodal"><div class="ccard">
+  <h3>Nuevo envío</h3>
+  <p class="s" id="csub">Consolida los lotes seleccionados en un solo dossier EUDR.</p>
+  <label for="cname">Identificación del envío</label>
+  <input id="cname" placeholder="ej. Contenedor Hamburgo #1">
+  <div class="row2">
+    <div><label for="cdest">Destino (UE)</label><input id="cdest" placeholder="ej. Hamburgo, DE"></div>
+    <div><label for="clang">Idioma del dossier</label><select id="clang"><option value="es">Español</option><option value="en">English</option></select></div>
+  </div>
+  <label for="cbuyer">Comprador / importador (opcional)</label>
+  <input id="cbuyer" placeholder="nombre del importador UE">
+  <div class="acts">
+    <button class="btn btn-ghost" id="ccancel">Cancelar</button>
+    <button class="btn btn-gold" id="csave">Crear envío</button>
+  </div>
+</div></div>
 
 <footer style="max-width:1040px;margin:18px auto 0;padding:22px 20px 40px;border-top:1px solid var(--hair);color:var(--text-3);font-size:13px;text-align:center">
   <a href="/" style="color:var(--leaf2);text-decoration:none;font-weight:600">← Volver a Origen</a>
@@ -174,25 +238,33 @@ $('coopGo').onclick=async()=>{
 };
 $('logout').onclick=async()=>{ await fetch('/auth/logout',{method:'POST'}); boot(); };
 
+let LOTS=[]; const SEL=new Set();
 async function showApp(s){
   $('gate').style.display='none'; $('hdr').style.display='flex'; $('app').style.display='block';
   $('coopLabel').textContent=s.coop.name||'';
   $('userChip').innerHTML=(s.user.picture?'<img src="'+s.user.picture+'" alt="">':'')+'<span>'+(s.user.email||'')+'</span>';
+  loadLots(); loadCons();
+}
+async function loadLots(){
   try{
     const d=await (await fetch('/api/lots')).json();
-    const lots=d.lots||[];
-    $('title').textContent='Tus lotes ('+lots.length+')';
-    if(!lots.length){ $('empty').style.display='block'; return; }
-    $('rows').innerHTML=lots.map(l=>{
+    LOTS=d.lots||[];
+    $('lotsTitle').textContent='Tus lotes ('+LOTS.length+')';
+    if(!LOTS.length){ $('empty').style.display='block'; $('rows').innerHTML=''; updateSel(); return; }
+    $('empty').style.display='none';
+    $('rows').innerHTML=LOTS.map(l=>{
       const rk=RISK[l.overall_risk]; const badge=rk?('<span class="b '+rk[0]+'">'+rk[1]+'</span>'):'<span class="b none">sin procesar</span>';
       const date=(l.created_at||'').slice(0,10);
-      return '<tr><td><b>'+l.lot_id+'</b></td><td>'+(l.producer||'—')+
+      const ck=SEL.has(l.lot_id)?' checked':'';
+      return '<tr><td class="sel"><input type="checkbox" class="lotck" data-id="'+l.lot_id+'"'+ck+'></td>'+
+        '<td><b>'+l.lot_id+'</b></td><td>'+(l.producer||'—')+
         '<div class="who">'+(l.captured_by||'')+'</div></td><td>'+(l.commodity||'')+'</td><td>'+badge+'</td>'+
         '<td>'+date+'</td><td class="dl"><a href="#" data-dl="dossier" data-id="'+l.lot_id+'">Dossier</a>'+
         '<a href="#" data-dl="geojson" data-id="'+l.lot_id+'">GeoJSON</a>'+
         '<a href="#" data-map="'+l.lot_id+'">Ver en mapa</a>'+
         '<a href="#" data-wa="'+l.lot_id+'">WhatsApp</a></td></tr>';
     }).join('');
+    updateSel();
   }catch(e){ $('empty').style.display='block'; $('empty').textContent='No se pudieron cargar los lotes.'; }
 }
 function showModal(t){$('mtext').textContent=t;$('mspin').style.display='block';$('mclose').style.display='none';$('modal').style.display='grid';}
@@ -222,6 +294,86 @@ function viewMap(id){
   fetch('/lots/'+id+'/geojson').then(function(r){return r.text();}).then(function(t){
     if(w) w.location.href='https://geojson.io/#data=data:application/json,'+encodeURIComponent(t);
   }).catch(function(){ if(w)w.close(); alert('No se pudo abrir el mapa'); });
+}
+
+/* ----- selección de lotes + envíos consolidados ----- */
+const CRISK={negligible:['clean2','apto'],review:['review2','revisar'],high:['high2','segregar']};
+function updateSel(){
+  document.querySelectorAll('.lotck').forEach(function(c){ c.checked=SEL.has(c.dataset.id); });
+  const n=SEL.size;
+  $('selcount').textContent=n+(n===1?' lote':' lotes');
+  $('selbar').style.display=n?'flex':'none';
+  const sa=$('selAll'); if(sa) sa.checked=(LOTS.length>0 && n===LOTS.length);
+}
+$('rows').addEventListener('change',function(ev){
+  const c=ev.target.closest('.lotck'); if(!c)return;
+  if(c.checked)SEL.add(c.dataset.id); else SEL.delete(c.dataset.id);
+  updateSel();
+});
+$('selAll').addEventListener('change',function(){
+  if(this.checked)LOTS.forEach(function(l){SEL.add(l.lot_id);}); else SEL.clear();
+  updateSel();
+});
+$('selclear').onclick=function(){ SEL.clear(); updateSel(); };
+$('selcreate').onclick=function(){
+  if(!SEL.size)return;
+  $('csub').textContent='Consolida '+SEL.size+' lote(s) seleccionado(s) en un solo dossier EUDR.';
+  $('cmodal').style.display='grid';
+};
+$('ccancel').onclick=function(){ $('cmodal').style.display='none'; };
+$('csave').onclick=async function(){
+  const ids=Array.from(SEL); if(!ids.length){ $('cmodal').style.display='none'; return; }
+  const btn=this; btn.disabled=true; btn.textContent='Creando…';
+  try{
+    const body={name:$('cname').value.trim(),destination:$('cdest').value.trim(),
+      buyer:$('cbuyer').value.trim(),lang:$('clang').value,lot_ids:ids};
+    const r=await fetch('/api/consignments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok){ alert('No se pudo crear el envío'); }
+    else{ SEL.clear(); $('cname').value='';$('cdest').value='';$('cbuyer').value='';
+          $('cmodal').style.display='none'; updateSel(); loadCons(); }
+  }catch(e){ alert('Error de red'); }
+  btn.disabled=false; btn.textContent='Crear envío';
+};
+
+async function loadCons(){
+  try{
+    const d=await (await fetch('/api/consignments')).json();
+    const cons=d.consignments||[];
+    $('consTitle').textContent='Envíos ('+cons.length+')';
+    if(!cons.length){ $('consempty').style.display='block'; $('consrows').innerHTML=''; return; }
+    $('consempty').style.display='none';
+    $('consrows').innerHTML=cons.map(function(c){
+      let badge;
+      if(!c.processed && c.verdict==='negligible') badge='<span class="b wait">por procesar</span>';
+      else { const rk=CRISK[c.verdict]||CRISK.negligible; badge='<span class="b '+rk[0]+'">'+rk[1]+'</span>'; }
+      const vol=c.total_kg?(Number(c.total_kg).toLocaleString()+' kg'):'—';
+      return '<tr><td><b>'+(c.name||c.consignment_id)+'</b><div class="who">'+c.consignment_id+'</div></td>'+
+        '<td>'+(c.destination||'—')+'</td><td>'+c.n_lots+'</td><td>'+c.n_plots+'</td><td>'+vol+'</td>'+
+        '<td>'+badge+'</td><td class="dl"><a href="#" data-cdl="dossier" data-id="'+c.consignment_id+'">Dossier</a>'+
+        '<a href="#" data-cdl="geojson" data-id="'+c.consignment_id+'">GeoJSON</a>'+
+        '<a href="#" data-cwa="'+c.consignment_id+'">WhatsApp</a></td></tr>';
+    }).join('');
+  }catch(e){ $('consempty').style.display='block'; $('consempty').textContent='No se pudieron cargar los envíos.'; }
+}
+$('consrows').addEventListener('click',function(ev){
+  var w=ev.target.closest('a[data-cwa]'); if(w){ev.preventDefault();openWaCons(w.getAttribute('data-cwa'));return;}
+  var a=ev.target.closest('a[data-cdl]'); if(!a)return; ev.preventDefault(); dlCons(a.getAttribute('data-id'),a.getAttribute('data-cdl'));
+});
+async function dlCons(id,kind){
+  showModal(kind==='dossier'?'Generando el dossier consolidado… verifica cada parcela, puede tardar.':'Preparando el GeoJSON consolidado…');
+  try{ const r=await fetch('/consignments/'+id+'/'+kind); if(!r.ok)throw new Error('No se pudo generar (HTTP '+r.status+'). Reintenta.');
+    const b=await r.blob(); const u=URL.createObjectURL(b); const a=document.createElement('a');
+    a.href=u; a.download=id+(kind==='dossier'?'_dossier.pdf':'.geojson'); document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){URL.revokeObjectURL(u);},4000); hideModal();
+  }catch(e){ modalErr(e.message||'Error de red'); }
+}
+function openWaCons(id){
+  var w=window.open('','_blank');
+  fetch('/consignments/'+id+'/dossier').catch(function(){}).then(function(){
+    var b=location.origin;
+    var msg='Origen — Dossier EUDR consolidado · envío '+id+'\n\nDossier (PDF): '+b+'/share/c/'+id+'/dossier\nDatos (GeoJSON): '+b+'/share/c/'+id+'/geojson\nVerifica autenticidad: '+b+'/verificar?lot='+id;
+    if(w) w.location.href='https://wa.me/?text='+encodeURIComponent(msg);
+  });
 }
 boot();
 </script>

@@ -3,7 +3,7 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 from . import gemini, deforestation, dossier, storage, config, auth, geo, notarize
-from .models import Lot, Plot, GeoPoint
+from .models import Lot, Plot, GeoPoint, Consignment
 
 app = FastAPI(title="Origen - EUDR + Export Copilot")
 from starlette.middleware.sessions import SessionMiddleware
@@ -15,6 +15,25 @@ from fastapi.staticfiles import StaticFiles
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
 
 def _now(): return datetime.datetime.utcnow().isoformat() + "Z"
+
+def _photo_path(lot_id, out_dir):
+    """Devuelve la ruta local de la foto del predio (la recupera del blob durable si hace falta)."""
+    p = os.path.join(out_dir, f"{lot_id}_photo.jpg")
+    if os.path.exists(p):
+        return p
+    up = os.path.join(config.DATA_DIR, "uploads", f"{lot_id}.jpg")
+    if os.path.exists(up):
+        return up
+    blob = storage.load_blob(lot_id, "photo.jpg")
+    if blob:
+        try:
+            os.makedirs(out_dir, exist_ok=True)
+            with open(p, "wb") as f:
+                f.write(blob)
+            return p
+        except Exception:
+            return None
+    return None
 
 def _page(name):
     return FileResponse(os.path.join(WEB_DIR, name), media_type="text/html")
@@ -109,6 +128,156 @@ def api_lots(request: Request):
             "created_at": d.get("created_at", ""), "captured_by": d.get("captured_by", "")} for d in lots]
     return {"coop": ctx["coop"], "lots": out}
 
+# ---- Envíos / consignaciones (agregar N lotes en una sola DDS consolidada) ----
+
+class ConsignmentIn(BaseModel):
+    name: str = ""
+    commodity: str = ""
+    destination: str = ""
+    buyer: str = ""
+    lang: str = "es"
+    lot_ids: list[str] = []
+
+@app.post("/api/consignments")
+def create_consignment(c: ConsignmentIn, request: Request):
+    ctx = auth.require_coop(request)
+    ids = [x for x in (c.lot_ids or []) if x]
+    if not ids:
+        raise HTTPException(400, "Selecciona al menos un lote")
+    commodities = set()
+    for lid in ids:
+        lot = _load_owned(lid, ctx)      # valida que el lote sea de esta cooperativa
+        commodities.add((lot.commodity or "").lower())
+    commodity = c.commodity or (next(iter(commodities)) if len(commodities) == 1 else "")
+    cid = "ENV-" + uuid.uuid4().hex[:8].upper()
+    cons = Consignment(cid, ctx["coop"]["id"], (c.name or cid), commodity,
+                       c.destination, c.buyer, ids, _now(), ctx["user"]["email"],
+                       {"lang": c.lang or "es"})
+    storage.save_consignment(cons)
+    return {"consignment_id": cid, "name": cons.name}
+
+@app.get("/api/consignments")
+def api_consignments(request: Request):
+    ctx = auth.require_coop(request)
+    cons = storage.list_consignments(ctx["coop"]["id"])
+    cons = sorted(cons, key=lambda d: d.get("created_at", ""), reverse=True)
+    return {"coop": ctx["coop"], "consignments": [_consignment_summary(d) for d in cons]}
+
+def _consignment_summary(d):
+    lot_ids = d.get("lot_ids", [])
+    risks = []; nplots = 0; total = 0.0; producers = set(); regions = set()
+    for lid in lot_ids:
+        ld = storage.load_lot(lid)
+        if not ld:
+            continue
+        risks.append(ld.get("overall_risk", ""))
+        nplots += len(ld.get("plots", []))
+        total += dossier.parse_qty_kg(ld.get("quantity", ""))
+        if ld.get("producer_name"): producers.add(ld["producer_name"])
+        if ld.get("region"): regions.add(ld["region"])
+    verdict = "high" if "high" in risks else ("review" if "review" in risks else "negligible")
+    processed = bool(risks) and all(bool(r) for r in risks)
+    return {"consignment_id": d.get("consignment_id"), "name": d.get("name", ""),
+            "commodity": d.get("commodity", ""), "destination": d.get("destination", ""),
+            "buyer": d.get("buyer", ""), "n_lots": len(lot_ids), "n_plots": nplots,
+            "total_kg": round(total, 1), "producers": len(producers), "regions": len(regions),
+            "verdict": verdict, "processed": processed, "created_at": d.get("created_at", "")}
+
+def _load_owned_cons(cid, ctx):
+    d = storage.load_consignment(cid)
+    if not d:
+        raise HTTPException(404, "Envío no encontrado")
+    if d.get("coop_id") and d["coop_id"] != ctx["coop"]["id"]:
+        raise HTTPException(403, "Este envío pertenece a otra cooperativa")
+    return d
+
+def _build_consignment_outputs(d, force=False):
+    """Construye (o reutiliza) el dossier consolidado + geojson del envío."""
+    out = os.path.join(config.DATA_DIR, "dossiers")
+    cid = d["consignment_id"]
+    pdf = os.path.join(out, f"{cid}_dossier.pdf"); gj = os.path.join(out, f"{cid}.geojson")
+    if not force and os.path.exists(pdf) and os.path.exists(gj):
+        return pdf, gj
+    items = []
+    for lid in d.get("lot_ids", []):
+        try:
+            lot = _load(lid)
+        except HTTPException:
+            continue
+        findings = deforestation.check_plots(lot)
+        items.append((lot, findings))
+    if not items:
+        raise HTTPException(404, "El envío no tiene lotes válidos")
+    lang = (d.get("extra") or {}).get("lang", "es")
+    gj = dossier.build_consignment_geojson(d, items, out)
+    pdf = dossier.build_consignment_pdf(d, items, out, lang)
+    try:
+        storage.save_blob(cid, "dossier.pdf", open(pdf, "rb").read())
+        storage.save_blob(cid, "data.geojson", open(gj, "rb").read())
+    except Exception:
+        pass
+    try:
+        notarize.notarize(cid, pdf)
+    except Exception:
+        pass
+    return pdf, gj
+
+@app.get("/consignments/{cid}/dossier")
+def consignment_dossier(cid: str, request: Request):
+    d = _load_owned_cons(cid, auth.require_coop(request))
+    out = os.path.join(config.DATA_DIR, "dossiers")
+    p = os.path.join(out, f"{cid}_dossier.pdf")
+    if os.path.exists(p):
+        return FileResponse(p, media_type="application/pdf", filename=f"{cid}_dossier.pdf")
+    blob = storage.load_blob(cid, "dossier.pdf")
+    if blob:
+        return Response(blob, media_type="application/pdf",
+                        headers={"Content-Disposition": f'inline; filename="{cid}_dossier.pdf"'})
+    try:
+        p, _ = _build_consignment_outputs(d)
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("consignment dossier error:", repr(e))
+        raise HTTPException(503, "No se pudo generar el dossier del envío; reintenta en unos segundos.")
+    return FileResponse(p, media_type="application/pdf", filename=f"{cid}_dossier.pdf")
+
+@app.get("/consignments/{cid}/geojson")
+def consignment_geojson(cid: str, request: Request):
+    d = _load_owned_cons(cid, auth.require_coop(request))
+    out = os.path.join(config.DATA_DIR, "dossiers")
+    p = os.path.join(out, f"{cid}.geojson")
+    if os.path.exists(p):
+        return FileResponse(p, media_type="application/geo+json", filename=f"{cid}.geojson")
+    blob = storage.load_blob(cid, "data.geojson")
+    if blob:
+        return Response(blob, media_type="application/geo+json",
+                        headers={"Content-Disposition": f'inline; filename="{cid}.geojson"'})
+    try:
+        _, p = _build_consignment_outputs(d)
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("consignment geojson error:", repr(e))
+        raise HTTPException(503, "No se pudo generar el GeoJSON del envío; reintenta en unos segundos.")
+    return FileResponse(p, media_type="application/geo+json", filename=f"{cid}.geojson")
+
+@app.get("/share/c/{cid}/dossier")
+def share_consignment_dossier(cid: str):
+    blob = storage.load_blob(cid, "dossier.pdf")
+    if blob:
+        return Response(blob, media_type="application/pdf",
+                        headers={"Content-Disposition": f'inline; filename="{cid}_dossier.pdf"'})
+    raise HTTPException(404, "Dossier del envío no disponible todavía.")
+
+@app.get("/share/c/{cid}/geojson")
+def share_consignment_geojson(cid: str):
+    blob = storage.load_blob(cid, "data.geojson")
+    if blob:
+        return Response(blob, media_type="application/geo+json",
+                        headers={"Content-Disposition": f'inline; filename="{cid}.geojson"'})
+    raise HTTPException(404, "GeoJSON del envío no disponible todavía.")
+
 @app.get("/verificar")
 def verificar():
     return _page("verificar.html")
@@ -168,10 +337,12 @@ def capture(c: CaptureIn, request: Request):
               ctx["coop"]["id"], ctx["user"]["email"], _now(), c.extra or {})
     if c.photo_base64:
         try:
-            up = os.path.join(config.DATA_DIR, "uploads"); os.makedirs(up, exist_ok=True)
             data = c.photo_base64.split(",", 1)[-1]
+            raw = base64.b64decode(data)
+            up = os.path.join(config.DATA_DIR, "uploads"); os.makedirs(up, exist_ok=True)
             with open(os.path.join(up, f"{lot_id}.jpg"), "wb") as f:
-                f.write(base64.b64decode(data))
+                f.write(raw)
+            storage.save_blob(lot_id, "photo.jpg", raw)   # durable: para que aparezca en el dossier
         except Exception:
             pass
     storage.save_lot(lot)
@@ -239,7 +410,7 @@ def process(lot_id: str, request: Request):
         except Exception: narrative = _fallback_narrative(lot, findings, "es")
     out = os.path.join(config.DATA_DIR, "dossiers")
     gj = dossier.build_geojson(lot, out)
-    pdf = dossier.build_pdf(lot, findings, narrative, "", out, lang)
+    pdf = dossier.build_pdf(lot, findings, narrative, "", out, lang, photo_path=_photo_path(lot_id, out))
     storage.upload_file(gj); storage.upload_file(pdf)
     risk = dossier.overall_risk(findings)
     try:
@@ -292,7 +463,7 @@ def _ensure_outputs(lot_id: str):
         except Exception as e:
             print("regen narrative error:", repr(e)); narrative = _fallback_narrative(lot, findings, "es")
     gj = dossier.build_geojson(lot, out)
-    pdf = dossier.build_pdf(lot, findings, narrative, "", out, lang)
+    pdf = dossier.build_pdf(lot, findings, narrative, "", out, lang, photo_path=_photo_path(lot_id, out))
     try:
         storage.save_blob(lot_id, "dossier.pdf", open(pdf, "rb").read())
         storage.save_blob(lot_id, "data.geojson", open(gj, "rb").read())

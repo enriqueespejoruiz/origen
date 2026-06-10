@@ -30,6 +30,21 @@ class Lot:
     extra: dict = field(default_factory=dict)  # legalidad + comprador (opcional)
 
 @dataclass
+class Consignment:
+    """Envío / consignación: agrupa N lotes (parcelas de varios productores y regiones)
+    en una sola declaración consolidada, como exige el EUDR para una operación comercial."""
+    consignment_id: str
+    coop_id: str = ""
+    name: str = ""                  # ej. "Contenedor Hamburgo #1"
+    commodity: str = ""             # coffee | cocoa
+    destination: str = ""           # país / puerto de destino UE
+    buyer: str = ""                 # operador importador (UE)
+    lot_ids: List[str] = field(default_factory=list)
+    created_at: str = ""
+    created_by: str = ""            # email del usuario que lo creó
+    extra: dict = field(default_factory=dict)  # lang, notas
+
+@dataclass
 class DeforestationFinding:
     plot_id: str
     risk: str                       # negligible | review | high

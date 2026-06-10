@@ -6,6 +6,9 @@
 <meta property="og:title" content="Origen — trazabilidad EUDR para café y cacao">
 <meta property="og:description" content="Del origen a Europa, libre de deforestación. Captura parcelas en campo, verifica deforestación con datos satelitales y arma el dossier para tu comprador europeo.">
 <meta property="og:type" content="website">
+<meta property="og:image" content="/static/og.png">
+<link rel="icon" href="/static/favicon-32.png">
+<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -263,14 +266,16 @@ footer .sp{margin-left:auto}
 <header class="nav"><div class="wrap">
   <a class="brand" href="/" aria-label="Origen — inicio">
     <span class="logo"><svg viewBox="0 0 64 64" width="28" height="28" aria-hidden="true">
-      <path d="M32 6C20.4 6 11 15 11 26.2 11 40 32 58 32 58s21-18 21-31.8C53 15 43.6 6 32 6z" fill="#0B3D2E"/>
-      <path d="M32 41V27" stroke="#EAF3EC" stroke-width="3" stroke-linecap="round"/>
-      <path d="M32 31c-5 0-9-3-9.5-8 5.5 0 9 2.5 9.5 8z" fill="#C2A04C"/>
-      <path d="M32 28c5 0 9-3 9.5-8-5.5 0-9 2.5-9.5 8z" fill="#2E8B5E"/></svg></span>
+      <path d="M32 6C20.4 6 11 15 11 26.2c0 9.2 8.5 18.6 21 31.8 12.5-13.2 21-22.6 21-31.8C53 15 43.6 6 32 6Z" fill="none" stroke="#0B3D2E" stroke-width="3.2"/>
+      <ellipse cx="26.5" cy="25" rx="7.4" ry="8.6" fill="#C9A23E"/>
+      <ellipse cx="37.5" cy="26" rx="7.4" ry="8.6" fill="#4FA24C"/>
+      <path d="M32 33v13" stroke="#0B3D2E" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 40c3.5-.4 6-2.6 6.5-6-3.8.3-6 1.8-6.5 6z" fill="#0B3D2E"/></svg></span>
     <span class="wm">Origen</span>
   </a>
   <nav class="nl" aria-label="Principal">
     <span class="live"><i aria-hidden="true"></i>MVP en vivo</span>
+    <button data-langbtn onclick="toggleLang()" class="hide-sm" aria-label="Switch language" style="background:var(--glass);border:1px solid var(--hair-2);color:var(--text-2);padding:7px 12px;border-radius:10px;cursor:pointer;font-family:var(--font-heading);font-size:13.5px;font-weight:600">EN</button>
     <a class="hide-sm" href="#como">Cómo funciona</a>
     <a class="hide-sm" href="/normativa">Normativa EUDR</a>
     <a class="hide-sm" href="/verificar">Verificar</a>
@@ -332,6 +337,21 @@ footer .sp{margin-left:auto}
   </div>
 </div>
 
+<section class="band" aria-labelledby="h-prob">
+  <div class="wrap">
+    <div class="shead reveal">
+      <span class="s-eyebrow">El problema</span>
+      <h2 id="h-prob">Sin la prueba, pierdes Europa.</h2>
+      <p class="lead">Desde el 30 de diciembre de 2026, toda cooperativa que venda café o cacao a la UE debe demostrar —parcela por parcela— que no se cultivó en bosque talado después de 2020. Si no lo pruebas, no es una multa: te quedas fuera de tu principal mercado.</p>
+    </div>
+    <div class="why">
+      <div class="card reveal d1"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>El reloj ya corre</b><p>30 dic 2026 para operadores grandes y medianos; 30 jun 2027 para pequeños. Europa toma cerca de la mitad del cacao y casi la mitad del café del Perú.</p></div></div>
+      <div class="card reveal d2"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>Las soluciones son carísimas</b><p>Hechas para grandes importadores. Y, como denuncia Fairtrade, el costo del cumplimiento termina cayendo sobre el pequeño productor, que ya vive al límite.</p></div></div>
+      <div class="card reveal d3"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 22s8-5.6 8-12a8 8 0 1 0-16 0c0 6.4 8 12 8 12Z" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="10" r="2.6" stroke="currentColor" stroke-width="1.7"/></svg></span><div><b>Geolocalizar ya no basta</b><p>Mapear parcelas se está volviendo gratis. Lo que tu comprador europeo paga es la evidencia verificada que de verdad puede presentar.</p></div></div>
+    </div>
+  </div>
+</section>
+
 <section id="como" aria-labelledby="h-como">
   <div class="wrap">
     <div class="shead reveal">
@@ -378,6 +398,22 @@ footer .sp{margin-left:auto}
   </div>
 </section>
 
+<section aria-labelledby="h-tech">
+  <div class="wrap">
+    <div class="shead reveal">
+      <span class="s-eyebrow">Tecnología transparente</span>
+      <h2 id="h-tech">Potente por dentro, sin cajas negras.</h2>
+      <p class="lead">Todo lo que afirmamos se puede comprobar: datos abiertos, IA de Google y una huella digital que cualquiera verifica.</p>
+    </div>
+    <div class="why">
+      <div class="card reveal d1"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" stroke="currentColor" stroke-width="1.7"/></svg></span><div><b>4 fuentes satelitales abiertas</b><p>Hansen, alertas GFW, áreas protegidas (WDPA) y el mapa de referencia JRC 2020 de la UE. De licencia abierta, sin candados.</p></div></div>
+      <div class="card reveal d2"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l2.2 6.3L21 11l-6.8 1.7L12 19l-2.2-6.3L3 11l6.8-1.7L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span><div><b>IA de Google (Gemini)</b><p>Gemini, sobre Vertex AI, redacta el dictamen legible para tu comprador. El veredicto sale de los satélites, no del modelo: explicable y defendible.</p></div></div>
+      <div class="card reveal d3"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M9 9h2v2H9zM13 13h2v2h-2zM9 13h2v2H9zM13 9h2v2h-2z" fill="currentColor"/></svg></span><div><b>Notarización en cadena (blockchain)</b><p>Cada dossier lleva una huella SHA-256 y un QR. Cualquiera escanea, sube el PDF y confirma que es auténtico y desde cuándo existe — sin que el archivo salga de su equipo.</p></div></div>
+      <div class="card reveal d4"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/></svg></span><div><b>Abierto y auditable</b><p>Sin mapas con licencia cerrada ni "confía en mí". Puedes ver y verificar cada fuente y cada dato — lo contrario de las cajas negras de los grandes.</p></div></div>
+    </div>
+  </div>
+</section>
+
 <section aria-labelledby="h-faq">
   <div class="wrap">
     <div class="shead reveal">
@@ -410,6 +446,7 @@ footer .sp{margin-left:auto}
   <span class="sp"></span>
   <a href="#como">Cómo funciona</a>
   <a href="/normativa">Normativa EUDR</a>
+  <a href="/verificar">Verificar</a>
   <a href="/capturar">Capturar</a>
 </div></footer>
 
@@ -443,4 +480,5 @@ footer .sp{margin-left:auto}
   }
 })();
 </script>
+<script src="/static/i18n.js" defer></script>
 </body></html>

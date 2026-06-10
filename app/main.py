@@ -122,6 +122,24 @@ def api_verify(lot: str = ""):
             "algo": rec.get("algo", "SHA-256"), "created_at": rec.get("created_at", ""),
             "anchor": rec.get("anchor", "")}
 
+# ---- Enlace público compartible (para WhatsApp / comprador) ----
+
+@app.get("/share/{lot_id}/dossier")
+def share_dossier(lot_id: str):
+    blob = storage.load_blob(lot_id, "dossier.pdf")
+    if blob:
+        return Response(blob, media_type="application/pdf",
+                        headers={"Content-Disposition": f'inline; filename="{lot_id}_dossier.pdf"'})
+    raise HTTPException(404, "Dossier no disponible todavía.")
+
+@app.get("/share/{lot_id}/geojson")
+def share_geojson(lot_id: str):
+    blob = storage.load_blob(lot_id, "data.geojson")
+    if blob:
+        return Response(blob, media_type="application/geo+json",
+                        headers={"Content-Disposition": f'inline; filename="{lot_id}.geojson"'})
+    raise HTTPException(404, "GeoJSON no disponible todavía.")
+
 # ---- Captura estructurada de campo (tecnico de la cooperativa) ----
 
 class CaptureIn(BaseModel):

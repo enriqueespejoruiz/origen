@@ -102,11 +102,12 @@ td .who{color:var(--text-3);font-size:12px}
     <path d="M32 41V27" stroke="#EAF3EC" stroke-width="3" stroke-linecap="round"/>
     <path d="M32 31c-5 0-9-3-9.5-8 5.5 0 9 2.5 9.5 8z" fill="#C2A04C"/>
     <path d="M32 28c5 0 9-3 9.5-8-5.5 0-9 2.5-9.5 8z" fill="#2E8B5E"/></svg></span>
-  <span class="wm">Origen</span><span class="coop" id="coopLabel"></span>
+  <a class="wm" href="/" style="text-decoration:none;color:inherit">Origen</a><span class="coop" id="coopLabel"></span>
   <span class="sp"></span>
   <a class="btn btn-gold" href="/capturar">Capturar</a>
   <span class="chip" id="userChip"></span>
   <button class="btn btn-ghost" id="logout">Salir</button>
+  <button class="btn btn-ghost" data-langbtn onclick="toggleLang()" aria-label="Switch language">EN</button>
 </header>
 
 <main class="wrap" id="app" style="display:none">
@@ -128,6 +129,12 @@ td .who{color:var(--text-3);font-size:12px}
 
 <div id="modal"><div class="mcard"><div class="spin" id="mspin"></div><div id="mtext">Generando…</div>
   <button class="btn btn-ghost mclose" id="mclose" style="display:none">Cerrar</button></div></div>
+
+<footer style="max-width:1040px;margin:18px auto 0;padding:22px 20px 40px;border-top:1px solid var(--hair);color:var(--text-3);font-size:13px;text-align:center">
+  <a href="/" style="color:var(--leaf2);text-decoration:none;font-weight:600">← Volver a Origen</a>
+  <span style="margin:0 9px;opacity:.4">·</span><a href="/capturar" style="color:inherit;text-decoration:none">Capturar</a>
+  <span style="margin:0 9px;opacity:.4">·</span><a href="/verificar" style="color:inherit;text-decoration:none">Verificar</a>
+</footer>
 
 <script>
 const $=id=>document.getElementById(id);
@@ -183,7 +190,8 @@ async function showApp(s){
         '<div class="who">'+(l.captured_by||'')+'</div></td><td>'+(l.commodity||'')+'</td><td>'+badge+'</td>'+
         '<td>'+date+'</td><td class="dl"><a href="#" data-dl="dossier" data-id="'+l.lot_id+'">Dossier</a>'+
         '<a href="#" data-dl="geojson" data-id="'+l.lot_id+'">GeoJSON</a>'+
-        '<a href="#" data-map="'+l.lot_id+'">Ver en mapa</a></td></tr>';
+        '<a href="#" data-map="'+l.lot_id+'">Ver en mapa</a>'+
+        '<a href="#" data-wa="'+l.lot_id+'">WhatsApp</a></td></tr>';
     }).join('');
   }catch(e){ $('empty').style.display='block'; $('empty').textContent='No se pudieron cargar los lotes.'; }
 }
@@ -200,9 +208,15 @@ async function dl(id,kind){
 }
 $('mclose').onclick=hideModal;
 $('rows').addEventListener('click',function(ev){
+  var w=ev.target.closest('a[data-wa]'); if(w){ev.preventDefault();openWa(w.getAttribute('data-wa'));return;}
   var m=ev.target.closest('a[data-map]'); if(m){ev.preventDefault();viewMap(m.getAttribute('data-map'));return;}
   var a=ev.target.closest('a[data-dl]'); if(!a)return; ev.preventDefault(); dl(a.getAttribute('data-id'),a.getAttribute('data-dl'));
 });
+function openWa(id){
+  var b=location.origin;
+  var msg='Origen — Dossier EUDR · lote '+id+'\n\nDossier (PDF): '+b+'/share/'+id+'/dossier\nDatos (GeoJSON): '+b+'/share/'+id+'/geojson\nVerifica autenticidad: '+b+'/verificar?lot='+id;
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
 function viewMap(id){
   var w=window.open('','_blank');
   fetch('/lots/'+id+'/geojson').then(function(r){return r.text();}).then(function(t){
@@ -211,4 +225,5 @@ function viewMap(id){
 }
 boot();
 </script>
+<script src="/static/i18n.js" defer></script>
 </body></html>

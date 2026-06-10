@@ -136,10 +136,11 @@ input[type=file]::file-selector-button{font-family:var(--font-heading);font-weig
     <path d="M32 41V27" stroke="#EAF3EC" stroke-width="3" stroke-linecap="round"/>
     <path d="M32 31c-5 0-9-3-9.5-8 5.5 0 9 2.5 9.5 8z" fill="#C2A04C"/>
     <path d="M32 28c5 0 9-3 9.5-8-5.5 0-9 2.5-9.5 8z" fill="#2E8B5E"/></svg></span>
-  <span class="wm">Origen</span><span class="sub">captura</span>
+  <a class="wm" href="/" style="text-decoration:none;color:inherit">Origen</a><span class="sub">captura</span>
   <span class="dot" id="net" role="status" aria-live="polite">●</span>
   <span class="uchip" id="uchip" style="display:none"></span>
   <button class="lout" id="logout" style="display:none">Salir</button>
+  <button class="lout" data-langbtn onclick="toggleLang()" aria-label="Switch language">EN</button>
 </header>
 <main>
   <div class="card" id="installCard" style="display:none">
@@ -336,7 +337,8 @@ function render(){
     let dl='';
     if(i.status==='enviado'&&i.lot_id){
       dl='<div class="dl"><a href="#" data-dl="dossier" data-id="'+i.lot_id+'">Dossier PDF</a>'+
-         '<a href="#" data-dl="geojson" data-id="'+i.lot_id+'">Datos (GeoJSON)</a></div>';
+         '<a href="#" data-dl="geojson" data-id="'+i.lot_id+'">Datos (GeoJSON)</a>'+
+         '<a href="#" data-wa="'+i.lot_id+'">WhatsApp</a></div>';
     }
     return '<div class="item"><div>'+i.producer+'<div class="muted">'+(i.geom==='poly'?('polígono · '+(i.points?i.points.length:0)+' vért.'):(i.lat.toFixed(4)+', '+i.lon.toFixed(4)))+'</div>'+dl+'</div>'+b+'</div>';
   }).join('');
@@ -427,7 +429,13 @@ addEventListener('appinstalled',function(){ var c=document.getElementById('insta
     }catch(e){ modalErr(e.message||'Error de red'); }
   }
   var mc=$('mclose'); if(mc)mc.onclick=hideModal;
-  var lst=$('list'); if(lst)lst.addEventListener('click',function(ev){var a=ev.target.closest('a[data-dl]');if(!a)return;ev.preventDefault();dl(a.getAttribute('data-id'),a.getAttribute('data-dl'));});
+  function openWa(id){ var b=location.origin;
+    var msg='Origen — Dossier EUDR · lote '+id+'\n\nDossier (PDF): '+b+'/share/'+id+'/dossier\nDatos (GeoJSON): '+b+'/share/'+id+'/geojson\nVerifica autenticidad: '+b+'/verificar?lot='+id;
+    window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank'); }
+  var lst=$('list'); if(lst)lst.addEventListener('click',function(ev){
+    var w=ev.target.closest('a[data-wa]'); if(w){ev.preventDefault();openWa(w.getAttribute('data-wa'));return;}
+    var a=ev.target.closest('a[data-dl]'); if(!a)return; ev.preventDefault(); dl(a.getAttribute('data-id'),a.getAttribute('data-dl'));});
 })();
 </script>
+<script src="/static/i18n.js" defer></script>
 </body></html>

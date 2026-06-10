@@ -295,11 +295,12 @@ function lotMatches(l){
 }
 function lotRowHTML(l){
   const rk=RISK[l.overall_risk]; const badge=rk?('<span class="b '+rk[0]+'">'+rk[1]+'</span>'):'<span class="b none">sin procesar</span>';
+  const vflag=l.volume_flag?' <span class="b high" title="Volumen inverosímil para el área (posible mezcla de origen)">⚠ volumen</span>':'';
   const date=(l.created_at||'').slice(0,10);
   const ck=SEL.has(l.lot_id)?' checked':'';
   return '<tr><td class="sel"><input type="checkbox" class="lotck" data-id="'+l.lot_id+'"'+ck+'></td>'+
     '<td><b>'+l.lot_id+'</b></td><td>'+(l.producer||'—')+
-    '<div class="who">'+(l.captured_by||'')+'</div></td><td>'+(l.commodity||'')+'</td><td>'+badge+'</td>'+
+    '<div class="who">'+(l.captured_by||'')+'</div></td><td>'+(l.commodity||'')+'</td><td>'+badge+vflag+'</td>'+
     '<td>'+date+'</td><td class="dl"><a href="#" data-dl="dossier" data-id="'+l.lot_id+'">Dossier</a>'+
     '<a href="#" data-dl="geojson" data-id="'+l.lot_id+'">GeoJSON</a>'+
     '<a href="#" data-map="'+l.lot_id+'">Ver en mapa</a>'+

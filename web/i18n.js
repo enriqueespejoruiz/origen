@@ -235,6 +235,7 @@
     "No se pudo cargar el equipo.": "Couldn't load the team.",
     "Ningún lote coincide con el filtro.": "No lots match the filter.",
     "Buscar productor, lote o región…": "Search producer, lot or region…",
+    "⚠ volumen": "⚠ volume",
     // -- landing B2B (hero/dolor/envíos/cta) --
     "Cumplimiento EUDR · café y cacao": "EUDR compliance · coffee & cocoa",
     "Cumple el EUDR, o tu café se queda": "Comply with the EUDR, or your coffee stays",

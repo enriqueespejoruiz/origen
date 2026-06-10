@@ -298,6 +298,18 @@ $('photo').onchange=e=>{
 
 $('save').onclick=()=>{
   if(!$('prod').value.trim()){alert('Pon el nombre del productor');return;}
+  // Anti-fraude de volumen: avisa si los kg no cuadran con el área de la parcela.
+  (function(){
+    var _area=parseFloat($('area').value)||0;
+    var _kg=parseFloat(($('cantidad').value||'').replace(/[^\d.]/g,''))||0;
+    if(_area>0 && _kg>0){
+      var _ceil=($('com').value==='cacao')?2000:2500;
+      if(_kg/_area>_ceil){
+        window._volWarn='El volumen declarado ('+_kg.toLocaleString()+' kg) es inverosímil para '+_area+' ha (~'+Math.round(_kg/_area).toLocaleString()+' kg/ha; máximo plausible ~'+_ceil.toLocaleString()+' kg/ha).\n\nEsto suele indicar mezcla de origen no declarada, que el EUDR no permite. ¿Guardar de todos modos?';
+      } else { window._volWarn=''; }
+    } else { window._volWarn=''; }
+  })();
+  if(window._volWarn && !confirm(window._volWarn)) return;
   let item={id:Date.now(),producer:$('prod').value.trim(),cooperative:$('coop').value.trim(),
     commodity:$('com').value,area_ha:parseFloat($('area').value)||null,
     region:$('region').value.trim(),quantity:$('cantidad').value.trim(),

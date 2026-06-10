@@ -1,5 +1,6 @@
-/* Origen — service worker (app-shell offline para la captura en campo) */
-const CACHE = 'origen-v1';
+/* Origen — service worker. Red primero para lo propio (los deploys se ven al instante);
+   cache solo como respaldo offline para la captura en campo. */
+const CACHE = 'origen-v2';
 const SHELL = ['/capturar', '/manifest.webmanifest', '/static/icon-192.png'];
 
 self.addEventListener('install', e => {
@@ -15,24 +16,27 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   const req = e.request;
-  if (req.method !== 'GET') return;                    // nunca interceptar la captura/sync (POST)
+  if (req.method !== 'GET') return;                         // nunca interceptar acciones (POST)
   const url = new URL(req.url);
-  // El API siempre va directo a la red (captura, lotes, dossier, leads):
-  if (url.origin === location.origin && /^\/(capture|lots|lead|intake|healthz)/.test(url.pathname)) return;
+  const sameOrigin = url.origin === location.origin;
 
-  if (req.mode === 'navigate') {                       // páginas: red primero, cache de respaldo
+  // Datos y acciones: siempre red, sin cache.
+  if (sameOrigin && /^\/(api|capture|lots|consignments|lead|intake|healthz|auth|share)\b/.test(url.pathname)) return;
+
+  // Páginas y estáticos propios: RED PRIMERO, cache de respaldo (deploys instantáneos + offline).
+  if (sameOrigin) {
     e.respondWith(
-      fetch(req).then(r => { const cp = r.clone(); caches.open(CACHE).then(c => c.put(req, cp)); return r; })
-                .catch(() => caches.match('/capturar'))
+      fetch(req).then(r => { if (r.ok) { const cp = r.clone(); caches.open(CACHE).then(c => c.put(req, cp)); } return r; })
+                .catch(() => caches.match(req).then(c => c || (req.mode === 'navigate' ? caches.match('/capturar') : undefined)))
     );
     return;
   }
-  // estáticos / fuentes: cache primero, luego red
+
+  // Terceros (fuentes): cache primero.
   e.respondWith(
     caches.match(req).then(cached => cached || fetch(req).then(r => {
-      const ok = r.ok && (url.origin === location.origin || url.host.includes('gstatic') || url.host.includes('googleapis'));
-      if (ok) { const cp = r.clone(); caches.open(CACHE).then(c => c.put(req, cp)); }
+      if (r.ok) { const cp = r.clone(); caches.open(CACHE).then(c => c.put(req, cp)); }
       return r;
-    }).catch(() => cached))
+    }))
   );
 });

@@ -176,7 +176,8 @@ def api_lots(request: Request):
     lots = sorted(lots, key=lambda d: d.get("created_at", ""), reverse=True)
     out = [{"lot_id": d.get("lot_id"), "producer": d.get("producer_name"),
             "commodity": d.get("commodity"), "overall_risk": d.get("overall_risk", ""),
-            "created_at": d.get("created_at", ""), "captured_by": d.get("captured_by", "")} for d in lots]
+            "created_at": d.get("created_at", ""), "captured_by": d.get("captured_by", ""),
+            "volume_flag": bool(d.get("volume_flag"))} for d in lots]
     return {"coop": ctx["coop"], "lots": out}
 
 # ---- Envíos / consignaciones (agregar N lotes en una sola DDS consolidada) ----
@@ -535,7 +536,8 @@ def process(lot_id: str, request: Request):
         storage.save_blob(lot_id, "dossier.pdf", open(pdf, "rb").read())
         storage.save_blob(lot_id, "data.geojson", open(gj, "rb").read())
         storage.merge_lot(lot_id, {"overall_risk": risk, "processed_at": _now(),
-                                   "findings": [f.__dict__ for f in findings]})  # cache para envíos
+                                   "findings": [f.__dict__ for f in findings],
+                                   "volume_flag": bool(geo.volume_issues(lot))})  # cache para envíos + anti-fraude
     except Exception:
         pass
     geom_issues = []

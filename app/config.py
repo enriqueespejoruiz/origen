@@ -14,6 +14,9 @@ GFW_API_KEY    = os.getenv("GFW_API_KEY", "")
 GFW_VERSION    = os.getenv("GFW_VERSION", "v1.11")
 LOSS_THRESHOLD_HA = float(os.getenv("LOSS_THRESHOLD_HA", "0.1"))
 ALERTS_THRESHOLD  = int(os.getenv("ALERTS_THRESHOLD", "3"))
+# Techos de rendimiento plausible (kg por ha) para el chequeo anti-fraude de volumen.
+# Generosos a propósito (rinde alto + margen) para evitar falsos positivos; sobre esto = revisar.
+YIELD_CEIL_KG_HA = {"coffee": 2500.0, "cafe": 2500.0, "cocoa": 2000.0, "cacao": 2000.0}
 GCS_BUCKET     = os.getenv("GCS_BUCKET", "")
 DATA_DIR       = os.getenv("DATA_DIR", "./_data")
 # --- Login con Google ---

@@ -2,6 +2,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Origen — panel de la cooperativa</title>
 <meta name="theme-color" content="#07211A">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+<link rel="icon" href="/static/favicon-32.png" sizes="32x32">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Origen">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
@@ -97,6 +103,15 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--brand-leaf-2);cur
 .ccard .acts{display:flex;gap:10px;margin-top:18px}
 .ccard .acts button{flex:1;justify-content:center}
 .row2{display:flex;gap:10px}.row2>div{flex:1}
+/* toolbar (búsqueda / filtro / export) */
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0 0}
+.toolbar input,.toolbar select{padding:9px 12px;font-size:14px;border:1px solid var(--hair);border-radius:10px;
+ background:rgba(0,0,0,.22);color:#fff;font-family:var(--fb)}
+.toolbar input{flex:1;min-width:180px}
+.toolbar input:focus,.toolbar select:focus{outline:none;border-color:var(--brand-leaf-2)}
+.toolbar a.btn{margin-left:auto}
+.rolechip{font-size:11px;padding:3px 9px;border-radius:999px;background:rgba(194,160,76,.16);color:var(--brand-gold-2);font-weight:600}
+.rolechip.tec{background:var(--glass);color:var(--text-3)}
 </style></head><body>
 
 <div id="gate">
@@ -144,6 +159,17 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--brand-leaf-2);cur
 
   <div class="sectit"><h2 id="lotsTitle">Tus lotes</h2><span id="lotsCount" data-count style="color:var(--text-3);font-family:var(--fh);font-weight:600"></span>
     <span class="hint">Marca los lotes que entran en un envío y pulsa «Crear envío».</span></div>
+  <div class="toolbar">
+    <input id="lotSearch" placeholder="Buscar productor, lote o región…" oninput="filterLots()">
+    <select id="lotRisk" onchange="filterLots()">
+      <option value="">Todos los riesgos</option>
+      <option value="high">Deforestación</option>
+      <option value="review">Revisar</option>
+      <option value="negligible">Limpio</option>
+      <option value="none">Sin procesar</option>
+    </select>
+    <a class="btn btn-ghost" href="/api/lots.csv">Exportar CSV</a>
+  </div>
   <div class="card">
     <table>
       <thead><tr><th class="sel"><input type="checkbox" id="selAll" title="Seleccionar todo"></th>
@@ -156,7 +182,8 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--brand-leaf-2);cur
   </div>
 
   <div class="sectit"><h2 id="consTitle">Envíos</h2><span id="consCount" data-count style="color:var(--text-3);font-family:var(--fh);font-weight:600"></span>
-    <span class="hint">Una operación puede acopiar de muchas parcelas y regiones: el EUDR pide un dossier consolidado por envío.</span></div>
+    <span class="hint">Una operación puede acopiar de muchas parcelas y regiones: el EUDR pide un dossier consolidado por envío.</span>
+    <a class="btn btn-ghost" href="/api/consignments.csv" style="margin-left:auto">Exportar CSV</a></div>
   <div class="card">
     <table>
       <thead><tr><th>Envío</th><th>Destino</th><th>Lotes</th><th>Parcelas</th><th>Volumen</th><th>Veredicto</th><th>Descargas</th></tr></thead>
@@ -165,6 +192,18 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--brand-leaf-2);cur
     <div class="empty" id="consempty" style="display:none">
       Aún no hay envíos. Marca lotes arriba y crea tu primer envío consolidado.
     </div>
+  </div>
+
+  <div class="sectit"><h2>Equipo</h2>
+    <span class="hint">Invita a los técnicos de tu cooperativa: entran con su cuenta de Google y capturan a tu nombre.</span></div>
+  <div class="card">
+    <div id="teamInvite" style="display:none;padding:14px 14px 0">
+      <div class="toolbar" style="margin:0">
+        <input id="invEmail" type="email" placeholder="correo@tecnico.com">
+        <button class="btn btn-gold" id="invBtn">Invitar</button>
+      </div>
+    </div>
+    <table><thead><tr><th>Miembro</th><th>Rol</th></tr></thead><tbody id="teamrows"></tbody></table>
   </div>
 </main>
 
@@ -243,31 +282,66 @@ async function showApp(s){
   $('gate').style.display='none'; $('hdr').style.display='flex'; $('app').style.display='block';
   $('coopLabel').textContent=s.coop.name||'';
   $('userChip').innerHTML=(s.user.picture?'<img src="'+s.user.picture+'" alt="">':'')+'<span>'+(s.user.email||'')+'</span>';
-  loadLots(); loadCons();
+  loadLots(); loadCons(); loadTeam();
 }
+function lotMatches(l){
+  const q=($('lotSearch')?$('lotSearch').value:'').trim().toLowerCase();
+  const rf=$('lotRisk')?$('lotRisk').value:'';
+  if(q){ const hay=((l.lot_id||'')+' '+(l.producer||'')+' '+(l.commodity||'')+' '+(l.captured_by||'')).toLowerCase();
+    if(hay.indexOf(q)<0) return false; }
+  if(rf==='none'){ if(l.overall_risk) return false; }
+  else if(rf){ if(l.overall_risk!==rf) return false; }
+  return true;
+}
+function lotRowHTML(l){
+  const rk=RISK[l.overall_risk]; const badge=rk?('<span class="b '+rk[0]+'">'+rk[1]+'</span>'):'<span class="b none">sin procesar</span>';
+  const date=(l.created_at||'').slice(0,10);
+  const ck=SEL.has(l.lot_id)?' checked':'';
+  return '<tr><td class="sel"><input type="checkbox" class="lotck" data-id="'+l.lot_id+'"'+ck+'></td>'+
+    '<td><b>'+l.lot_id+'</b></td><td>'+(l.producer||'—')+
+    '<div class="who">'+(l.captured_by||'')+'</div></td><td>'+(l.commodity||'')+'</td><td>'+badge+'</td>'+
+    '<td>'+date+'</td><td class="dl"><a href="#" data-dl="dossier" data-id="'+l.lot_id+'">Dossier</a>'+
+    '<a href="#" data-dl="geojson" data-id="'+l.lot_id+'">GeoJSON</a>'+
+    '<a href="#" data-map="'+l.lot_id+'">Ver en mapa</a>'+
+    '<a href="#" data-reproc="'+l.lot_id+'">Reprocesar</a>'+
+    '<a href="#" data-wa="'+l.lot_id+'">WhatsApp</a></td></tr>';
+}
+function renderLots(){
+  $('lotsCount').textContent='('+LOTS.length+')';
+  if(!LOTS.length){ $('empty').style.display='block'; $('rows').innerHTML=''; updateSel(); return; }
+  $('empty').style.display='none';
+  const list=LOTS.filter(lotMatches);
+  $('rows').innerHTML = list.length ? list.map(lotRowHTML).join('')
+    : '<tr><td colspan="7" style="text-align:center;color:var(--text-3);padding:24px">Ningún lote coincide con el filtro.</td></tr>';
+  updateSel(); if(window.i18nSync)i18nSync();
+}
+function filterLots(){ renderLots(); }
 async function loadLots(){
   try{
     const d=await (await fetch('/api/lots')).json();
-    LOTS=d.lots||[];
-    $('lotsCount').textContent='('+LOTS.length+')';
-    if(!LOTS.length){ $('empty').style.display='block'; $('rows').innerHTML=''; updateSel(); return; }
-    $('empty').style.display='none';
-    $('rows').innerHTML=LOTS.map(l=>{
-      const rk=RISK[l.overall_risk]; const badge=rk?('<span class="b '+rk[0]+'">'+rk[1]+'</span>'):'<span class="b none">sin procesar</span>';
-      const date=(l.created_at||'').slice(0,10);
-      const ck=SEL.has(l.lot_id)?' checked':'';
-      return '<tr><td class="sel"><input type="checkbox" class="lotck" data-id="'+l.lot_id+'"'+ck+'></td>'+
-        '<td><b>'+l.lot_id+'</b></td><td>'+(l.producer||'—')+
-        '<div class="who">'+(l.captured_by||'')+'</div></td><td>'+(l.commodity||'')+'</td><td>'+badge+'</td>'+
-        '<td>'+date+'</td><td class="dl"><a href="#" data-dl="dossier" data-id="'+l.lot_id+'">Dossier</a>'+
-        '<a href="#" data-dl="geojson" data-id="'+l.lot_id+'">GeoJSON</a>'+
-        '<a href="#" data-map="'+l.lot_id+'">Ver en mapa</a>'+
-        '<a href="#" data-reproc="'+l.lot_id+'">Reprocesar</a>'+
-        '<a href="#" data-wa="'+l.lot_id+'">WhatsApp</a></td></tr>';
-    }).join('');
-    updateSel();
-    if(window.i18nSync)i18nSync();
+    LOTS=d.lots||[]; renderLots();
   }catch(e){ $('empty').style.display='block'; $('empty').textContent='No se pudieron cargar los lotes.'; }
+}
+async function loadTeam(){
+  try{
+    const d=await (await fetch('/api/coop/team')).json();
+    const admin=(d.role==='admin');
+    $('teamInvite').style.display=admin?'block':'none';
+    $('teamrows').innerHTML=(d.members||[]).map(function(m){
+      return '<tr><td>'+m.email+'</td><td><span class="rolechip'+(m.role==='tecnico'?' tec':'')+'">'+(m.role==='admin'?'Administrador':'Técnico')+'</span></td></tr>';
+    }).join('')||'<tr><td colspan="2" class="muted" style="padding:18px">Aún no hay miembros.</td></tr>';
+    if(window.i18nSync)i18nSync();
+  }catch(e){ $('teamrows').innerHTML='<tr><td colspan="2" class="muted" style="padding:18px">No se pudo cargar el equipo.</td></tr>'; }
+}
+async function invite(){
+  const email=($('invEmail').value||'').trim();
+  if(email.indexOf('@')<0){ alert('Pon un email válido'); return; }
+  const b=$('invBtn'); b.disabled=true; b.textContent='Invitando…';
+  try{ const r=await fetch('/api/coop/invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})});
+    if(!r.ok){ let m='No se pudo invitar'; try{m=(await r.json()).detail||m;}catch(e){} alert(m); }
+    else{ $('invEmail').value=''; loadTeam(); }
+  }catch(e){ alert('Error de red'); }
+  b.disabled=false; b.textContent='Invitar';
 }
 function showModal(t){$('mtext').textContent=t;$('mspin').style.display='block';$('mclose').style.display='none';$('modal').style.display='grid';}
 function hideModal(){$('modal').style.display='none';}
@@ -395,6 +469,8 @@ function openWaCons(id){
     if(w) w.location.href='https://wa.me/?text='+encodeURIComponent(msg);
   });
 }
+(function(){ var b=$('invBtn'); if(b)b.onclick=invite; })();
+if('serviceWorker' in navigator){ addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){})}); }
 boot();
 </script>
 <script src="/static/i18n.js" defer></script>

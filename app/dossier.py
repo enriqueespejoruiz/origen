@@ -1,5 +1,5 @@
 import os, json, datetime
-from .geo import lot_to_geojson, traces_properties, plot_geometry
+from .geo import lot_to_geojson, traces_properties, plot_geometry, volume_issues
 from . import config
 
 def _ensure(d): os.makedirs(d, exist_ok=True)
@@ -244,6 +244,7 @@ def build_pdf(lot, findings, narrative, profile, out_dir, lang=None, photo_path=
         from . import geo as _geo
         _gi = []
         for _pl in lot.plots: _gi += _geo.geometry_issues(_pl)
+        _gi += _geo.volume_issues(lot)
         E += [Paragraph((t["dq"] + "; ".join(_esc(x) for x in _gi) + ".") if _gi else t["dq_ok"], S)]
     except Exception:
         pass
@@ -345,6 +346,8 @@ _CSTR = {
                    "sustentarse documentalmente antes de presentar la declaración."),
         "rev_h": "Parcelas a sustentar",
         "rev_t": "Las siguientes parcelas requieren verificación documental adicional antes de la declaración:",
+        "vol_h": "Plausibilidad de volumen",
+        "vol_t": "Los volúmenes declarados no cuadran con el rendimiento esperado del área; revisar posible mezcla de origen:",
         "clean_t": ("Todas las parcelas del envío están libres de deforestación posterior al corte. El envío puede "
                     "consolidarse en una sola Declaración de Diligencia Debida."),
         "h_lots": "Lotes del envío", "th_lots": ["Lote", "Productor", "Región", "Parcelas", "Cantidad", "Riesgo"],
@@ -381,6 +384,8 @@ _CSTR = {
                    "substantiated before submitting the statement."),
         "rev_h": "Plots to substantiate",
         "rev_t": "The following plots require additional documentary verification before the statement:",
+        "vol_h": "Volume plausibility",
+        "vol_t": "Declared volumes don't match the expected yield for the area; review possible undeclared origin mixing:",
         "clean_t": ("All plots in the consignment are free of post-cutoff deforestation. The consignment can be "
                     "consolidated into a single Due Diligence Statement."),
         "h_lots": "Lots in the consignment", "th_lots": ["Lot", "Producer", "Region", "Plots", "Quantity", "Risk"],
@@ -498,7 +503,13 @@ def build_consignment_pdf(cons, items, out_dir, lang=None):
         E += [_callout(t["excl_h"], t["excl_t"], [f"{l} · {p}" for l, p in excl], RC["high"])]
     if rev:
         E += [Spacer(1, 6), _callout(t["rev_h"], t["rev_t"], [f"{l} · {p}" for l, p in rev], RC["review"])]
-    if not excl and not rev:
+    vol = []
+    for _lot, _ in items:
+        for _n in volume_issues(_lot):
+            vol.append(f"{_lot.lot_id}: {_n}")
+    if vol:
+        E += [Spacer(1, 6), _callout(t["vol_h"], t["vol_t"], vol, RC["review"])]
+    if not excl and not rev and not vol:
         E += [_callout(t["verdict"]["negligible"], t["clean_t"], [], RC["negligible"])]
 
     # Tabla de lotes

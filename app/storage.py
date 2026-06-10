@@ -201,6 +201,66 @@ def merge_consignment(cid, fields):
         d = json.load(open(fp)); d.update(fields)
         json.dump(d, open(fp, "w"), indent=2, default=str)
 
+# ---------- Cooperativas (equipo / invitaciones) ----------
+
+def save_coop(coop):
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            firestore.Client(project=config.GCP_PROJECT).collection("coops").document(coop["id"]).set(coop, merge=True)
+            return
+        except Exception:
+            pass
+    d = os.path.join(config.DATA_DIR, "coops"); os.makedirs(d, exist_ok=True)
+    json.dump(coop, open(os.path.join(d, f"{coop['id']}.json"), "w"), indent=2, default=str)
+
+def get_coop(cid):
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            doc = firestore.Client(project=config.GCP_PROJECT).collection("coops").document(cid).get()
+            if doc.exists:
+                return doc.to_dict()
+        except Exception:
+            pass
+    fp = os.path.join(config.DATA_DIR, "coops", f"{cid}.json")
+    if os.path.exists(fp):
+        return json.load(open(fp))
+    return None
+
+def add_coop_member(cid, email, name=""):
+    coop = get_coop(cid) or {"id": cid, "members": []}
+    members = coop.get("members", [])
+    if email and email not in members:
+        members.append(email)
+    coop["members"] = members
+    save_coop(coop)
+    return coop
+
+def find_coop_by_member(email):
+    """Devuelve la cooperativa cuyo equipo incluye este email (para auto-unir al iniciar sesión)."""
+    if not email:
+        return None
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            from google.cloud.firestore_v1.base_query import FieldFilter
+            q = (firestore.Client(project=config.GCP_PROJECT).collection("coops")
+                 .where(filter=FieldFilter("members", "array_contains", email)).limit(1))
+            for d in q.stream():
+                return d.to_dict()
+        except Exception:
+            pass
+    import glob
+    for fp in glob.glob(os.path.join(config.DATA_DIR, "coops", "*.json")):
+        try:
+            c = json.load(open(fp))
+            if email in (c.get("members") or []):
+                return c
+        except Exception:
+            pass
+    return None
+
 def save_notary(lot_id, rec):
     if config.GCP_PROJECT:
         try:

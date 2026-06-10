@@ -224,7 +224,50 @@
     "Fuentes oficiales": "Official sources",
     "Resumen informativo, no constituye asesoría legal. Las fechas y reglas del EUDR han cambiado varias veces; verifica siempre con las fuentes oficiales antes de tomar decisiones.":
       "Informational summary, not legal advice. EUDR dates and rules have changed several times; always check the official sources before making decisions.",
-    "Inicio": "Home"
+    "Inicio": "Home",
+    // -- panel: equipo + filtros + export --
+    "Equipo": "Team",
+    "Invita a los técnicos de tu cooperativa: entran con su cuenta de Google y capturan a tu nombre.":
+      "Invite your cooperative's technicians: they sign in with Google and capture under your name.",
+    "Exportar CSV": "Export CSV", "Todos los riesgos": "All risks", "Sin procesar": "Unprocessed",
+    "Miembro": "Member", "Rol": "Role", "Administrador": "Administrator", "Técnico": "Technician",
+    "Invitar": "Invite", "Invitando…": "Inviting…", "Aún no hay miembros.": "No members yet.",
+    "No se pudo cargar el equipo.": "Couldn't load the team.",
+    "Ningún lote coincide con el filtro.": "No lots match the filter.",
+    "Buscar productor, lote o región…": "Search producer, lot or region…",
+    // -- landing B2B (hero/dolor/envíos/cta) --
+    "Cumplimiento EUDR · café y cacao": "EUDR compliance · coffee & cocoa",
+    "Cumple el EUDR, o tu café se queda": "Comply with the EUDR, or your coffee stays",
+    "fuera de Europa.": "out of Europe.",
+    "Tu comprador europeo ya está pidiendo la prueba. Origen la genera: geolocalización parcela por parcela, verificación contra 4 fuentes satelitales y el dossier + GeoJSON listo para TRACES. Y consolida decenas de parcelas, de muchos productores y regiones, en un solo dossier por envío — capturado desde el celular, en minutos.":
+      "Your European buyer is already asking for the proof. Origen produces it: plot-by-plot geolocation, verification against 4 satellite sources, and the dossier + GeoJSON ready for TRACES. And it consolidates dozens of plots, from many producers and regions, into a single dossier per shipment — captured from a phone, in minutes.",
+    "Listo para TRACES": "Ready for TRACES", "GeoJSON + dossier": "GeoJSON + dossier",
+    "Si no lo pruebas, no hay multa: simplemente tu comprador firma con otro y te quedas fuera de tu principal mercado.":
+      "If you can't prove it, there's no fine: your buyer simply signs with someone else and you're locked out of your main market.",
+    "Desde el 30 de diciembre de 2026, toda cooperativa que venda café o cacao a la UE debe demostrar —parcela por parcela— que no se cultivó en bosque talado después de 2020. Si no lo pruebas, no hay multa: simplemente tu comprador firma con otro y te quedas fuera de tu principal mercado.":
+      "From December 30, 2026, any cooperative selling coffee or cocoa to the EU must prove —plot by plot— that it wasn't grown on land cleared after 2020. If you can't prove it, there's no fine: your buyer simply signs with someone else and you're locked out of your main market.",
+    "Generamos el dossier y el GeoJSON listos para TRACES — por lote, o consolidando decenas de parcelas en un solo dossier por envío.":
+      "We generate the dossier and GeoJSON ready for TRACES — per lot, or consolidating dozens of plots into a single dossier per shipment.",
+    "Envíos · consolidación": "Shipments · consolidation",
+    "Una operación, un solo dossier.": "One operation, one dossier.",
+    "Tu comprador no acopia de una sola parcela: junta café de decenas de productores y varias regiones en un contenedor. El EUDR exige un dossier consolidado por envío, con la geolocalización de todas las parcelas. Lo que las consultoras cobran miles por armar, Origen lo genera en un clic.":
+      "Your buyer doesn't source from a single plot: they pool coffee from dozens of producers and several regions into one container. The EUDR requires a consolidated dossier per shipment, with the geolocation of every plot. What consultants charge thousands to assemble, Origen generates in one click.",
+    "Consolida decenas de parcelas": "Consolidate dozens of plots",
+    "Marca los lotes de un contenedor —de muchos productores y regiones— y genera un único dossier + GeoJSON listo para TRACES.":
+      "Tick the lots of a container —from many producers and regions— and generate a single dossier + GeoJSON ready for TRACES.",
+    "Veredicto global, sin mezclar": "Global verdict, no mixing",
+    "Si una sola parcela está observada, el envío se marca y te dice exactamente cuál excluir o sustentar. La norma prohíbe compensar: Origen te lo resuelve.":
+      "If a single plot is flagged, the shipment is marked and tells you exactly which one to exclude or substantiate. The rule forbids offsetting: Origen handles it for you.",
+    "Anti-fraude de volumen": "Volume anti-fraud",
+    "Cruzamos los kilos declarados con el rendimiento real del área. Si no cuadra, lo marcamos antes que lo haga la aduana europea.":
+      "We cross-check the declared kilos against the real yield of the area. If it doesn't add up, we flag it before EU customs does.",
+    "Dossier consolidado": "Consolidated dossier", "GeoJSON listo para TRACES": "GeoJSON ready for TRACES",
+    "Notarización SHA-256 + QR": "SHA-256 notarization + QR", "Equipo multi-técnico": "Multi-technician team",
+    "Funciona sin señal": "Works offline", "Español e inglés": "Spanish & English",
+    "Tus compradores europeos ya están preguntando.": "Your European buyers are already asking.",
+    "Pon tu cooperativa en regla antes que tu competencia. Sin instalar nada, sin consultoras: captura tu primera parcela hoy y ten el dossier listo en minutos.":
+      "Get your cooperative compliant before your competition does. Nothing to install, no consultants: capture your first plot today and have the dossier ready in minutes.",
+    "Agenda una demo": "Book a demo"
   };
 
   var nodes = [], phs = [];

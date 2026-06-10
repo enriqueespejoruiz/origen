@@ -42,6 +42,28 @@ def lot_to_geojson(lot: Lot):
         })
     return {"type": "FeatureCollection", "features": feats}
 
+def volume_issues(lot):
+    """Anti-fraude de volumen: kg declarados vs rendimiento plausible del área total de las parcelas.
+    Devuelve notas si el volumen es inverosímil (posible mezcla de origen no declarada)."""
+    import re as _re
+    from . import config
+    issues = []
+    try:
+        total_ha = sum((p.area_ha or 0.0) for p in lot.plots)
+        q = str(getattr(lot, "quantity", "") or "").replace(",", "")
+        m = _re.search(r"[\d.]+", q)
+        kg = float(m.group()) if m else 0.0
+        if total_ha > 0 and kg > 0:
+            ceil = config.YIELD_CEIL_KG_HA.get((lot.commodity or "").lower(), 2500.0)
+            yld = kg / total_ha
+            if yld > ceil:
+                issues.append(
+                    f"volumen declarado ({kg:.0f} kg) inverosímil para {total_ha:.1f} ha "
+                    f"(≈{yld:.0f} kg/ha; techo plausible ~{ceil:.0f} kg/ha): revisar posible mezcla de origen")
+    except Exception as e:
+        print("volume check error:", repr(e))
+    return issues
+
 def geometry_issues(plot):
     """Problemas de geometría que afectan calidad/aceptación (TRACES rechaza polígonos inválidos)."""
     import math

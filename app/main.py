@@ -16,6 +16,13 @@ app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
 
 def _now(): return datetime.datetime.utcnow().isoformat() + "Z"
 
+def log(event, **kw):
+    """Log estructurado en JSON (legible por Cloud Logging)."""
+    try:
+        print(json.dumps({"event": event, "ts": _now(), **kw}, ensure_ascii=False, default=str))
+    except Exception:
+        print(event, kw)
+
 import time as _time
 _RL = {}
 def _throttle(ip, bucket, limit, window=60):
@@ -90,6 +97,9 @@ class GoogleIn(BaseModel):
 class CoopIn(BaseModel):
     name: str
 
+class InviteIn(BaseModel):
+    email: str
+
 @app.post("/auth/google")
 def auth_google(g: GoogleIn, request: Request):
     try:
@@ -102,6 +112,11 @@ def auth_google(g: GoogleIn, request: Request):
     if prof.get("coop_id"):
         request.session["coop"] = {"id": prof["coop_id"], "name": prof.get("coop_name", ""),
                                    "role": prof.get("role", "tecnico")}
+    else:
+        inv = storage.find_coop_by_member(user.get("email", ""))   # auto-unir si fue invitado
+        if inv:
+            request.session["coop"] = {"id": inv["id"], "name": inv.get("name", ""), "role": "tecnico"}
+            storage.save_user(user["sub"], {"coop_id": inv["id"], "coop_name": inv.get("name", ""), "role": "tecnico"})
     storage.save_user(user["sub"], {"email": user["email"], "name": user["name"], "last_login": _now()})
     return {"user": user, "coop": request.session.get("coop")}
 
@@ -126,7 +141,33 @@ def api_coop(c: CoopIn, request: Request):
     coop = {"id": cid, "name": name, "role": "admin"}
     request.session["coop"] = coop
     storage.save_user(user["sub"], {"coop_id": cid, "coop_name": name, "role": "admin"})
+    storage.save_coop({"id": cid, "name": name, "admin_email": user.get("email", ""),
+                       "members": [user.get("email", "")], "created_at": _now()})
     return {"coop": coop}
+
+@app.post("/api/coop/invite")
+def api_coop_invite(inv: InviteIn, request: Request):
+    ctx = auth.require_coop(request)
+    if ctx["coop"].get("role") != "admin":
+        raise HTTPException(403, "Solo el administrador de la cooperativa puede invitar")
+    email = (inv.email or "").strip().lower()
+    if "@" not in email:
+        raise HTTPException(400, "Pon un email válido")
+    storage.add_coop_member(ctx["coop"]["id"], email)
+    return {"ok": True, "email": email}
+
+@app.get("/api/coop/team")
+def api_coop_team(request: Request):
+    ctx = auth.require_coop(request)
+    coop = storage.get_coop(ctx["coop"]["id"]) or {}
+    admin = coop.get("admin_email", "")
+    members = coop.get("members", [])
+    if not members and ctx["user"].get("email"):    # auto-sana cooperativas creadas antes de esta función
+        admin = admin or ctx["user"]["email"]; members = [admin]
+        storage.save_coop({"id": ctx["coop"]["id"], "name": ctx["coop"].get("name", ""),
+                           "admin_email": admin, "members": members, "created_at": _now()})
+    team = [{"email": m, "role": ("admin" if m == admin else "tecnico")} for m in members]
+    return {"role": ctx["coop"].get("role", "tecnico"), "admin": admin, "members": team}
 
 @app.get("/api/lots")
 def api_lots(request: Request):
@@ -171,6 +212,7 @@ def create_consignment(c: ConsignmentIn, request: Request):
                        c.destination, c.buyer, ids, _now(), ctx["user"]["email"],
                        {"lang": c.lang or "es"})
     storage.save_consignment(cons)
+    log("consignment_create", consignment_id=cid, coop=ctx["coop"]["id"], lots=len(ids), commodity=commodity)
     return {"consignment_id": cid, "name": cons.name}
 
 @app.get("/api/consignments")
@@ -199,6 +241,34 @@ def _consignment_summary(d):
             "buyer": d.get("buyer", ""), "n_lots": len(lot_ids), "n_plots": nplots,
             "total_kg": round(total, 1), "producers": len(producers), "regions": len(regions),
             "verdict": verdict, "processed": processed, "created_at": d.get("created_at", "")}
+
+@app.get("/api/lots.csv")
+def lots_csv(request: Request):
+    ctx = auth.require_coop(request)
+    lots = sorted(storage.list_lots(ctx["coop"]["id"]), key=lambda d: d.get("created_at", ""), reverse=True)
+    import io, csv
+    buf = io.StringIO(); w = csv.writer(buf)
+    w.writerow(["lot_id", "producer", "commodity", "region", "quantity_kg", "overall_risk", "n_plots", "captured_by", "created_at"])
+    for d in lots:
+        w.writerow([d.get("lot_id", ""), d.get("producer_name", ""), d.get("commodity", ""), d.get("region", ""),
+                    d.get("quantity", ""), d.get("overall_risk", ""), len(d.get("plots", [])),
+                    d.get("captured_by", ""), d.get("created_at", "")])
+    return Response(buf.getvalue(), media_type="text/csv",
+                    headers={"Content-Disposition": 'attachment; filename="origen_lotes.csv"'})
+
+@app.get("/api/consignments.csv")
+def consignments_csv(request: Request):
+    ctx = auth.require_coop(request)
+    cons = sorted(storage.list_consignments(ctx["coop"]["id"]), key=lambda d: d.get("created_at", ""), reverse=True)
+    import io, csv
+    buf = io.StringIO(); w = csv.writer(buf)
+    w.writerow(["consignment_id", "name", "commodity", "destination", "buyer", "n_lots", "n_plots", "total_kg", "verdict", "created_at"])
+    for d in cons:
+        s = _consignment_summary(d)
+        w.writerow([s["consignment_id"], s["name"], s["commodity"], s["destination"], s["buyer"],
+                    s["n_lots"], s["n_plots"], s["total_kg"], s["verdict"], s["created_at"]])
+    return Response(buf.getvalue(), media_type="text/csv",
+                    headers={"Content-Disposition": 'attachment; filename="origen_envios.csv"'})
 
 def _load_owned_cons(cid, ctx):
     d = storage.load_consignment(cid)
@@ -391,6 +461,7 @@ def capture(c: CaptureIn, request: Request):
         except Exception:
             pass
     storage.save_lot(lot)
+    log("capture", lot_id=lot_id, coop=ctx["coop"]["id"], by=ctx["user"].get("email", ""))
     return {"lot_id": lot_id, "producer": lot.producer_name}
 
 # ---- Captacion de leads (onboarding desde la landing) ----
@@ -411,7 +482,7 @@ def lead(l: LeadIn, request: Request):
         raise HTTPException(429, "Demasiadas solicitudes; intenta en un momento.")
     import datetime
     rec = l.model_dump(); rec["ts"] = datetime.datetime.utcnow().isoformat() + "Z"
-    print("LEAD " + json.dumps(rec, ensure_ascii=False))  # queda en los logs de Cloud Run
+    log("lead", **rec)  # queda en los logs de Cloud Run
     saved = False
     if config.GCP_PROJECT:
         try:
@@ -469,6 +540,7 @@ def process(lot_id: str, request: Request):
         pass
     geom_issues = []
     for pl in lot.plots: geom_issues += geo.geometry_issues(pl)
+    geom_issues += geo.volume_issues(lot)
     notary = notarize.notarize(lot_id, pdf)
     return {"lot_id": lot_id, "overall_risk": risk, "geometry_issues": geom_issues,
             "notary": {"sha256": notary.get("sha256"), "verify_url": config.PUBLIC_BASE_URL + "/verificar?lot=" + lot_id},

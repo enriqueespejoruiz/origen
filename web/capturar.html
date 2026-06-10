@@ -100,6 +100,11 @@ input[type=file]::file-selector-button{font-family:var(--font-heading);font-weig
 .uchip img{width:20px;height:20px;border-radius:50%;flex:none}
 .lout{width:auto;margin:0;padding:6px 11px;font-size:12px;background:rgba(255,255,255,.16);box-shadow:none}
 .lout:hover{background:rgba(255,255,255,.26)}
+#dmodal{position:fixed;inset:0;z-index:60;display:none;place-items:center;background:rgba(4,20,14,.55);padding:22px}
+.dmcard{background:#fff;border-radius:16px;padding:26px 28px;max-width:330px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.4)}
+.dmspin{width:34px;height:34px;border:3px solid #e3decf;border-top-color:#0B3D2E;border-radius:50%;margin:0 auto 14px;animation:dmspin 1s linear infinite}
+@keyframes dmspin{to{transform:rotate(360deg)}}
+#dmodal #mtext{font-size:14.5px;color:#3a3f39}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
 <div id="gate">
@@ -123,6 +128,8 @@ input[type=file]::file-selector-button{font-family:var(--font-heading);font-weig
     <div class="gnote" id="gnote">Más ágil y seguro: tus capturas quedan firmadas con tu cuenta.</div>
   </div>
 </div>
+<div id="dmodal"><div class="dmcard"><div class="dmspin" id="mspin"></div><div id="mtext">Generando…</div>
+  <button class="sec" id="mclose" style="display:none;width:auto;margin:10px auto 0;padding:8px 14px">Cerrar</button></div></div>
 <header>
   <span class="logo"><svg viewBox="0 0 64 64" width="26" height="26" aria-hidden="true">
     <path d="M32 6C20.4 6 11 15 11 26.2 11 40 32 58 32 58s21-18 21-31.8C53 15 43.6 6 32 6z" fill="#0B3D2E"/>
@@ -153,6 +160,12 @@ input[type=file]::file-selector-button{font-family:var(--font-heading);font-weig
         <select id="com"><option value="coffee">Café</option><option value="cacao">Cacao</option></select></div>
       <div><label for="area">Área (ha)</label><input id="area" type="number" inputmode="decimal" placeholder="ej. 2"></div>
     </div>
+    <div class="row">
+      <div><label for="region">Región</label><input id="region" placeholder="ej. Cusco" autocomplete="off"></div>
+      <div><label for="cantidad">Cantidad (kg, aprox.)</label><input id="cantidad" inputmode="decimal" placeholder="ej. 1200"></div>
+    </div>
+    <label for="lang">Idioma del dossier</label>
+    <select id="lang"><option value="es">Español</option><option value="en">English</option></select>
     <div class="seg" id="seg">
       <button type="button" class="segb on" data-m="point">Punto (≤4 ha)</button>
       <button type="button" class="segb" data-m="poly">Polígono (&gt;4 ha)</button>
@@ -170,6 +183,21 @@ input[type=file]::file-selector-button{font-family:var(--font-heading);font-weig
     <label for="photo">Foto del predio (opcional) — cámara o galería</label>
     <div class="filerow"><input id="photo" type="file" accept="image/*"></div>
     <img class="prev" id="prev" style="display:none" alt="Vista previa de la foto del predio">
+    <details style="margin-top:12px">
+      <summary style="cursor:pointer;font-size:14px;color:var(--brand-pine);font-weight:600;font-family:var(--font-heading);padding:4px 0">Datos adicionales (opcional)</summary>
+      <label for="legtitle">Título / derecho de uso del predio</label>
+      <input id="legtitle" placeholder="ej. título inscrito, posesión, en trámite">
+      <label for="legenv">Conformidad ambiental / forestal</label>
+      <input id="legenv" placeholder="ej. fuera de ANP, sin concesión forestal">
+      <label for="leglabor">Conformidad laboral</label>
+      <input id="leglabor" placeholder="ej. sin trabajo infantil, pago justo">
+      <label for="buyername">Comprador / importador UE (si lo conoces)</label>
+      <input id="buyername" placeholder="nombre del importador">
+      <div class="row">
+        <div><label for="buyercountry">País del comprador</label><input id="buyercountry" placeholder="ej. Alemania"></div>
+        <div><label for="buyereori">EORI</label><input id="buyereori" placeholder="EORI"></div>
+      </div>
+    </details>
     <button id="save"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12l4.5 4.5L19 7" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>Guardar parcela</button>
   </div>
   <div class="card">
@@ -270,7 +298,12 @@ $('photo').onchange=e=>{
 $('save').onclick=()=>{
   if(!$('prod').value.trim()){alert('Pon el nombre del productor');return;}
   let item={id:Date.now(),producer:$('prod').value.trim(),cooperative:$('coop').value.trim(),
-    commodity:$('com').value,area_ha:parseFloat($('area').value)||null,photo_base64:photo,status:'pendiente'};
+    commodity:$('com').value,area_ha:parseFloat($('area').value)||null,
+    region:$('region').value.trim(),quantity:$('cantidad').value.trim(),
+    extra:{lang:$('lang').value,
+           legality:{title:$('legtitle').value.trim(),env:$('legenv').value.trim(),labor:$('leglabor').value.trim()},
+           buyer:{name:$('buyername').value.trim(),country:$('buyercountry').value.trim(),eori:$('buyereori').value.trim()}},
+    photo_base64:photo,status:'pendiente'};
   if(mode==='poly'){
     if(verts.length<3){alert('Marca al menos 3 esquinas del predio (caminando el perímetro)');return;}
     item.points=verts.map(v=>({lat:v.lat,lon:v.lon})); item.geom='poly';
@@ -280,7 +313,9 @@ $('save').onclick=()=>{
     item.lat=coords.lat; item.lon=coords.lon; item.geom='point';
   }
   queue.push(item); save(); render();
-  gpsStop(); $('prod').value='';$('area').value='';photo=null;coords=null;verts=[];renderV();
+  gpsStop(); $('prod').value='';$('area').value='';$('region').value='';$('cantidad').value='';
+  ['legtitle','legenv','leglabor','buyername','buyercountry','buyereori'].forEach(function(id){var e=$(id);if(e)e.value='';});
+  photo=null;coords=null;verts=[];renderV();
   $('prev').style.display='none';$('gpsout').style.display='none';$('vtxout').style.display='none';
   $('gps').textContent='Capturar ubicación GPS';
   if(navigator.onLine)sync();
@@ -300,8 +335,8 @@ function render(){
     }
     let dl='';
     if(i.status==='enviado'&&i.lot_id){
-      dl='<div class="dl"><a href="/lots/'+i.lot_id+'/dossier" target="_blank" rel="noopener">Dossier PDF</a>'+
-         '<a href="/lots/'+i.lot_id+'/geojson" target="_blank" rel="noopener">Datos (GeoJSON)</a></div>';
+      dl='<div class="dl"><a href="#" data-dl="dossier" data-id="'+i.lot_id+'">Dossier PDF</a>'+
+         '<a href="#" data-dl="geojson" data-id="'+i.lot_id+'">Datos (GeoJSON)</a></div>';
     }
     return '<div class="item"><div>'+i.producer+'<div class="muted">'+(i.geom==='poly'?('polígono · '+(i.points?i.points.length:0)+' vért.'):(i.lat.toFixed(4)+', '+i.lon.toFixed(4)))+'</div>'+dl+'</div>'+b+'</div>';
   }).join('');
@@ -314,7 +349,7 @@ async function sync(){
     try{
       const r=await fetch('/capture',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({producer:i.producer,cooperative:i.cooperative,commodity:i.commodity,
-          area_ha:i.area_ha,lat:i.lat,lon:i.lon,points:i.points||null,photo_base64:i.photo_base64})});
+          area_ha:i.area_ha,region:i.region||'',quantity:i.quantity||'',extra:i.extra||{},lat:i.lat,lon:i.lon,points:i.points||null,photo_base64:i.photo_base64})});
       if(!r.ok)continue;
       const d=await r.json(); i.lot_id=d.lot_id; i.status='enviado'; i.photo_base64=null; save(); render();
       try{const p=await (await fetch('/lots/'+d.lot_id+'/process',{method:'POST'})).json(); i.risk=p.overall_risk; save(); render();}catch(e){}
@@ -375,6 +410,24 @@ addEventListener('appinstalled',function(){ var c=document.getElementById('insta
   }
   $('logout').onclick=async function(){ await fetch('/auth/logout',{method:'POST'}); authBoot(); };
   authBoot();
+})();
+</script>
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  function showModal(t){$('mtext').textContent=t;$('mspin').style.display='block';$('mclose').style.display='none';$('dmodal').style.display='grid';}
+  function hideModal(){$('dmodal').style.display='none';}
+  function modalErr(t){$('mtext').textContent=t;$('mspin').style.display='none';$('mclose').style.display='inline-flex';}
+  async function dl(id,kind){
+    showModal(kind==='dossier'?'Generando el dossier… puede tardar unos segundos.':'Preparando el GeoJSON…');
+    try{ var r=await fetch('/lots/'+id+'/'+kind); if(!r.ok)throw new Error('No se pudo generar (HTTP '+r.status+'). Reintenta.');
+      var b=await r.blob(); var u=URL.createObjectURL(b); var a=document.createElement('a');
+      a.href=u; a.download=id+(kind==='dossier'?'_dossier.pdf':'.geojson'); document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){URL.revokeObjectURL(u);},4000); hideModal();
+    }catch(e){ modalErr(e.message||'Error de red'); }
+  }
+  var mc=$('mclose'); if(mc)mc.onclick=hideModal;
+  var lst=$('list'); if(lst)lst.addEventListener('click',function(ev){var a=ev.target.closest('a[data-dl]');if(!a)return;ev.preventDefault();dl(a.getAttribute('data-id'),a.getAttribute('data-dl'));});
 })();
 </script>
 </body></html>

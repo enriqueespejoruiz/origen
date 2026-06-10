@@ -2,7 +2,7 @@ import os, uuid, json, base64, datetime
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
-from . import gemini, deforestation, dossier, storage, config, auth
+from . import gemini, deforestation, dossier, storage, config, auth, geo, notarize
 from .models import Lot, Plot, GeoPoint
 
 app = FastAPI(title="Origen - EUDR + Export Copilot")
@@ -109,6 +109,19 @@ def api_lots(request: Request):
             "created_at": d.get("created_at", ""), "captured_by": d.get("captured_by", "")} for d in lots]
     return {"coop": ctx["coop"], "lots": out}
 
+@app.get("/verificar")
+def verificar():
+    return _page("verificar.html")
+
+@app.get("/api/verify")
+def api_verify(lot: str = ""):
+    rec = storage.get_notary(lot) if lot else None
+    if not rec:
+        return {"found": False}
+    return {"found": True, "lot_id": rec.get("lot_id"), "sha256": rec.get("sha256"),
+            "algo": rec.get("algo", "SHA-256"), "created_at": rec.get("created_at", ""),
+            "anchor": rec.get("anchor", "")}
+
 # ---- Captura estructurada de campo (tecnico de la cooperativa) ----
 
 class CaptureIn(BaseModel):
@@ -121,6 +134,7 @@ class CaptureIn(BaseModel):
     lon: float
     points: list[dict] | None = None     # vertices [{lat,lon}] del poligono (parcelas >4 ha)
     quantity: str = ""                     # cantidad estimada del lote
+    extra: dict | None = None              # legalidad + comprador (opcional)
     photo_base64: str | None = None
 
 @app.post("/capture")
@@ -133,7 +147,7 @@ def capture(c: CaptureIn, request: Request):
         pts = [GeoPoint(c.lat, c.lon)]
     plot = Plot("P1", pts, c.area_ha)
     lot = Lot(lot_id, c.producer, ctx["coop"]["name"], c.commodity, "PE", c.region, [plot], "", "", c.quantity,
-              ctx["coop"]["id"], ctx["user"]["email"], _now())
+              ctx["coop"]["id"], ctx["user"]["email"], _now(), c.extra or {})
     if c.photo_base64:
         try:
             up = os.path.join(config.DATA_DIR, "uploads"); os.makedirs(up, exist_ok=True)
@@ -199,11 +213,15 @@ def process(lot_id: str, request: Request):
     ctx = auth.require_coop(request)
     lot = _load_owned(lot_id, ctx)
     findings = deforestation.check_plots(lot)
-    narrative = gemini.generate_dossier_narrative(lot, findings)
-    profile = gemini.generate_buyer_profile(lot)
+    lang = (lot.extra or {}).get("lang", "es") if isinstance(lot.extra, dict) else "es"
+    if lang == "en":
+        narrative = _fallback_narrative(lot, findings, "en")
+    else:
+        try: narrative = gemini.generate_dossier_narrative(lot, findings) or _fallback_narrative(lot, findings, "es")
+        except Exception: narrative = _fallback_narrative(lot, findings, "es")
     out = os.path.join(config.DATA_DIR, "dossiers")
     gj = dossier.build_geojson(lot, out)
-    pdf = dossier.build_pdf(lot, findings, narrative, profile, out)
+    pdf = dossier.build_pdf(lot, findings, narrative, "", out, lang)
     storage.upload_file(gj); storage.upload_file(pdf)
     risk = dossier.overall_risk(findings)
     try:
@@ -212,13 +230,24 @@ def process(lot_id: str, request: Request):
         storage.merge_lot(lot_id, {"overall_risk": risk, "processed_at": _now()})
     except Exception:
         pass
-    return {"lot_id": lot_id, "overall_risk": risk,
+    geom_issues = []
+    for pl in lot.plots: geom_issues += geo.geometry_issues(pl)
+    notary = notarize.notarize(lot_id, pdf)
+    return {"lot_id": lot_id, "overall_risk": risk, "geometry_issues": geom_issues,
+            "notary": {"sha256": notary.get("sha256"), "verify_url": config.PUBLIC_BASE_URL + "/verificar?lot=" + lot_id},
             "geojson": gj, "pdf": pdf, "findings": [f.__dict__ for f in findings]}
 
-def _fallback_narrative(lot, findings):
+def _fallback_narrative(lot, findings, lang="es"):
     """Resumen determinista (sin Gemini) por si la IA no responde al regenerar."""
     n = len(findings); high = sum(1 for f in findings if f.risk == "high")
     rev = sum(1 for f in findings if f.risk == "review"); clean = n - high - rev
+    if lang == "en":
+        s = (f"{n} plot(s) of producer {lot.producer_name or '—'} ({lot.cooperative or 'cooperative'}) were assessed, "
+             f"each cross-checked against satellite deforestation sources with a 31 December 2020 cut-off. "
+             f"Result: {clean} with no loss, {rev} to review and {high} with detected deforestation. ")
+        s += ("Flagged plots must be excluded or substantiated before the declaration."
+              if high else "No forest loss after the cut-off was detected in the assessed plots.")
+        return s
     s = (f"Se evaluaron {n} parcela(s) del productor {lot.producer_name or '—'} "
          f"({lot.cooperative or 'cooperativa'}), cruzando cada una contra fuentes satelitales de "
          f"deforestación con fecha de corte 31 de diciembre de 2020. "
@@ -236,23 +265,23 @@ def _ensure_outputs(lot_id: str):
         return pdf, gj
     lot = _load(lot_id)
     findings = deforestation.check_plots(lot)
-    try:
-        narrative = gemini.generate_dossier_narrative(lot, findings) or ""
-    except Exception as e:
-        print("regen narrative error:", repr(e)); narrative = ""
-    if not narrative:
-        narrative = _fallback_narrative(lot, findings)
-    try:
-        profile = gemini.generate_buyer_profile(lot) or ""
-    except Exception as e:
-        print("regen profile error:", repr(e)); profile = ""
+    lang = (lot.extra or {}).get("lang", "es") if isinstance(lot.extra, dict) else "es"
+    if lang == "en":
+        narrative = _fallback_narrative(lot, findings, "en")
+    else:
+        try:
+            narrative = gemini.generate_dossier_narrative(lot, findings) or _fallback_narrative(lot, findings, "es")
+        except Exception as e:
+            print("regen narrative error:", repr(e)); narrative = _fallback_narrative(lot, findings, "es")
     gj = dossier.build_geojson(lot, out)
-    pdf = dossier.build_pdf(lot, findings, narrative, profile, out)
+    pdf = dossier.build_pdf(lot, findings, narrative, "", out, lang)
     try:
         storage.save_blob(lot_id, "dossier.pdf", open(pdf, "rb").read())
         storage.save_blob(lot_id, "data.geojson", open(gj, "rb").read())
     except Exception:
         pass
+    try: notarize.notarize(lot_id, pdf)
+    except Exception: pass
     return pdf, gj
 
 @app.get("/lots/{lot_id}/dossier")
@@ -302,7 +331,7 @@ def _load(lot_id: str) -> Lot:
     return Lot(d["lot_id"], d["producer_name"], d["cooperative"], d["commodity"],
                d.get("country", "PE"), d.get("region", ""), plots,
                d.get("harvest_season", ""), d.get("raw_notes", ""), d.get("quantity", ""),
-               d.get("coop_id", ""), d.get("captured_by", ""), d.get("created_at", ""))
+               d.get("coop_id", ""), d.get("captured_by", ""), d.get("created_at", ""), d.get("extra", {}))
 
 def _load_owned(lot_id: str, ctx: dict) -> Lot:
     lot = _load(lot_id)

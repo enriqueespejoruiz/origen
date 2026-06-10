@@ -19,6 +19,7 @@ DATA_DIR       = os.getenv("DATA_DIR", "./_data")
 # --- Login con Google ---
 GOOGLE_OAUTH_CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID", "")
 SESSION_SECRET         = os.getenv("SESSION_SECRET", "dev-insecure-change-me")
+PUBLIC_BASE_URL        = os.getenv("PUBLIC_BASE_URL", "https://origen-711831043664.us-central1.run.app")
 
 def gemini_ready(): return bool(GEMINI_API_KEY or USE_VERTEX)
 def auth_ready():   return bool(GOOGLE_OAUTH_CLIENT_ID)

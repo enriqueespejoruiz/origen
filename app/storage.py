@@ -135,3 +135,28 @@ def list_lots(coop_id, limit=300):
         except Exception:
             pass
     return out
+
+def save_notary(lot_id, rec):
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            firestore.Client(project=config.GCP_PROJECT).collection("notary").document(lot_id).set(rec, merge=True)
+            return
+        except Exception:
+            pass
+    d = os.path.join(config.DATA_DIR, "notary"); os.makedirs(d, exist_ok=True)
+    json.dump(rec, open(os.path.join(d, f"{lot_id}.json"), "w"))
+
+def get_notary(lot_id):
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            doc = firestore.Client(project=config.GCP_PROJECT).collection("notary").document(lot_id).get()
+            if doc.exists:
+                return doc.to_dict()
+        except Exception:
+            pass
+    fp = os.path.join(config.DATA_DIR, "notary", f"{lot_id}.json")
+    if os.path.exists(fp):
+        return json.load(open(fp))
+    return None

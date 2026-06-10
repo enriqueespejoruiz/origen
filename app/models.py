@@ -27,6 +27,7 @@ class Lot:
     coop_id: str = ""               # cooperativa (multi-tenant)
     captured_by: str = ""           # email del usuario que capturó (auditoría)
     created_at: str = ""            # ISO timestamp de captura
+    extra: dict = field(default_factory=dict)  # legalidad + comprador (opcional)
 
 @dataclass
 class DeforestationFinding:

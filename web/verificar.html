@@ -1,0 +1,83 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Origen — verificar dossier</title>
+<meta name="theme-color" content="#07211A">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#C2A04C;--gold2:#E0C277;--leaf2:#46B681;--bg0:#04140E;--bg1:#07211A;--t1:#F3F1E9;--t2:#B7C8BD;--t3:#8AA096;
+ --hair:rgba(255,255,255,.12);--fh:'Sora',system-ui,sans-serif;--fb:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--fb);color:var(--t1);line-height:1.6;min-height:100vh;
+ background:radial-gradient(60% 50% at 50% 0,rgba(46,139,94,.22),transparent 60%),linear-gradient(180deg,#07231B,var(--bg1) 40%,var(--bg0))}
+.wrap{max-width:600px;margin:0 auto;padding:42px 22px}
+.logo{background:#F5F2EB;border-radius:12px;padding:6px;display:inline-block;line-height:0;margin-bottom:14px}
+h1{font-family:var(--fh);font-size:26px;margin:0 0 4px}
+p.sub{color:var(--t2);margin:0 0 24px}
+.card{background:rgba(255,255,255,.05);border:1px solid var(--hair);border-radius:16px;padding:22px;margin-bottom:16px}
+.rw{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--hair);font-size:14px}
+.rw:first-child{border-top:0}.rw .k{color:var(--t3);white-space:nowrap}.rw .v{font-family:ui-monospace,monospace;word-break:break-all;text-align:right}
+.state{display:flex;align-items:center;gap:10px;font-family:var(--fh);font-weight:600;font-size:17px;margin-bottom:4px}
+.dot{width:12px;height:12px;border-radius:50%;flex:none}
+.ok{color:var(--leaf2)}.ok .dot{background:var(--leaf2)}
+.bad{color:#E07A5F}.bad .dot{background:#E07A5F}
+.warn{color:var(--gold2)}.warn .dot{background:var(--gold2)}
+label{display:block;color:var(--t2);font-size:13px;margin-bottom:8px}
+input[type=file]{width:100%;color:var(--t2);font-size:14px}
+input[type=text]{flex:1;padding:11px;border:1px solid var(--hair);border-radius:10px;background:rgba(0,0,0,.2);color:#fff;font-family:var(--fb)}
+button{white-space:nowrap;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#231a04;border:0;border-radius:10px;padding:0 16px;font-family:var(--fh);font-weight:600;cursor:pointer}
+.muted{color:var(--t3);font-size:12.5px;margin-top:14px}
+a{color:var(--leaf2)}
+</style></head><body>
+<div class="wrap">
+  <span class="logo"><svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true"><path d="M32 6C20.4 6 11 15 11 26.2 11 40 32 58 32 58s21-18 21-31.8C53 15 43.6 6 32 6z" fill="#0B3D2E"/><path d="M32 41V27" stroke="#EAF3EC" stroke-width="3" stroke-linecap="round"/><path d="M32 31c-5 0-9-3-9.5-8 5.5 0 9 2.5 9.5 8z" fill="#C2A04C"/><path d="M32 28c5 0 9-3 9.5-8-5.5 0-9 2.5-9.5 8z" fill="#2E8B5E"/></svg></span>
+  <h1>Verificar dossier</h1>
+  <p class="sub">Comprueba que un dossier de Origen es auténtico y desde cuándo existe.</p>
+
+  <div class="card">
+    <label for="lotin">Código de lote</label>
+    <div style="display:flex;gap:8px"><input type="text" id="lotin" placeholder="LOT-XXXXXXXX"><button onclick="lookup()">Buscar</button></div>
+    <div id="rec" style="margin-top:14px"></div>
+  </div>
+
+  <div class="card">
+    <label>Comprobar el archivo (opcional)</label>
+    <p class="muted" style="margin-top:0">Sube el PDF que recibiste; tu navegador calcula su huella y la compara — el archivo no sale de tu equipo.</p>
+    <input type="file" id="file" accept="application/pdf">
+    <div id="match" style="margin-top:12px"></div>
+  </div>
+  <p class="muted">La notarización registra la huella <b>SHA-256</b> del dossier con su fecha de emisión, a prueba de manipulación. Anclaje público en cadena (OpenTimestamps): en preparación.</p>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+let REC=null;
+function qs(k){return new URLSearchParams(location.search).get(k)||'';}
+async function lookup(){
+  const lot=($('lotin').value||'').trim(); if(!lot)return;
+  $('rec').innerHTML='<span class="muted">Buscando…</span>';
+  try{ const r=await fetch('/api/verify?lot='+encodeURIComponent(lot)); const d=await r.json();
+    if(!d.found){ REC=null; $('rec').innerHTML='<div class="state warn"><span class="dot"></span>No encontrado</div><p class="muted">No hay registro para ese lote.</p>'; return; }
+    REC=d;
+    $('rec').innerHTML='<div class="state ok"><span class="dot"></span>Registrado</div>'+
+      '<div class="rw"><span class="k">Lote</span><span class="v">'+d.lot_id+'</span></div>'+
+      '<div class="rw"><span class="k">Emitido</span><span class="v">'+(d.created_at||'').replace('T',' ').replace('Z',' UTC')+'</span></div>'+
+      '<div class="rw"><span class="k">Huella '+d.algo+'</span><span class="v">'+d.sha256+'</span></div>';
+    checkFile();
+  }catch(e){ $('rec').innerHTML='<span class="muted">Error al consultar.</span>'; }
+}
+async function sha256(file){
+  const buf=await file.arrayBuffer(); const h=await crypto.subtle.digest('SHA-256',buf);
+  return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function checkFile(){
+  const f=$('file').files[0]; if(!f||!REC){ $('match').innerHTML=''; return; }
+  $('match').innerHTML='<span class="muted">Calculando huella…</span>';
+  try{ const hex=await sha256(f);
+    if(hex===REC.sha256) $('match').innerHTML='<div class="state ok"><span class="dot"></span>✓ Documento auténtico</div><p class="muted">La huella coincide con el registro.</p>';
+    else $('match').innerHTML='<div class="state bad"><span class="dot"></span>✗ No coincide</div><p class="muted">Este archivo no es el dossier registrado, o fue modificado.</p>';
+  }catch(e){ $('match').innerHTML='<span class="muted">No se pudo calcular la huella.</span>'; }
+}
+$('file').onchange=checkFile;
+(function(){ const lot=qs('lot'); if(lot){ $('lotin').value=lot; lookup(); } })();
+</script>
+</body></html>

@@ -51,6 +51,13 @@ td .who{color:var(--text-3);font-size:12px}
 .dl a:hover{text-decoration:underline}
 .empty{padding:42px 20px;text-align:center;color:var(--text-2)}
 .muted{color:var(--text-3);font-size:13px}
+/* modal de descarga */
+#modal{position:fixed;inset:0;z-index:60;display:none;place-items:center;background:rgba(4,20,14,.62)}
+.mcard{background:#fff;color:#16211B;border-radius:16px;padding:26px 28px;max-width:340px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.spin{width:34px;height:34px;border:3px solid #e3decf;border-top-color:#0B3D2E;border-radius:50%;margin:0 auto 14px;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#mtext{font-size:14.5px;color:#3a3f39}
+.mclose{margin-top:14px}
 /* gate */
 #gate{position:fixed;inset:0;z-index:50;display:none;place-items:center;padding:24px;
  background:radial-gradient(60% 50% at 50% 0,rgba(46,139,94,.20),transparent 60%),linear-gradient(180deg,#07231B,var(--bg-0))}
@@ -119,6 +126,9 @@ td .who{color:var(--text-3);font-size:12px}
   </div>
 </main>
 
+<div id="modal"><div class="mcard"><div class="spin" id="mspin"></div><div id="mtext">Generando…</div>
+  <button class="btn btn-ghost mclose" id="mclose" style="display:none">Cerrar</button></div></div>
+
 <script>
 const $=id=>document.getElementById(id);
 let CLIENT_ID='';
@@ -171,10 +181,33 @@ async function showApp(s){
       const date=(l.created_at||'').slice(0,10);
       return '<tr><td><b>'+l.lot_id+'</b></td><td>'+(l.producer||'—')+
         '<div class="who">'+(l.captured_by||'')+'</div></td><td>'+(l.commodity||'')+'</td><td>'+badge+'</td>'+
-        '<td>'+date+'</td><td class="dl"><a href="/lots/'+l.lot_id+'/dossier" target="_blank" rel="noopener">Dossier</a>'+
-        '<a href="/lots/'+l.lot_id+'/geojson" target="_blank" rel="noopener">GeoJSON</a></td></tr>';
+        '<td>'+date+'</td><td class="dl"><a href="#" data-dl="dossier" data-id="'+l.lot_id+'">Dossier</a>'+
+        '<a href="#" data-dl="geojson" data-id="'+l.lot_id+'">GeoJSON</a>'+
+        '<a href="#" data-map="'+l.lot_id+'">Ver en mapa</a></td></tr>';
     }).join('');
   }catch(e){ $('empty').style.display='block'; $('empty').textContent='No se pudieron cargar los lotes.'; }
+}
+function showModal(t){$('mtext').textContent=t;$('mspin').style.display='block';$('mclose').style.display='none';$('modal').style.display='grid';}
+function hideModal(){$('modal').style.display='none';}
+function modalErr(t){$('mtext').textContent=t;$('mspin').style.display='none';$('mclose').style.display='inline-flex';}
+async function dl(id,kind){
+  showModal(kind==='dossier'?'Generando el dossier… puede tardar unos segundos.':'Preparando el GeoJSON…');
+  try{ const r=await fetch('/lots/'+id+'/'+kind); if(!r.ok)throw new Error('No se pudo generar (HTTP '+r.status+'). Reintenta.');
+    const b=await r.blob(); const u=URL.createObjectURL(b); const a=document.createElement('a');
+    a.href=u; a.download=id+(kind==='dossier'?'_dossier.pdf':'.geojson'); document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){URL.revokeObjectURL(u);},4000); hideModal();
+  }catch(e){ modalErr(e.message||'Error de red'); }
+}
+$('mclose').onclick=hideModal;
+$('rows').addEventListener('click',function(ev){
+  var m=ev.target.closest('a[data-map]'); if(m){ev.preventDefault();viewMap(m.getAttribute('data-map'));return;}
+  var a=ev.target.closest('a[data-dl]'); if(!a)return; ev.preventDefault(); dl(a.getAttribute('data-id'),a.getAttribute('data-dl'));
+});
+function viewMap(id){
+  var w=window.open('','_blank');
+  fetch('/lots/'+id+'/geojson').then(function(r){return r.text();}).then(function(t){
+    if(w) w.location.href='https://geojson.io/#data=data:application/json,'+encodeURIComponent(t);
+  }).catch(function(){ if(w)w.close(); alert('No se pudo abrir el mapa'); });
 }
 boot();
 </script>

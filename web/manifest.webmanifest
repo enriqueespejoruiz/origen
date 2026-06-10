@@ -1,0 +1,18 @@
+{
+  "name": "Origen — Captura EUDR",
+  "short_name": "Origen",
+  "description": "Captura de parcelas y verificación de deforestación EUDR para café y cacao.",
+  "start_url": "/capturar",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07211A",
+  "theme_color": "#0B3D2E",
+  "lang": "es",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    { "src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/static/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

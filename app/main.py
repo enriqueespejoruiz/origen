@@ -8,8 +8,20 @@ from .models import Lot, Plot, GeoPoint
 app = FastAPI(title="Origen - EUDR + Export Copilot")
 WEB_DIR = os.path.join(os.path.dirname(__file__), "..", "web")
 
+from fastapi.staticfiles import StaticFiles
+app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
+
 def _page(name):
     return FileResponse(os.path.join(WEB_DIR, name), media_type="text/html")
+
+@app.get("/manifest.webmanifest")
+def manifest():
+    return FileResponse(os.path.join(WEB_DIR, "manifest.webmanifest"), media_type="application/manifest+json")
+
+@app.get("/sw.js")
+def service_worker():
+    return FileResponse(os.path.join(WEB_DIR, "sw.js"), media_type="application/javascript",
+                        headers={"Service-Worker-Allowed": "/", "Cache-Control": "no-cache"})
 
 @app.get("/")
 def home():

@@ -2,6 +2,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Origen — captura de parcelas</title>
 <meta name="theme-color" content="#0B3D2E">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Origen">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -91,6 +97,11 @@ input[type=file]::file-selector-button{font-family:var(--font-heading);font-weig
   <span class="dot" id="net" role="status" aria-live="polite">●</span>
 </header>
 <main>
+  <div class="card" id="installCard" style="display:none">
+    <div class="qhead"><b>Instala Origen en tu teléfono</b>
+      <button class="sec" id="installBtn">Instalar</button></div>
+    <p class="muted" style="margin:8px 0 0">Funciona sin señal, como una app nativa. Ocupa casi nada.</p>
+  </div>
   <div class="card">
     <label for="coop">Cooperativa</label>
     <input id="coop" placeholder="Nombre de la cooperativa" autocomplete="organization">
@@ -273,5 +284,15 @@ async function sync(){
   }
 }
 render(); if(navigator.onLine)sync();
+</script>
+<script>
+if('serviceWorker' in navigator){ addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){})}); }
+let deferredPrompt=null;
+addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); deferredPrompt=e;
+  var c=document.getElementById('installCard'); if(c)c.style.display='block'; });
+(function(){ var b=document.getElementById('installBtn'); if(b)b.onclick=async function(){
+  if(!deferredPrompt)return; deferredPrompt.prompt(); try{await deferredPrompt.userChoice;}catch(e){} deferredPrompt=null;
+  var c=document.getElementById('installCard'); if(c)c.style.display='none'; }; })();
+addEventListener('appinstalled',function(){ var c=document.getElementById('installCard'); if(c)c.style.display='none'; });
 </script>
 </body></html>

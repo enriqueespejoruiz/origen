@@ -1,25 +1,44 @@
 from .models import Lot, Plot
 
+def _r6(v):
+    """≥6 decimales como exige el sistema de la UE (TRACES trunca a 6)."""
+    return round(float(v), 6)
+
 def plot_geometry(plot: Plot):
     if len(plot.points) == 1:
         p = plot.points[0]
-        return {"type": "Point", "coordinates": [p.lon, p.lat]}
-    ring = [[p.lon, p.lat] for p in plot.points]
+        return {"type": "Point", "coordinates": [_r6(p.lon), _r6(p.lat)]}
+    ring = [[_r6(p.lon), _r6(p.lat)] for p in plot.points]
     if ring and ring[0] != ring[-1]:
         ring.append(ring[0])
     return {"type": "Polygon", "coordinates": [ring]}
 
+def traces_properties(lot: Lot, plot: Plot, risk=None):
+    """Propiedades en el formato del sistema de información de la UE (TRACES):
+    ProducerName, ProducerCountry (ISO2), ProductionPlace y Area (ha; requerida para puntos)."""
+    props = {
+        "ProducerName": lot.producer_name or "",
+        "ProducerCountry": (lot.country or "PE"),
+        "ProductionPlace": lot.region or lot.lot_id,
+    }
+    if len(plot.points) < 3 and plot.area_ha:   # punto: el área no se deriva de la geometría
+        props["Area"] = round(float(plot.area_ha), 4)
+    # extras de trazabilidad (TRACES ignora claves que no reconoce)
+    props["lot_id"] = lot.lot_id
+    props["plot_id"] = plot.plot_id
+    if risk:
+        props["risk"] = risk
+    return props
+
 def lot_to_geojson(lot: Lot):
+    """GeoJSON conforme al formato de carga de TRACES (un Feature por parcela)."""
     feats = []
-    for pl in lot.plots:
+    for i, pl in enumerate(lot.plots):
         feats.append({
             "type": "Feature",
-            "properties": {
-                "plot_id": pl.plot_id, "lot_id": lot.lot_id,
-                "producer": lot.producer_name, "commodity": lot.commodity,
-                "area_ha": pl.area_ha,
-            },
+            "properties": traces_properties(lot, pl),
             "geometry": plot_geometry(pl),
+            "id": i,
         })
     return {"type": "FeatureCollection", "features": feats}
 

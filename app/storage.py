@@ -188,6 +188,19 @@ def list_consignments(coop_id, limit=300):
             pass
     return out
 
+def merge_consignment(cid, fields):
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            firestore.Client(project=config.GCP_PROJECT).collection("consignments").document(cid).set(fields, merge=True)
+            return
+        except Exception:
+            pass
+    fp = os.path.join(config.DATA_DIR, f"{cid}.json")
+    if os.path.exists(fp):
+        d = json.load(open(fp)); d.update(fields)
+        json.dump(d, open(fp, "w"), indent=2, default=str)
+
 def save_notary(lot_id, rec):
     if config.GCP_PROJECT:
         try:

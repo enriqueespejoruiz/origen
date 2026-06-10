@@ -180,11 +180,57 @@
     "Más ágil y seguro: tus capturas quedan firmadas con tu cuenta.": "Faster and safer: your captures are signed with your account.",
     "Instala Origen en tu teléfono": "Install Origen on your phone", "Instalar": "Install",
     "Funciona sin señal, como una app nativa. Ocupa casi nada.": "Works offline, like a native app. Takes almost no space.",
-    "Cerrar": "Close"
+    "Cerrar": "Close",
+    // -- panel: dinámico (lotes + envíos) --
+    "Cada lote verificado contra las 4 fuentes, y los envíos consolidados listos para tu comprador.":
+      "Every lot verified against the 4 sources, and consolidated shipments ready for your buyer.",
+    "Marca los lotes que entran en un envío y pulsa «Crear envío».": "Tick the lots that go into a shipment and press 'Create shipment'.",
+    "Una operación puede acopiar de muchas parcelas y regiones: el EUDR pide un dossier consolidado por envío.":
+      "One operation may aggregate from many plots and regions: the EUDR requires one consolidated dossier per shipment.",
+    "Envíos": "Shipments", "Envío": "Shipment", "Destino": "Destination", "Lotes": "Lots", "Parcelas": "Plots",
+    "Volumen": "Volume", "Veredicto": "Verdict",
+    "Aún no hay envíos. Marca lotes arriba y crea tu primer envío consolidado.": "No shipments yet. Tick lots above and create your first consolidated shipment.",
+    "sin procesar": "unprocessed", "por procesar": "pending", "apto": "eligible", "segregar": "segregate",
+    "deforestación": "deforestation", "Pendiente": "Pending", "enviado": "sent", "Sincronizado": "Synced",
+    "Reprocesar": "Reprocess", "Regenerar": "Regenerate", "Limpiar": "Clear", "Crear envío": "Create shipment",
+    "Nuevo envío": "New shipment", "Consolida los lotes seleccionados en un solo dossier EUDR.": "Consolidate the selected lots into a single EUDR dossier.",
+    "Identificación del envío": "Shipment ID", "Destino (UE)": "Destination (EU)",
+    "Comprador / importador (opcional)": "Buyer / importer (optional)", "Cancelar": "Cancel", "Seleccionar todo": "Select all",
+    "No se pudieron cargar los lotes.": "Couldn't load lots.", "No se pudieron cargar los envíos.": "Couldn't load shipments.",
+    // -- normativa (cuerpo) --
+    "El reglamento de la UE contra la deforestación, claro.": "The EU anti-deforestation regulation, made clear.",
+    "El EUDR (Reglamento UE 2023/1115) cambia cómo se exporta café y cacao a Europa. Aquí lo esencial, sin letra chica.":
+      "The EUDR (Regulation EU 2023/1115) changes how coffee and cocoa are exported to Europe. Here's the essentials, no fine print.",
+    "¿Qué es el EUDR?": "What is the EUDR?",
+    "¿A qué productos aplica?": "Which products does it apply to?",
+    "Y sus derivados (chocolate, muebles, cuero, etc.).": "And their derivatives (chocolate, furniture, leather, etc.).",
+    "¿Qué exige?": "What does it require?",
+    "Geolocalización:": "Geolocation:", "Libre de deforestación:": "Deforestation-free:", "Legalidad:": "Legality:",
+    "las coordenadas (o el polígono) de cada parcela de origen.": "the coordinates (or polygon) of each plot of origin.",
+    "el producto no viene de tierra deforestada después del 31-dic-2020.": "the product doesn't come from land deforested after 31-Dec-2020.",
+    "la producción cumple las leyes del país de origen.": "production complies with the laws of the country of origin.",
+    "Declaración de Diligencia Debida (DDS):": "Due Diligence Statement (DDS):",
+    "se presenta en el sistema de información de la UE (TRACES).": "submitted in the EU information system (TRACES).",
+    "Fechas clave (vigentes a 2026)": "Key dates (as of 2026)",
+    "Operadores": "Operators", "grandes y medianos": "large and medium", "deben cumplir.": "must comply.",
+    "pequeños y micro": "small and micro",
+    "La aplicación se pospuso (de 2024 a 2025, y luego a 2026–2027) y se simplificó. Aunque la fecha legal es futura,":
+      "Enforcement was postponed (from 2024 to 2025, then to 2026–2027) and simplified. Although the legal date is in the future,",
+    "muchos compradores europeos ya piden los datos hoy": "many European buyers already ask for the data today",
+    "para sus campañas.": "for their seasons.",
+    "¿Quién presenta la declaración?": "Who submits the declaration?",
+    "¿Qué hace Origen por ti?": "What does Origen do for you?",
+    "Empezar a capturar parcelas": "Start capturing plots",
+    "Fuentes oficiales": "Official sources",
+    "Resumen informativo, no constituye asesoría legal. Las fechas y reglas del EUDR han cambiado varias veces; verifica siempre con las fuentes oficiales antes de tomar decisiones.":
+      "Informational summary, not legal advice. EUDR dates and rules have changed several times; always check the official sources before making decisions.",
+    "Inicio": "Home"
   };
 
   var nodes = [], phs = [];
   function collect() {
+    nodes = nodes.filter(function (n) { return n.isConnected; });   // descarta nodos removidos por re-render
+    phs = phs.filter(function (e) { return e.isConnected; });
     var w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
       acceptNode: function (n) {
         if (!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
@@ -195,8 +241,8 @@
         return NodeFilter.FILTER_ACCEPT;
       }
     });
-    var n; while (n = w.nextNode()) { n.__es = n.nodeValue; nodes.push(n); }
-    [].forEach.call(document.querySelectorAll('input[placeholder],textarea[placeholder]'), function (e) { e.__phes = e.getAttribute('placeholder'); phs.push(e); });
+    var n; while (n = w.nextNode()) { if (n.__es !== undefined) continue; n.__es = n.nodeValue; nodes.push(n); }
+    [].forEach.call(document.querySelectorAll('input[placeholder],textarea[placeholder]'), function (e) { if (e.__phes !== undefined) return; e.__phes = e.getAttribute('placeholder'); phs.push(e); });
   }
   function apply(l) {
     try { localStorage.setItem('origen_lang', l); } catch (e) {}
@@ -208,7 +254,11 @@
     phs.forEach(function (e) { var key = (e.__phes || '').trim(); e.setAttribute('placeholder', (l === 'en' && T[key] != null) ? T[key] : e.__phes); });
     [].forEach.call(document.querySelectorAll('[data-langbtn]'), function (b) { b.textContent = (l === 'en' ? 'ES' : 'EN'); });
   }
-  window.toggleLang = function () { apply((localStorage.getItem('origen_lang') === 'en') ? 'es' : 'en'); };
+  function curLang() { try { return localStorage.getItem('origen_lang') === 'en' ? 'en' : 'es'; } catch (e) { return 'es'; } }
+  window.toggleLang = function () { apply(curLang() === 'en' ? 'es' : 'en'); };
+  // Re-traduce contenido insertado por JS (lotes/envíos): colecta los nodos nuevos y aplica el idioma actual.
+  window.i18nSync = function () { collect(); apply(curLang()); };
+  window.origenLang = curLang;
   function init() {
     collect();
     var saved; try { saved = localStorage.getItem('origen_lang'); } catch (e) {}

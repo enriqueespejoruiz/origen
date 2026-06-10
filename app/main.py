@@ -3,7 +3,7 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 from . import gemini, deforestation, dossier, storage, config, auth, geo, notarize
-from .models import Lot, Plot, GeoPoint, Consignment
+from .models import Lot, Plot, GeoPoint, Consignment, DeforestationFinding
 
 app = FastAPI(title="Origen - EUDR + Export Copilot")
 from starlette.middleware.sessions import SessionMiddleware
@@ -15,6 +15,16 @@ from fastapi.staticfiles import StaticFiles
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
 
 def _now(): return datetime.datetime.utcnow().isoformat() + "Z"
+
+import time as _time
+_RL = {}
+def _throttle(ip, bucket, limit, window=60):
+    """Límite básico por IP en memoria (anti-spam). Producción: Cloud Armor / API Gateway."""
+    now = _time.time(); key = (bucket, ip or "?")
+    hits = [t for t in _RL.get(key, []) if now - t < window]
+    if len(hits) >= limit:
+        _RL[key] = hits; return False
+    hits.append(now); _RL[key] = hits; return True
 
 def _photo_path(lot_id, out_dir):
     """Devuelve la ruta local de la foto del predio (la recupera del blob durable si hace falta)."""
@@ -144,10 +154,17 @@ def create_consignment(c: ConsignmentIn, request: Request):
     ids = [x for x in (c.lot_ids or []) if x]
     if not ids:
         raise HTTPException(400, "Selecciona al menos un lote")
-    commodities = set()
+    commodities = set(); countries = set()
     for lid in ids:
         lot = _load_owned(lid, ctx)      # valida que el lote sea de esta cooperativa
-        commodities.add((lot.commodity or "").lower())
+        if lot.commodity: commodities.add(lot.commodity.lower())
+        countries.add(lot.country or "PE")
+    # La DDS es por operador / producto / país: no se pueden mezclar en un mismo envío.
+    if len(commodities) > 1:
+        raise HTTPException(400, "Un envío debe ser de un solo producto (la DDS es por producto). "
+                                 "Separa café y cacao en envíos distintos.")
+    if len(countries) > 1:
+        raise HTTPException(400, "Un envío debe ser de un solo país de producción.")
     commodity = c.commodity or (next(iter(commodities)) if len(commodities) == 1 else "")
     cid = "ENV-" + uuid.uuid4().hex[:8].upper()
     cons = Consignment(cid, ctx["coop"]["id"], (c.name or cid), commodity,
@@ -191,6 +208,18 @@ def _load_owned_cons(cid, ctx):
         raise HTTPException(403, "Este envío pertenece a otra cooperativa")
     return d
 
+def _cached_findings(lot_id):
+    """Reusa los findings ya calculados al procesar el lote (evita re-verificar deforestación por red)."""
+    d = storage.load_lot(lot_id)
+    fr = d.get("findings") if d else None
+    if fr:
+        try:
+            return [DeforestationFinding(x["plot_id"], x["risk"], x.get("loss_after_cutoff", False),
+                                         x.get("detail", "")) for x in fr]
+        except Exception:
+            return None
+    return None
+
 def _build_consignment_outputs(d, force=False):
     """Construye (o reutiliza) el dossier consolidado + geojson del envío."""
     out = os.path.join(config.DATA_DIR, "dossiers")
@@ -204,7 +233,7 @@ def _build_consignment_outputs(d, force=False):
             lot = _load(lid)
         except HTTPException:
             continue
-        findings = deforestation.check_plots(lot)
+        findings = _cached_findings(lid) or deforestation.check_plots(lot)  # cache-first (rápido)
         items.append((lot, findings))
     if not items:
         raise HTTPException(404, "El envío no tiene lotes válidos")
@@ -261,6 +290,20 @@ def consignment_geojson(cid: str, request: Request):
         print("consignment geojson error:", repr(e))
         raise HTTPException(503, "No se pudo generar el GeoJSON del envío; reintenta en unos segundos.")
     return FileResponse(p, media_type="application/geo+json", filename=f"{cid}.geojson")
+
+@app.post("/consignments/{cid}/regenerate")
+def consignment_regenerate(cid: str, request: Request):
+    """Reconstruye el dossier consolidado con el estado más reciente de los lotes (invalida cache)."""
+    d = _load_owned_cons(cid, auth.require_coop(request))
+    try:
+        _build_consignment_outputs(d, force=True)
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("consignment regenerate error:", repr(e))
+        raise HTTPException(503, "No se pudo regenerar el envío; reintenta en unos segundos.")
+    storage.merge_consignment(cid, {"generated_at": _now()})
+    return {"ok": True, **_consignment_summary(d)}
 
 @app.get("/share/c/{cid}/dossier")
 def share_consignment_dossier(cid: str):
@@ -339,6 +382,8 @@ def capture(c: CaptureIn, request: Request):
         try:
             data = c.photo_base64.split(",", 1)[-1]
             raw = base64.b64decode(data)
+            if len(raw) > 4_000_000:           # tope de tamaño (la captura ya reduce a ~640px)
+                raise ValueError("photo too large")
             up = os.path.join(config.DATA_DIR, "uploads"); os.makedirs(up, exist_ok=True)
             with open(os.path.join(up, f"{lot_id}.jpg"), "wb") as f:
                 f.write(raw)
@@ -361,7 +406,9 @@ class LeadIn(BaseModel):
     message: str = ""
 
 @app.post("/lead")
-def lead(l: LeadIn):
+def lead(l: LeadIn, request: Request):
+    if not _throttle(request.client.host if request.client else "", "lead", 10, 60):
+        raise HTTPException(429, "Demasiadas solicitudes; intenta en un momento.")
     import datetime
     rec = l.model_dump(); rec["ts"] = datetime.datetime.utcnow().isoformat() + "Z"
     print("LEAD " + json.dumps(rec, ensure_ascii=False))  # queda en los logs de Cloud Run
@@ -416,7 +463,8 @@ def process(lot_id: str, request: Request):
     try:
         storage.save_blob(lot_id, "dossier.pdf", open(pdf, "rb").read())
         storage.save_blob(lot_id, "data.geojson", open(gj, "rb").read())
-        storage.merge_lot(lot_id, {"overall_risk": risk, "processed_at": _now()})
+        storage.merge_lot(lot_id, {"overall_risk": risk, "processed_at": _now(),
+                                   "findings": [f.__dict__ for f in findings]})  # cache para envíos
     except Exception:
         pass
     geom_issues = []

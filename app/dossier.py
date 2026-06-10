@@ -1,5 +1,5 @@
 import os, json, datetime
-from .geo import lot_to_geojson
+from .geo import lot_to_geojson, traces_properties, plot_geometry
 from . import config
 
 def _ensure(d): os.makedirs(d, exist_ok=True)
@@ -52,9 +52,9 @@ _STR = {
         "l_title": "Título o derecho de uso del predio", "l_env": "Conformidad ambiental y forestal",
         "l_labor": "Conformidad laboral y derechos de terceros",
         "h_sources": "Fuentes de datos",
-        "sources": ("Verificación basada en Hansen Global Forest Change (UMD/Google, vía Global Forest Watch). "
-                    "Referencias EUDR: JRC Global Forest Cover 2020 (mapa de referencia de la UE), "
-                    "GFW Integrated Alerts (RADD/GLAD), áreas protegidas (WDPA) y Geobosques/MINAM (Perú)."),
+        "sources": ("Verificación por parcela cruzando cuatro fuentes satelitales: Hansen Global Forest Change "
+                    "(UMD/Google, vía Global Forest Watch), JRC Global Forest Cover 2020 (mapa de referencia de la UE), "
+                    "GFW Integrated Alerts (RADD/GLAD) y áreas protegidas (WDPA)."),
         "h_verify": "Verificación",
         "verify": ("<b>Verificación de autenticidad</b><br/>Escanea el código o visita {url}/verificar — "
                    "comprueba que este dossier es auténtico y su fecha de emisión mediante su huella SHA-256 registrada por Origen."),
@@ -84,9 +84,9 @@ _STR = {
         "l_title": "Land title or use right", "l_env": "Environmental & forest compliance",
         "l_labor": "Labour compliance & third-party rights",
         "h_sources": "Data sources",
-        "sources": ("Verification based on Hansen Global Forest Change (UMD/Google, via Global Forest Watch). "
-                    "EUDR references: JRC Global Forest Cover 2020 (EU reference map), "
-                    "GFW Integrated Alerts (RADD/GLAD), protected areas (WDPA) and Geobosques/MINAM (Peru)."),
+        "sources": ("Per-plot verification cross-checking four satellite sources: Hansen Global Forest Change "
+                    "(UMD/Google, via Global Forest Watch), JRC Global Forest Cover 2020 (EU reference map), "
+                    "GFW Integrated Alerts (RADD/GLAD) and protected areas (WDPA)."),
         "h_verify": "Verification",
         "verify": ("<b>Authenticity verification</b><br/>Scan the code or visit {url}/verificar — "
                    "confirm this dossier is authentic and its issue date via its SHA-256 hash registered by Origen."),
@@ -313,25 +313,18 @@ def _plot_centroid(pl):
     return (None, None)
 
 def build_consignment_geojson(cons, items, out_dir):
-    """FeatureCollection con TODAS las parcelas del envío (cada feature etiquetada con su lote y riesgo)."""
+    """FeatureCollection (formato TRACES) con TODAS las parcelas del envío, cada una etiquetada con lote y riesgo."""
     _ensure(out_dir)
     cid = cons.get("consignment_id")
-    feats = []
+    feats = []; fid = 0
     for lot, findings in items:
         risk_by = {f.plot_id: f.risk for f in findings}
         for pl in lot.plots:
-            feats.append({
-                "type": "Feature",
-                "properties": {
-                    "consignment_id": cid, "lot_id": lot.lot_id, "plot_id": pl.plot_id,
-                    "producer": lot.producer_name, "region": lot.region,
-                    "commodity": lot.commodity, "area_ha": pl.area_ha,
-                    "risk": risk_by.get(pl.plot_id, ""),
-                },
-                "geometry": (lambda pts: {"type": "Point", "coordinates": [pts[0].lon, pts[0].lat]}
-                             if len(pts) == 1 else
-                             {"type": "Polygon", "coordinates": [[[p.lon, p.lat] for p in pts] + [[pts[0].lon, pts[0].lat]]]})(pl.points),
-            })
+            props = traces_properties(lot, pl, risk=risk_by.get(pl.plot_id))
+            props["consignment_id"] = cid
+            feats.append({"type": "Feature", "properties": props,
+                          "geometry": plot_geometry(pl), "id": fid})
+            fid += 1
     path = os.path.join(out_dir, f"{cid}.geojson")
     with open(path, "w") as f:
         json.dump({"type": "FeatureCollection", "features": feats}, f, indent=2)

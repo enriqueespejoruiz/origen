@@ -101,15 +101,15 @@ def _gfw_check(lot: Lot):
     for pl in lot.plots:
         geom = _plot_polygon(pl)
         pt = pl.points[0] if pl.points else None
-        loss = alerts = prot = jrc = None
+        loss = alerts = prot = jrc = None; errs = []
         try: loss = _gfw_loss_ha(geom)
-        except Exception as e: print("GFW loss error:", e)
+        except Exception as e: print("GFW loss error:", e); errs.append("Hansen")
         try: alerts = _gfw_alerts(geom)
-        except Exception as e: print("GFW alerts error:", e)
+        except Exception as e: print("GFW alerts error:", e); errs.append("alertas")
         try: prot = _gfw_protected(geom)
-        except Exception as e: print("GFW wdpa error:", e)
+        except Exception as e: print("GFW wdpa error:", e); errs.append("WDPA")
         try: jrc = _jrc_forest(pt.lat, pt.lon) if pt else None
-        except Exception as e: print("JRC error:", e)
+        except Exception as e: print("JRC error:", e); errs.append("JRC")
         if loss is None and alerts is None:
             out.append(DeforestationFinding(pl.plot_id, "review", False,
                 "Sin respuesta de las fuentes satelitales (revisar manualmente)"))
@@ -127,6 +127,8 @@ def _gfw_check(lot: Lot):
         if jrc is not None:
             parts.append("bosque 2020 (JRC)" if jrc else "no bosque 2020 (JRC)"); srcs.append("JRC")
         detail = f"post-{config.CUTOFF_YEAR}: " + ", ".join(parts) + " (fuentes: " + " + ".join(srcs) + ")"
+        if errs:
+            detail += " · fuentes no disponibles: " + ", ".join(errs)
         out.append(DeforestationFinding(pl.plot_id, risk, high, detail))
     return out
 

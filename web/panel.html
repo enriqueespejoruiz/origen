@@ -142,7 +142,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--brand-leaf-2);cur
     <p class="muted">Cada lote verificado contra las 4 fuentes, y los envíos consolidados listos para tu comprador.</p>
   </div>
 
-  <div class="sectit"><h2 id="lotsTitle">Tus lotes</h2>
+  <div class="sectit"><h2 id="lotsTitle">Tus lotes</h2><span id="lotsCount" data-count style="color:var(--text-3);font-family:var(--fh);font-weight:600"></span>
     <span class="hint">Marca los lotes que entran en un envío y pulsa «Crear envío».</span></div>
   <div class="card">
     <table>
@@ -155,7 +155,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--brand-leaf-2);cur
     </div>
   </div>
 
-  <div class="sectit"><h2 id="consTitle">Envíos</h2>
+  <div class="sectit"><h2 id="consTitle">Envíos</h2><span id="consCount" data-count style="color:var(--text-3);font-family:var(--fh);font-weight:600"></span>
     <span class="hint">Una operación puede acopiar de muchas parcelas y regiones: el EUDR pide un dossier consolidado por envío.</span></div>
   <div class="card">
     <table>
@@ -249,7 +249,7 @@ async function loadLots(){
   try{
     const d=await (await fetch('/api/lots')).json();
     LOTS=d.lots||[];
-    $('lotsTitle').textContent='Tus lotes ('+LOTS.length+')';
+    $('lotsCount').textContent='('+LOTS.length+')';
     if(!LOTS.length){ $('empty').style.display='block'; $('rows').innerHTML=''; updateSel(); return; }
     $('empty').style.display='none';
     $('rows').innerHTML=LOTS.map(l=>{
@@ -262,9 +262,11 @@ async function loadLots(){
         '<td>'+date+'</td><td class="dl"><a href="#" data-dl="dossier" data-id="'+l.lot_id+'">Dossier</a>'+
         '<a href="#" data-dl="geojson" data-id="'+l.lot_id+'">GeoJSON</a>'+
         '<a href="#" data-map="'+l.lot_id+'">Ver en mapa</a>'+
+        '<a href="#" data-reproc="'+l.lot_id+'">Reprocesar</a>'+
         '<a href="#" data-wa="'+l.lot_id+'">WhatsApp</a></td></tr>';
     }).join('');
     updateSel();
+    if(window.i18nSync)i18nSync();
   }catch(e){ $('empty').style.display='block'; $('empty').textContent='No se pudieron cargar los lotes.'; }
 }
 function showModal(t){$('mtext').textContent=t;$('mspin').style.display='block';$('mclose').style.display='none';$('modal').style.display='grid';}
@@ -282,8 +284,15 @@ $('mclose').onclick=hideModal;
 $('rows').addEventListener('click',function(ev){
   var w=ev.target.closest('a[data-wa]'); if(w){ev.preventDefault();openWa(w.getAttribute('data-wa'));return;}
   var m=ev.target.closest('a[data-map]'); if(m){ev.preventDefault();viewMap(m.getAttribute('data-map'));return;}
+  var rp=ev.target.closest('a[data-reproc]'); if(rp){ev.preventDefault();reprocLot(rp.getAttribute('data-reproc'));return;}
   var a=ev.target.closest('a[data-dl]'); if(!a)return; ev.preventDefault(); dl(a.getAttribute('data-id'),a.getAttribute('data-dl'));
 });
+async function reprocLot(id){
+  showModal('Reprocesando el lote contra las 4 fuentes…');
+  try{ const r=await fetch('/lots/'+id+'/process',{method:'POST'}); if(!r.ok)throw new Error('No se pudo reprocesar (HTTP '+r.status+'). Reintenta.');
+    hideModal(); loadLots();
+  }catch(e){ modalErr(e.message||'Error de red'); }
+}
 function openWa(id){
   var b=location.origin;
   var msg='Origen — Dossier EUDR · lote '+id+'\n\nDossier (PDF): '+b+'/share/'+id+'/dossier\nDatos (GeoJSON): '+b+'/share/'+id+'/geojson\nVerifica autenticidad: '+b+'/verificar?lot='+id;
@@ -317,6 +326,8 @@ $('selAll').addEventListener('change',function(){
 $('selclear').onclick=function(){ SEL.clear(); updateSel(); };
 $('selcreate').onclick=function(){
   if(!SEL.size)return;
+  const coms=new Set(LOTS.filter(function(l){return SEL.has(l.lot_id);}).map(function(l){return (l.commodity||'').toLowerCase();}).filter(Boolean));
+  if(coms.size>1){ alert('Un envío debe ser de un solo producto (café o cacao). La DDS es por producto: separa los lotes.'); return; }
   $('csub').textContent='Consolida '+SEL.size+' lote(s) seleccionado(s) en un solo dossier EUDR.';
   $('cmodal').style.display='grid';
 };
@@ -328,7 +339,7 @@ $('csave').onclick=async function(){
     const body={name:$('cname').value.trim(),destination:$('cdest').value.trim(),
       buyer:$('cbuyer').value.trim(),lang:$('clang').value,lot_ids:ids};
     const r=await fetch('/api/consignments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    if(!r.ok){ alert('No se pudo crear el envío'); }
+    if(!r.ok){ let m='No se pudo crear el envío'; try{m=(await r.json()).detail||m;}catch(e){} alert(m); }
     else{ SEL.clear(); $('cname').value='';$('cdest').value='';$('cbuyer').value='';
           $('cmodal').style.display='none'; updateSel(); loadCons(); }
   }catch(e){ alert('Error de red'); }
@@ -339,7 +350,7 @@ async function loadCons(){
   try{
     const d=await (await fetch('/api/consignments')).json();
     const cons=d.consignments||[];
-    $('consTitle').textContent='Envíos ('+cons.length+')';
+    $('consCount').textContent='('+cons.length+')';
     if(!cons.length){ $('consempty').style.display='block'; $('consrows').innerHTML=''; return; }
     $('consempty').style.display='none';
     $('consrows').innerHTML=cons.map(function(c){
@@ -351,14 +362,23 @@ async function loadCons(){
         '<td>'+(c.destination||'—')+'</td><td>'+c.n_lots+'</td><td>'+c.n_plots+'</td><td>'+vol+'</td>'+
         '<td>'+badge+'</td><td class="dl"><a href="#" data-cdl="dossier" data-id="'+c.consignment_id+'">Dossier</a>'+
         '<a href="#" data-cdl="geojson" data-id="'+c.consignment_id+'">GeoJSON</a>'+
+        '<a href="#" data-creg="'+c.consignment_id+'">Regenerar</a>'+
         '<a href="#" data-cwa="'+c.consignment_id+'">WhatsApp</a></td></tr>';
     }).join('');
+    if(window.i18nSync)i18nSync();
   }catch(e){ $('consempty').style.display='block'; $('consempty').textContent='No se pudieron cargar los envíos.'; }
 }
 $('consrows').addEventListener('click',function(ev){
   var w=ev.target.closest('a[data-cwa]'); if(w){ev.preventDefault();openWaCons(w.getAttribute('data-cwa'));return;}
+  var rg=ev.target.closest('a[data-creg]'); if(rg){ev.preventDefault();regenCons(rg.getAttribute('data-creg'));return;}
   var a=ev.target.closest('a[data-cdl]'); if(!a)return; ev.preventDefault(); dlCons(a.getAttribute('data-id'),a.getAttribute('data-cdl'));
 });
+async function regenCons(id){
+  showModal('Regenerando el dossier con el estado más reciente de los lotes…');
+  try{ const r=await fetch('/consignments/'+id+'/regenerate',{method:'POST'}); if(!r.ok)throw new Error('No se pudo regenerar (HTTP '+r.status+'). Reintenta.');
+    hideModal(); loadCons();
+  }catch(e){ modalErr(e.message||'Error de red'); }
+}
 async function dlCons(id,kind){
   showModal(kind==='dossier'?'Generando el dossier consolidado… verifica cada parcela, puede tardar.':'Preparando el GeoJSON consolidado…');
   try{ const r=await fetch('/consignments/'+id+'/'+kind); if(!r.ok)throw new Error('No se pudo generar (HTTP '+r.status+'). Reintenta.');

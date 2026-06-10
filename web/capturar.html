@@ -342,6 +342,7 @@ function render(){
     }
     return '<div class="item"><div>'+i.producer+'<div class="muted">'+(i.geom==='poly'?('polígono · '+(i.points?i.points.length:0)+' vért.'):(i.lat.toFixed(4)+', '+i.lon.toFixed(4)))+'</div>'+dl+'</div>'+b+'</div>';
   }).join('');
+  if(window.i18nSync)i18nSync();
 }
 
 async function sync(){

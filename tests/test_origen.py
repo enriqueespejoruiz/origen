@@ -1,0 +1,90 @@
+"""Pruebas unitarias de Origen (sin red ni GCP). Cubren TRACES, agregación de envíos y PDFs."""
+import os, sys, json, tempfile
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+_DD = os.path.join(tempfile.gettempdir(), "origen_test_data")
+os.makedirs(_DD, exist_ok=True)
+os.environ.setdefault("DATA_DIR", _DD)
+
+from app.models import Lot, Plot, GeoPoint, DeforestationFinding as DF
+from app import dossier, geo
+
+
+def _lot_point():
+    return Lot("LOT-PT", "Juan", "Coop", "coffee", "PE", "Cusco",
+               [Plot("P1", [GeoPoint(-13.531234, -71.967891)], 2.0)], "", "", "1200")
+
+
+def _lot_poly():
+    return Lot("LOT-PL", "Maria", "Coop", "coffee", "PE", "San Martin",
+               [Plot("P1", [GeoPoint(-6.5, -76.3), GeoPoint(-6.5, -76.29), GeoPoint(-6.49, -76.29)], 5.4)],
+               "", "", "800")
+
+
+def test_parse_qty_kg():
+    assert dossier.parse_qty_kg("1,200 kg") == 1200.0
+    assert dossier.parse_qty_kg("") == 0.0
+    assert dossier.parse_qty_kg("3.5") == 3.5
+    assert dossier.parse_qty_kg(None) == 0.0
+
+
+def test_consignment_verdict():
+    a = [(_lot_point(), [DF("P1", "negligible", False, "")])]
+    assert dossier.consignment_verdict(a) == "negligible"
+    assert dossier.consignment_verdict(a + [(_lot_poly(), [DF("P1", "high", True, "")])]) == "high"
+    assert dossier.consignment_verdict([(_lot_point(), [DF("P1", "review", False, "")])]) == "review"
+
+
+def test_traces_point_has_area_and_6_decimals():
+    f = geo.lot_to_geojson(_lot_point())["features"][0]
+    assert f["geometry"]["type"] == "Point"
+    assert f["properties"]["ProducerCountry"] == "PE"
+    assert f["properties"]["ProducerName"] == "Juan"
+    assert f["properties"]["Area"] == 2.0
+    assert f["geometry"]["coordinates"] == [-71.967891, -13.531234]   # [lon, lat], 6 decimales
+
+
+def test_traces_polygon_has_no_area_and_closes_ring():
+    f = geo.lot_to_geojson(_lot_poly())["features"][0]
+    assert f["geometry"]["type"] == "Polygon"
+    assert "Area" not in f["properties"]
+    ring = f["geometry"]["coordinates"][0]
+    assert ring[0] == ring[-1]
+
+
+def test_consignment_geojson_traces(tmp_path):
+    cons = {"consignment_id": "ENV-TST", "name": "x", "commodity": "coffee", "extra": {"lang": "es"}}
+    items = [(_lot_point(), [DF("P1", "negligible", False, "ok")]),
+             (_lot_poly(), [DF("P1", "high", True, "loss")])]
+    gj = dossier.build_consignment_geojson(cons, items, str(tmp_path))
+    g = json.load(open(gj))
+    assert len(g["features"]) == 2
+    assert g["features"][0]["properties"]["ProducerCountry"] == "PE"
+    assert g["features"][1]["properties"]["risk"] == "high"
+    assert [x["id"] for x in g["features"]] == [0, 1]
+
+
+def test_consignment_pdf_builds(tmp_path):
+    cons = {"consignment_id": "ENV-TST", "name": "Contenedor 1", "commodity": "coffee",
+            "destination": "Hamburgo", "buyer": "X GmbH", "extra": {"lang": "es"}}
+    items = [(_lot_point(), [DF("P1", "negligible", False, "ok")]),
+             (_lot_poly(), [DF("P1", "high", True, "loss")])]
+    pdf = dossier.build_consignment_pdf(cons, items, str(tmp_path), "es")
+    assert os.path.getsize(pdf) > 2000
+    pdf_en = dossier.build_consignment_pdf({**cons, "consignment_id": "ENV-EN"}, items, str(tmp_path), "en")
+    assert os.path.getsize(pdf_en) > 2000
+
+
+def test_lot_pdf_builds_both_langs(tmp_path):
+    lot = _lot_point()
+    fnd = [DF("P1", "negligible", False, "post-2020: sin perdida")]
+    for lang in ("es", "en"):
+        pdf = dossier.build_pdf(lot, fnd, "Narrativa de prueba.", "", str(tmp_path), lang)
+        assert os.path.getsize(pdf) > 2000
+
+
+def test_geometry_issues_flags_invalid_polygon():
+    # polígono con auto-intersección (bowtie)
+    bow = Plot("P1", [GeoPoint(0, 0), GeoPoint(0, 1), GeoPoint(1, 0), GeoPoint(1, 1)], 1.0)
+    issues = geo.geometry_issues(bow)
+    assert any("inválido" in i or "TRACES" in i for i in issues)

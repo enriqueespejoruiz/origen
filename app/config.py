@@ -16,5 +16,9 @@ LOSS_THRESHOLD_HA = float(os.getenv("LOSS_THRESHOLD_HA", "0.1"))
 ALERTS_THRESHOLD  = int(os.getenv("ALERTS_THRESHOLD", "3"))
 GCS_BUCKET     = os.getenv("GCS_BUCKET", "")
 DATA_DIR       = os.getenv("DATA_DIR", "./_data")
+# --- Login con Google ---
+GOOGLE_OAUTH_CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID", "")
+SESSION_SECRET         = os.getenv("SESSION_SECRET", "dev-insecure-change-me")
 
 def gemini_ready(): return bool(GEMINI_API_KEY or USE_VERTEX)
+def auth_ready():   return bool(GOOGLE_OAUTH_CLIENT_ID)

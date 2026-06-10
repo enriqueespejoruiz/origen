@@ -1,15 +1,20 @@
-import os, uuid, json, base64
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+import os, uuid, json, base64, datetime
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
-from . import gemini, deforestation, dossier, storage, config
+from . import gemini, deforestation, dossier, storage, config, auth
 from .models import Lot, Plot, GeoPoint
 
 app = FastAPI(title="Origen - EUDR + Export Copilot")
+from starlette.middleware.sessions import SessionMiddleware
+app.add_middleware(SessionMiddleware, secret_key=config.SESSION_SECRET,
+                   same_site="lax", max_age=60 * 60 * 24 * 14)
 WEB_DIR = os.path.join(os.path.dirname(__file__), "..", "web")
 
 from fastapi.staticfiles import StaticFiles
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
+
+def _now(): return datetime.datetime.utcnow().isoformat() + "Z"
 
 def _page(name):
     return FileResponse(os.path.join(WEB_DIR, name), media_type="text/html")
@@ -41,7 +46,68 @@ def empezar():
 
 @app.get("/healthz")
 def healthz():
-    return {"ok": True, "model": config.GEMINI_MODEL, "gemini_ready": config.gemini_ready()}
+    return {"ok": True, "model": config.GEMINI_MODEL,
+            "gemini_ready": config.gemini_ready(), "auth_ready": config.auth_ready()}
+
+@app.get("/panel")
+def panel():
+    return _page("panel.html")
+
+# ---- Login con Google + cooperativa (multi-tenant) ----
+
+class GoogleIn(BaseModel):
+    credential: str
+
+class CoopIn(BaseModel):
+    name: str
+
+@app.post("/auth/google")
+def auth_google(g: GoogleIn, request: Request):
+    try:
+        user = auth.verify_google_credential(g.credential)
+    except Exception as e:
+        print("auth error:", repr(e))
+        raise HTTPException(401, "No se pudo verificar la cuenta de Google")
+    request.session["user"] = user
+    prof = storage.get_user(user["sub"]) or {}
+    if prof.get("coop_id"):
+        request.session["coop"] = {"id": prof["coop_id"], "name": prof.get("coop_name", ""),
+                                   "role": prof.get("role", "tecnico")}
+    storage.save_user(user["sub"], {"email": user["email"], "name": user["name"], "last_login": _now()})
+    return {"user": user, "coop": request.session.get("coop")}
+
+@app.post("/auth/logout")
+def auth_logout(request: Request):
+    request.session.clear()
+    return {"ok": True}
+
+@app.get("/api/me")
+def api_me(request: Request):
+    return {"user": auth.current(request), "coop": request.session.get("coop"),
+            "client_id": config.GOOGLE_OAUTH_CLIENT_ID}
+
+@app.post("/api/coop")
+def api_coop(c: CoopIn, request: Request):
+    import re
+    user = auth.require_user(request)
+    name = (c.name or "").strip()
+    if not name:
+        raise HTTPException(400, "Pon el nombre de la cooperativa")
+    cid = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-") or "coop"
+    coop = {"id": cid, "name": name, "role": "admin"}
+    request.session["coop"] = coop
+    storage.save_user(user["sub"], {"coop_id": cid, "coop_name": name, "role": "admin"})
+    return {"coop": coop}
+
+@app.get("/api/lots")
+def api_lots(request: Request):
+    ctx = auth.require_coop(request)
+    lots = storage.list_lots(ctx["coop"]["id"])
+    lots = sorted(lots, key=lambda d: d.get("created_at", ""), reverse=True)
+    out = [{"lot_id": d.get("lot_id"), "producer": d.get("producer_name"),
+            "commodity": d.get("commodity"), "overall_risk": d.get("overall_risk", ""),
+            "created_at": d.get("created_at", ""), "captured_by": d.get("captured_by", "")} for d in lots]
+    return {"coop": ctx["coop"], "lots": out}
 
 # ---- Captura estructurada de campo (tecnico de la cooperativa) ----
 
@@ -58,14 +124,16 @@ class CaptureIn(BaseModel):
     photo_base64: str | None = None
 
 @app.post("/capture")
-def capture(c: CaptureIn):
+def capture(c: CaptureIn, request: Request):
+    ctx = auth.require_coop(request)
     lot_id = "LOT-" + uuid.uuid4().hex[:8].upper()
     if c.points and len(c.points) >= 3:
         pts = [GeoPoint(float(p["lat"]), float(p["lon"])) for p in c.points]
     else:
         pts = [GeoPoint(c.lat, c.lon)]
     plot = Plot("P1", pts, c.area_ha)
-    lot = Lot(lot_id, c.producer, c.cooperative, c.commodity, "PE", c.region, [plot], "", "", c.quantity)
+    lot = Lot(lot_id, c.producer, ctx["coop"]["name"], c.commodity, "PE", c.region, [plot], "", "", c.quantity,
+              ctx["coop"]["id"], ctx["user"]["email"], _now())
     if c.photo_base64:
         try:
             up = os.path.join(config.DATA_DIR, "uploads"); os.makedirs(up, exist_ok=True)
@@ -127,8 +195,9 @@ async def intake(notes: str = Form(""), images: list[UploadFile] = File(default=
     return {"lot_id": lot_id, "producer": lot.producer_name, "plots": len(lot.plots)}
 
 @app.post("/lots/{lot_id}/process")
-def process(lot_id: str):
-    lot = _load(lot_id)
+def process(lot_id: str, request: Request):
+    ctx = auth.require_coop(request)
+    lot = _load_owned(lot_id, ctx)
     findings = deforestation.check_plots(lot)
     narrative = gemini.generate_dossier_narrative(lot, findings)
     profile = gemini.generate_buyer_profile(lot)
@@ -136,13 +205,27 @@ def process(lot_id: str):
     gj = dossier.build_geojson(lot, out)
     pdf = dossier.build_pdf(lot, findings, narrative, profile, out)
     storage.upload_file(gj); storage.upload_file(pdf)
+    risk = dossier.overall_risk(findings)
     try:
         storage.save_blob(lot_id, "dossier.pdf", open(pdf, "rb").read())
         storage.save_blob(lot_id, "data.geojson", open(gj, "rb").read())
+        storage.merge_lot(lot_id, {"overall_risk": risk, "processed_at": _now()})
     except Exception:
         pass
-    return {"lot_id": lot_id, "overall_risk": dossier.overall_risk(findings),
+    return {"lot_id": lot_id, "overall_risk": risk,
             "geojson": gj, "pdf": pdf, "findings": [f.__dict__ for f in findings]}
+
+def _fallback_narrative(lot, findings):
+    """Resumen determinista (sin Gemini) por si la IA no responde al regenerar."""
+    n = len(findings); high = sum(1 for f in findings if f.risk == "high")
+    rev = sum(1 for f in findings if f.risk == "review"); clean = n - high - rev
+    s = (f"Se evaluaron {n} parcela(s) del productor {lot.producer_name or '—'} "
+         f"({lot.cooperative or 'cooperativa'}), cruzando cada una contra fuentes satelitales de "
+         f"deforestación con fecha de corte 31 de diciembre de 2020. "
+         f"Resultado: {clean} sin pérdida, {rev} a revisar y {high} con deforestación detectada. ")
+    s += ("Las parcelas marcadas deben excluirse o sustentarse antes de la declaración."
+          if high else "No se detectó pérdida de bosque posterior al corte en las parcelas evaluadas.")
+    return s
 
 def _ensure_outputs(lot_id: str):
     """Regenera dossier+geojson desde el lote durable si faltan en disco (instancias efimeras de Cloud Run)."""
@@ -153,8 +236,16 @@ def _ensure_outputs(lot_id: str):
         return pdf, gj
     lot = _load(lot_id)
     findings = deforestation.check_plots(lot)
-    narrative = gemini.generate_dossier_narrative(lot, findings)
-    profile = gemini.generate_buyer_profile(lot)
+    try:
+        narrative = gemini.generate_dossier_narrative(lot, findings) or ""
+    except Exception as e:
+        print("regen narrative error:", repr(e)); narrative = ""
+    if not narrative:
+        narrative = _fallback_narrative(lot, findings)
+    try:
+        profile = gemini.generate_buyer_profile(lot) or ""
+    except Exception as e:
+        print("regen profile error:", repr(e)); profile = ""
     gj = dossier.build_geojson(lot, out)
     pdf = dossier.build_pdf(lot, findings, narrative, profile, out)
     try:
@@ -165,7 +256,8 @@ def _ensure_outputs(lot_id: str):
     return pdf, gj
 
 @app.get("/lots/{lot_id}/dossier")
-def get_dossier(lot_id: str):
+def get_dossier(lot_id: str, request: Request):
+    _load_owned(lot_id, auth.require_coop(request))
     p = os.path.join(config.DATA_DIR, "dossiers", f"{lot_id}_dossier.pdf")
     if os.path.exists(p):
         return FileResponse(p, media_type="application/pdf", filename=f"{lot_id}_dossier.pdf")
@@ -173,11 +265,18 @@ def get_dossier(lot_id: str):
     if blob:
         return Response(blob, media_type="application/pdf",
                         headers={"Content-Disposition": f'inline; filename="{lot_id}_dossier.pdf"'})
-    p, _ = _ensure_outputs(lot_id)
+    try:
+        p, _ = _ensure_outputs(lot_id)
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("dossier regen error:", repr(e))
+        raise HTTPException(503, "No se pudo generar el dossier; reintenta en unos segundos.")
     return FileResponse(p, media_type="application/pdf", filename=f"{lot_id}_dossier.pdf")
 
 @app.get("/lots/{lot_id}/geojson")
-def get_geojson(lot_id: str):
+def get_geojson(lot_id: str, request: Request):
+    _load_owned(lot_id, auth.require_coop(request))
     p = os.path.join(config.DATA_DIR, "dossiers", f"{lot_id}.geojson")
     if os.path.exists(p):
         return FileResponse(p, media_type="application/geo+json", filename=f"{lot_id}.geojson")
@@ -185,7 +284,14 @@ def get_geojson(lot_id: str):
     if blob:
         return Response(blob, media_type="application/geo+json",
                         headers={"Content-Disposition": f'inline; filename="{lot_id}.geojson"'})
-    _, gj = _ensure_outputs(lot_id)
+    try:
+        lot = _load(lot_id)
+        gj = dossier.build_geojson(lot, os.path.join(config.DATA_DIR, "dossiers"))
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("geojson build error:", repr(e))
+        raise HTTPException(503, "No se pudo generar el GeoJSON; reintenta en unos segundos.")
     return FileResponse(gj, media_type="application/geo+json", filename=f"{lot_id}.geojson")
 
 def _load(lot_id: str) -> Lot:
@@ -195,4 +301,11 @@ def _load(lot_id: str) -> Lot:
     plots = [Plot(p["plot_id"], [GeoPoint(**pt) for pt in p["points"]], p.get("area_ha")) for p in d["plots"]]
     return Lot(d["lot_id"], d["producer_name"], d["cooperative"], d["commodity"],
                d.get("country", "PE"), d.get("region", ""), plots,
-               d.get("harvest_season", ""), d.get("raw_notes", ""), d.get("quantity", ""))
+               d.get("harvest_season", ""), d.get("raw_notes", ""), d.get("quantity", ""),
+               d.get("coop_id", ""), d.get("captured_by", ""), d.get("created_at", ""))
+
+def _load_owned(lot_id: str, ctx: dict) -> Lot:
+    lot = _load(lot_id)
+    if lot.coop_id and lot.coop_id != ctx["coop"]["id"]:
+        raise HTTPException(403, "Este lote pertenece a otra cooperativa")
+    return lot

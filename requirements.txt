@@ -14,3 +14,6 @@ requests>=2.31
 # --- Google Cloud (opcional: Firestore + Storage) ---
 google-cloud-firestore>=2.16
 google-cloud-storage>=2.16
+# --- Auth (Login con Google) ---
+google-auth>=2.28
+itsdangerous>=2.1

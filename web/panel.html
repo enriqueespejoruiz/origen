@@ -1,0 +1,181 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Origen — panel de la cooperativa</title>
+<meta name="theme-color" content="#07211A">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--brand-pine:#0B3D2E;--brand-gold:#C2A04C;--brand-gold-2:#E0C277;--brand-leaf-2:#46B681;
+ --bg-0:#04140E;--bg-1:#07211A;--bg-2:#0B2C22;--text-1:#F3F1E9;--text-2:#B7C8BD;--text-3:#8AA096;
+ --glass:rgba(255,255,255,.05);--hair:rgba(255,255,255,.12);
+ --risk-clean:#46B681;--risk-review:#E0C277;--risk-high:#E07A5F;
+ --fh:'Sora',system-ui,-apple-system,sans-serif;--fb:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--fb);color:var(--text-1);line-height:1.55;min-height:100vh;
+ background:radial-gradient(60% 50% at 10% 0,rgba(46,139,94,.22),transparent 60%),
+ radial-gradient(46% 46% at 95% 6%,rgba(194,160,76,.14),transparent 58%),
+ linear-gradient(180deg,#07231B,var(--bg-1) 38%,var(--bg-0));-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--fh);margin:0;letter-spacing:-.02em}
+a{color:inherit}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px 48px}
+header{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--hair);
+ position:sticky;top:0;background:rgba(6,25,19,.72);backdrop-filter:blur(12px);z-index:5}
+header .logo{background:#F5F2EB;border-radius:9px;padding:3px;line-height:0}
+header .wm{font-family:var(--fh);font-weight:700;font-size:19px}
+header .coop{color:var(--text-2);font-size:14px;border-left:1px solid var(--hair);padding-left:12px;margin-left:2px}
+header .sp{margin-left:auto}
+.chip{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);
+ background:var(--glass);border:1px solid var(--hair);padding:6px 11px;border-radius:999px}
+.chip img{width:22px;height:22px;border-radius:50%}
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--fh);font-weight:600;font-size:14px;
+ text-decoration:none;border:0;border-radius:11px;cursor:pointer;padding:10px 16px}
+.btn-gold{background:linear-gradient(180deg,var(--brand-gold-2),var(--brand-gold));color:#231a04}
+.btn-ghost{background:var(--glass);border:1px solid var(--hair);color:#fff}
+.head{padding:26px 0 10px}
+.eyebrow{color:var(--brand-gold-2);font-weight:600;font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-family:var(--fh)}
+.head h1{font-size:clamp(24px,4vw,34px);margin-top:8px}
+.head p{color:var(--text-2);margin-top:6px}
+.card{background:var(--glass);border:1px solid var(--hair);border-radius:16px;overflow:hidden;margin-top:18px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:13px 14px;border-bottom:1px solid var(--hair);vertical-align:middle}
+th{font-family:var(--fh);font-weight:600;color:var(--text-3);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+tr:last-child td{border-bottom:0}
+td .who{color:var(--text-3);font-size:12px}
+.b{font-size:12px;padding:4px 10px;border-radius:999px;font-weight:600;white-space:nowrap;display:inline-block}
+.b.clean{background:rgba(70,182,129,.16);color:var(--risk-clean)}
+.b.review{background:rgba(224,194,119,.16);color:var(--risk-review)}
+.b.high{background:rgba(224,122,95,.18);color:var(--risk-high)}
+.b.none{background:var(--glass);color:var(--text-3)}
+.dl a{color:var(--brand-leaf-2);text-decoration:none;font-weight:600;font-size:13px;margin-right:14px}
+.dl a:hover{text-decoration:underline}
+.empty{padding:42px 20px;text-align:center;color:var(--text-2)}
+.muted{color:var(--text-3);font-size:13px}
+/* gate */
+#gate{position:fixed;inset:0;z-index:50;display:none;place-items:center;padding:24px;
+ background:radial-gradient(60% 50% at 50% 0,rgba(46,139,94,.20),transparent 60%),linear-gradient(180deg,#07231B,var(--bg-0))}
+.gatecard{width:100%;max-width:400px;background:var(--bg-2);border:1px solid var(--hair);border-radius:20px;padding:30px 26px;text-align:center}
+.gatecard .logo{background:#F5F2EB;border-radius:14px;padding:8px;display:inline-block;line-height:0;margin-bottom:14px}
+.gatecard h2{font-size:22px}
+.gatecard p{color:var(--text-2);font-size:14.5px;margin:8px 0 20px}
+#gbtn{display:flex;justify-content:center;min-height:44px}
+#coopBox{display:none}
+#coopBox input{width:100%;padding:12px 13px;font-size:16px;border:1px solid var(--hair);border-radius:11px;
+ background:rgba(0,0,0,.22);color:#fff;font-family:var(--fb);margin-bottom:6px}
+#coopBox input:focus{outline:none;border-color:var(--brand-leaf-2)}
+#coopBox button{width:100%;margin-top:10px;justify-content:center}
+.gnote{color:var(--text-3);font-size:12px;margin-top:16px}
+</style></head><body>
+
+<div id="gate">
+  <div class="gatecard">
+    <span class="logo"><svg viewBox="0 0 64 64" width="32" height="32" aria-hidden="true">
+      <path d="M32 6C20.4 6 11 15 11 26.2 11 40 32 58 32 58s21-18 21-31.8C53 15 43.6 6 32 6z" fill="#0B3D2E"/>
+      <path d="M32 41V27" stroke="#EAF3EC" stroke-width="3" stroke-linecap="round"/>
+      <path d="M32 31c-5 0-9-3-9.5-8 5.5 0 9 2.5 9.5 8z" fill="#C2A04C"/>
+      <path d="M32 28c5 0 9-3 9.5-8-5.5 0-9 2.5-9.5 8z" fill="#2E8B5E"/></svg></span>
+    <div id="loginBox">
+      <h2>Panel de Origen</h2>
+      <p>Inicia sesión con Google para ver los lotes de tu cooperativa.</p>
+      <div id="gbtn"></div>
+    </div>
+    <div id="coopBox">
+      <h2>Tu cooperativa</h2>
+      <p>¿Cómo se llama tu cooperativa o asociación?</p>
+      <input id="coopName" placeholder="ej. Cooperativa Aurora" autocomplete="organization">
+      <button class="btn btn-gold" id="coopGo">Continuar</button>
+    </div>
+    <div class="gnote" id="gnote"></div>
+  </div>
+</div>
+
+<header style="display:none" id="hdr">
+  <span class="logo"><svg viewBox="0 0 64 64" width="24" height="24" aria-hidden="true">
+    <path d="M32 6C20.4 6 11 15 11 26.2 11 40 32 58 32 58s21-18 21-31.8C53 15 43.6 6 32 6z" fill="#0B3D2E"/>
+    <path d="M32 41V27" stroke="#EAF3EC" stroke-width="3" stroke-linecap="round"/>
+    <path d="M32 31c-5 0-9-3-9.5-8 5.5 0 9 2.5 9.5 8z" fill="#C2A04C"/>
+    <path d="M32 28c5 0 9-3 9.5-8-5.5 0-9 2.5-9.5 8z" fill="#2E8B5E"/></svg></span>
+  <span class="wm">Origen</span><span class="coop" id="coopLabel"></span>
+  <span class="sp"></span>
+  <a class="btn btn-gold" href="/capturar">Capturar</a>
+  <span class="chip" id="userChip"></span>
+  <button class="btn btn-ghost" id="logout">Salir</button>
+</header>
+
+<main class="wrap" id="app" style="display:none">
+  <div class="head">
+    <div class="eyebrow">Panel de la cooperativa</div>
+    <h1 id="title">Tus lotes</h1>
+    <p class="muted">Cada lote capturado, verificado contra las 4 fuentes, con su dossier listo para tu comprador.</p>
+  </div>
+  <div class="card">
+    <table>
+      <thead><tr><th>Lote</th><th>Productor</th><th>Producto</th><th>Riesgo</th><th>Fecha</th><th>Descargas</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="empty" id="empty" style="display:none">
+      Aún no hay lotes. <a href="/capturar" style="color:var(--brand-leaf-2)">Captura tu primera parcela →</a>
+    </div>
+  </div>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+let CLIENT_ID='';
+const RISK={negligible:['clean','limpio'],review:['review','revisar'],high:['high','deforestación']};
+
+async function boot(){
+  let s={};
+  try{ s=await (await fetch('/api/me')).json(); }catch(e){}
+  CLIENT_ID=s.client_id||'';
+  if(s.user && s.coop) return showApp(s);
+  if(s.user && !s.coop) return showCoop();
+  showLogin();
+}
+function showLogin(){
+  $('gate').style.display='grid'; $('hdr').style.display='none'; $('app').style.display='none';
+  $('loginBox').style.display='block'; $('coopBox').style.display='none';
+  if(!CLIENT_ID){ $('gnote').textContent='El login con Google aún no está configurado.'; return; }
+  function render(){ google.accounts.id.initialize({client_id:CLIENT_ID,callback:onCred});
+    google.accounts.id.renderButton($('gbtn'),{theme:'filled_blue',size:'large',text:'continue_with',shape:'pill',width:300}); }
+  if(window.google&&google.accounts&&google.accounts.id) render(); else setTimeout(render,700);
+}
+async function onCred(resp){
+  try{ const r=await fetch('/auth/google',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({credential:resp.credential})});
+    if(!r.ok){ $('gnote').textContent='No se pudo iniciar sesión.'; return; }
+    const s=await r.json(); if(s.coop) boot(); else showCoop();
+  }catch(e){ $('gnote').textContent='Error de red.'; }
+}
+function showCoop(){
+  $('gate').style.display='grid'; $('loginBox').style.display='none'; $('coopBox').style.display='block';
+}
+$('coopGo').onclick=async()=>{
+  const name=$('coopName').value.trim(); if(!name){alert('Pon el nombre de tu cooperativa');return;}
+  const r=await fetch('/api/coop',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})});
+  if(r.ok) boot(); else alert('No se pudo guardar');
+};
+$('logout').onclick=async()=>{ await fetch('/auth/logout',{method:'POST'}); boot(); };
+
+async function showApp(s){
+  $('gate').style.display='none'; $('hdr').style.display='flex'; $('app').style.display='block';
+  $('coopLabel').textContent=s.coop.name||'';
+  $('userChip').innerHTML=(s.user.picture?'<img src="'+s.user.picture+'" alt="">':'')+'<span>'+(s.user.email||'')+'</span>';
+  try{
+    const d=await (await fetch('/api/lots')).json();
+    const lots=d.lots||[];
+    $('title').textContent='Tus lotes ('+lots.length+')';
+    if(!lots.length){ $('empty').style.display='block'; return; }
+    $('rows').innerHTML=lots.map(l=>{
+      const rk=RISK[l.overall_risk]; const badge=rk?('<span class="b '+rk[0]+'">'+rk[1]+'</span>'):'<span class="b none">sin procesar</span>';
+      const date=(l.created_at||'').slice(0,10);
+      return '<tr><td><b>'+l.lot_id+'</b></td><td>'+(l.producer||'—')+
+        '<div class="who">'+(l.captured_by||'')+'</div></td><td>'+(l.commodity||'')+'</td><td>'+badge+'</td>'+
+        '<td>'+date+'</td><td class="dl"><a href="/lots/'+l.lot_id+'/dossier" target="_blank" rel="noopener">Dossier</a>'+
+        '<a href="/lots/'+l.lot_id+'/geojson" target="_blank" rel="noopener">GeoJSON</a></td></tr>';
+    }).join('');
+  }catch(e){ $('empty').style.display='block'; $('empty').textContent='No se pudieron cargar los lotes.'; }
+}
+boot();
+</script>
+</body></html>

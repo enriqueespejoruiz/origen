@@ -68,3 +68,70 @@ def load_blob(lot_id, name):
         except Exception:
             pass
     return None
+
+# ---------- Usuarios y multi-tenant (login con Google) ----------
+
+def get_user(sub):
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            doc = firestore.Client(project=config.GCP_PROJECT).collection("users").document(sub).get()
+            if doc.exists:
+                return doc.to_dict()
+        except Exception:
+            pass
+    fp = os.path.join(config.DATA_DIR, "users", f"{sub}.json")
+    if os.path.exists(fp):
+        return json.load(open(fp))
+    return None
+
+def save_user(sub, data):
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            firestore.Client(project=config.GCP_PROJECT).collection("users").document(sub).set(data, merge=True)
+            return "firestore"
+        except Exception:
+            pass
+    d = os.path.join(config.DATA_DIR, "users"); os.makedirs(d, exist_ok=True)
+    fp = os.path.join(d, f"{sub}.json")
+    cur = json.load(open(fp)) if os.path.exists(fp) else {}
+    cur.update(data); json.dump(cur, open(fp, "w"))
+    return "local"
+
+def merge_lot(lot_id, fields):
+    """Mezcla campos (p. ej. overall_risk) en el documento del lote."""
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            firestore.Client(project=config.GCP_PROJECT).collection("lots").document(lot_id).set(fields, merge=True)
+            return
+        except Exception:
+            pass
+    fp = os.path.join(config.DATA_DIR, f"{lot_id}.json")
+    if os.path.exists(fp):
+        d = json.load(open(fp)); d.update(fields)
+        json.dump(d, open(fp, "w"), indent=2, default=str)
+
+def list_lots(coop_id, limit=300):
+    out = []
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            from google.cloud.firestore_v1.base_query import FieldFilter
+            q = (firestore.Client(project=config.GCP_PROJECT).collection("lots")
+                 .where(filter=FieldFilter("coop_id", "==", coop_id)).limit(limit))
+            for d in q.stream():
+                out.append(d.to_dict())
+            return out
+        except Exception:
+            pass
+    import glob
+    for fp in glob.glob(os.path.join(config.DATA_DIR, "*.json")):
+        try:
+            d = json.load(open(fp))
+            if isinstance(d, dict) and d.get("coop_id") == coop_id:
+                out.append(d)
+        except Exception:
+            pass
+    return out

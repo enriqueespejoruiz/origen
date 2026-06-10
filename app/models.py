@@ -24,6 +24,9 @@ class Lot:
     harvest_season: str = ""
     raw_notes: str = ""
     quantity: str = ""              # cantidad estimada del lote (p. ej. "1,200 kg")
+    coop_id: str = ""               # cooperativa (multi-tenant)
+    captured_by: str = ""           # email del usuario que capturó (auditoría)
+    created_at: str = ""            # ISO timestamp de captura
 
 @dataclass
 class DeforestationFinding:

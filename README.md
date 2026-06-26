@@ -1,40 +1,111 @@
-# Origen - MVP (EUDR + Export Copilot)
+# Origen — EUDR + Export Co-pilot
 
-Sistema AI-native para que exportadores/cooperativas de cafe-cacao entreguen a su comprador
-europeo el paquete de datos que exige el EUDR (geolocalizacion + chequeo de deforestacion +
-dossier), y de paso un perfil comercial multi-idioma del lote. Un solo flujo de datos, dos salidas.
+**Build with Gemini XPRIZE** · Co-piloto AI-native para que cooperativas y exportadores de
+**café y cacao** del Perú generen, desde el celular, el paquete de datos que exige el
+**Reglamento UE de Deforestación (EUDR 2023/1115)**: geolocalización parcela por parcela,
+verificación contra fuentes satelitales y un **dossier + GeoJSON listo para TRACES** — más
+inteligencia comercial del lote. Un solo flujo de datos, varias salidas.
 
-## Flujo
-captura (web/WhatsApp) -> Gemini estructura el lote -> chequeo de deforestacion (Earth Engine)
--> dossier (PDF + GeoJSON listo para TRACES NT) + perfil comercial.
+🌐 **En producción:** https://origen-711831043664.us-central1.run.app
 
-## Correr local (sin nube, modo STUB)
+---
+
+## Qué hace
+
+- **Captura en campo (PWA, offline-first):** GPS de alta precisión, polígono para parcelas >4 ha,
+  foto del predio, cantidad y legalidad. Instalable en el celular del técnico.
+- **Verificación de deforestación:** chequeo por parcela contra **4 fuentes** — Hansen GFC (GFW Data
+  API, licencia abierta), **JRC Global Forest Cover 2020** (mapa de referencia de la UE), **GFW
+  Integrated Alerts** y **áreas protegidas WDPA**. Veredicto: `negligible` / `review` / `high`.
+- **Dossier EUDR + GeoJSON TRACES:** PDF de marca (ES/EN) y GeoJSON en el formato que el sistema de
+  la UE acepta (6 decimales, propiedades de productor/país/lugar), por **lote** o **consolidado por
+  envío**.
+- **Envíos (consignaciones):** agrupa decenas de parcelas de varios productores y regiones en **un
+  solo dossier** por contenedor — como exige el EUDR para una operación comercial (sin *mass-balance*).
+- **Copiloto Gemini:** explica cada hallazgo en lenguaje claro, recomienda qué parcela **excluir** o
+  **sustentar**, redacta un borrador de legalidad y responde preguntas sobre el EUDR. Con *fallbacks*
+  deterministas para no romper la demo.
+- **Simulador what-if + score de confianza:** simula excluir parcelas/lotes observados y muestra, en
+  vivo, el **volumen conforme** y el estado resultante (`apto`/`revisar`/`no apto`); resume la salud
+  del lote en un **score 0–100** explicable (conformidad, geometría, volumen, legalidad).
+- **Notarización (Fase 0):** sella el hash del dossier (OpenTimestamps) y lo expone en `/verificar`.
+- **Multi-tenant:** login con Google, cuentas por cooperativa, roles e invitaciones, panel con
+  búsqueda/filtro, export CSV y logs de uso.
+
+## Stack
+
+FastAPI · **Cloud Run** · **Vertex AI (`gemini-2.5-flash`)** · Firestore + Cloud Storage ·
+GFW Data API / JRC COG (rasterio) · Shapely · ReportLab · PWA (service worker, i18n ES/EN en runtime).
+Todo sobre **Google Cloud** (cumplimiento XPRIZE).
+
+## Endpoints (selección)
+
+| Método | Ruta | Qué hace |
+|---|---|---|
+| `GET` | `/`, `/capturar`, `/panel`, `/normativa`, `/empezar` | Landing, captura PWA, panel, normativa, onboarding |
+| `POST` | `/auth/google`, `/auth/logout` · `GET /api/me` | Login multi-tenant |
+| `POST` | `/capture` | Captura estructurada de campo (GPS + foto + legalidad) |
+| `GET` | `/api/lots` · `GET /api/lots.csv` | Lotes de la coop + export |
+| `POST` | `/api/consignments` · `GET /api/consignments` | Crear / listar envíos |
+| `GET` | `/lots/{id}/dossier` · `/lots/{id}/geojson` | Dossier PDF + GeoJSON TRACES por lote |
+| `GET` | `/consignments/{cid}/dossier` · `/geojson` · `POST /regenerate` | Dossier consolidado por envío |
+| `POST` | `/lots/{id}/copilot` · `POST /copilot/chat` | **Copiloto Gemini** (análisis + chat) |
+| `GET` | `/lots/{id}/score` · `POST /lots/{id}/whatif` | **Score + simulador** por lote |
+| `GET` | `/consignments/{cid}/whatif` · `POST` | **Simulador** por envío |
+| `GET` | `/verificar` · `/api/verify` | Verificación pública del dossier notarizado |
+
+## Correr local
+
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-python seed_demo.py            # pipeline demo end-to-end
-uvicorn app.main:app --reload  # API en http://localhost:8000  (POST /intake, /lots/{id}/process)
+cp .env.example .env          # rellena las claves que tengas (funciona en modo STUB sin ellas)
+uvicorn app.main:app --reload # http://localhost:8000  · panel en /panel · captura en /capturar
 ```
-Abre `web/index.html` (o sirvelo) para el formulario de captura.
 
-## Activar Gemini de verdad
-- Rapido (AI Studio): exporta `GEMINI_API_KEY=...` (ver `.env.example`).
-- Produccion (Vertex AI en Google Cloud): `GOOGLE_GENAI_USE_VERTEXAI=1` + `GOOGLE_CLOUD_PROJECT`.
+Sin claves, el chequeo de deforestación y Gemini usan *mocks* deterministas: la demo corre igual.
 
-## Activar el chequeo de deforestacion real
-Setea `EE_PROJECT` (Google Earth Engine). Sin esto usa un mock determinista.
+### Variables clave (`.env`)
 
-## Endpoints
-- `GET  /healthz`
-- `POST /intake`               (form: notes, images[])
-- `POST /lots/{id}/process`    -> corre deforestacion + genera dossier
-- `GET  /lots/{id}/dossier`    -> descarga el PDF
+- **Gemini:** `GEMINI_API_KEY` (AI Studio) **o** `GOOGLE_GENAI_USE_VERTEXAI=1` + `GOOGLE_CLOUD_PROJECT`
+  (Vertex en producción). `GEMINI_MODEL=gemini-2.5-flash`.
+- **Deforestación:** `GFW_API_KEY` (Global Forest Watch). `EE_PROJECT` opcional (Earth Engine).
+- **Auth / sesión:** `GOOGLE_OAUTH_CLIENT_ID`, `SESSION_SECRET`, `PUBLIC_BASE_URL`.
+- **Storage:** `GCS_BUCKET` (prod) o `DATA_DIR=./_data` (local).
 
-## Despliegue
-Ver `../06_Donde_montar_todo_Requisitos_tecnicos.md` (Cloud Run + Vertex AI + Earth Engine +
-Firestore + Cloud Storage) y el `Dockerfile`.
+## Desplegar (Cloud Run)
+
+```bash
+./deploy.sh         # build + deploy a Cloud Run (proyecto origen-eudr-2026, región us-central1)
+```
+
+El script usa `gcloud run deploy --source .` con el `Dockerfile` (instala `libexpat1` para el COG de
+JRC). Requiere `gcloud auth login` en la cuenta del proyecto. Ver `deploy.sh` para las variables.
+
+## Pruebas / CI
+
+```bash
+pytest -q
+```
+
+GitHub Actions (`.github/workflows/ci.yml`) compila y corre las pruebas en cada push. Cubren TRACES,
+agregación de envíos, PDFs, geometría y el **simulador + score**.
 
 ## Cumplimiento XPRIZE
-- Usa >=1 producto Google Cloud (Cloud Run/Vertex AI/Firestore/Storage/Earth Engine).
-- Usa la Gemini API en >=1 llamada en produccion (extraccion + generacion).
-- Proyecto nuevo, repo con codigo, demo funcional. Logs de uso = evidencia.
+
+- ✅ Usa varios productos **Google Cloud** (Cloud Run, Vertex AI, Firestore, Cloud Storage).
+- ✅ Llama a la **Gemini API** en producción (extracción, generación y copiloto).
+- ✅ Proyecto nuevo, repo con código, demo funcional en vivo; logs de Cloud Run como evidencia.
+
+## Estructura
+
+```
+app/        FastAPI: main, gemini, deforestation, dossier, geo, scoring, copilot, notarize, auth, storage
+web/        PWA: panel.html, captura, landing, i18n.js, service worker
+tests/      pytest (sin red ni GCP)
+docs/       guías de marca y normativa
+Dockerfile  runtime Cloud Run (Python 3.12 + libexpat1)
+deploy.sh   build + deploy a Cloud Run
+```
+
+> Documento técnico del MVP. La estrategia, validación de mercado y roadmap viven en `../` (docs 01–27).

@@ -2,7 +2,7 @@ import os, uuid, json, base64, datetime
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
-from . import gemini, deforestation, dossier, storage, config, auth, geo, notarize
+from . import gemini, deforestation, dossier, storage, config, auth, geo, notarize, copilot, scoring
 from .models import Lot, Plot, GeoPoint, Consignment, DeforestationFinding
 
 app = FastAPI(title="Origen - EUDR + Export Copilot")
@@ -99,6 +99,10 @@ class CoopIn(BaseModel):
 
 class InviteIn(BaseModel):
     email: str
+
+class ChatIn(BaseModel):
+    question: str
+    lot_id: str | None = None
 
 @app.post("/auth/google")
 def auth_google(g: GoogleIn, request: Request):
@@ -391,6 +395,85 @@ def share_consignment_geojson(cid: str):
         return Response(blob, media_type="application/geo+json",
                         headers={"Content-Disposition": f'inline; filename="{cid}.geojson"'})
     raise HTTPException(404, "GeoJSON del envío no disponible todavía.")
+
+# ---- Copiloto de cumplimiento (Gemini) ----
+
+@app.post("/lots/{lot_id}/copilot")
+def lot_copilot(lot_id: str, request: Request):
+    ctx = auth.require_coop(request)
+    lot = _load_owned(lot_id, ctx)
+    findings = _cached_findings(lot_id) or deforestation.check_plots(lot)
+    out = copilot.analyze_lot(lot, findings)
+    log("copilot_analyze", lot_id=lot_id, coop=ctx["coop"]["id"])
+    return out
+
+@app.post("/copilot/chat")
+def copilot_chat(c: ChatIn, request: Request):
+    ctx = auth.require_coop(request)
+    if not (c.question or "").strip():
+        raise HTTPException(400, "Escribe una pregunta")
+    if not _throttle(request.client.host if request.client else "", "copilot", 30, 60):
+        raise HTTPException(429, "Demasiadas consultas; espera un momento.")
+    lot = findings = None
+    if c.lot_id:
+        try:
+            lot = _load_owned(c.lot_id, ctx)
+            findings = _cached_findings(c.lot_id)
+        except HTTPException:
+            lot = None
+    return {"answer": copilot.chat(c.question.strip(), lot, findings)}
+
+# ---- Simulador what-if de segregación + score de confianza ----
+
+class WhatIfIn(BaseModel):
+    exclude: list[str] = []
+
+@app.get("/lots/{lot_id}/score")
+def lot_score(lot_id: str, request: Request):
+    ctx = auth.require_coop(request)
+    lot = _load_owned(lot_id, ctx)
+    findings = _cached_findings(lot_id) or deforestation.check_plots(lot)
+    suggested = scoring.suggest_exclusions(findings)
+    log("score", lot_id=lot_id, coop=ctx["coop"]["id"])
+    return {
+        "score": scoring.confidence_score(lot, findings),
+        "suggest_exclude": suggested,
+        "simulation": scoring.simulate(lot, findings, suggested),
+    }
+
+@app.post("/lots/{lot_id}/whatif")
+def lot_whatif(lot_id: str, body: WhatIfIn, request: Request):
+    ctx = auth.require_coop(request)
+    lot = _load_owned(lot_id, ctx)
+    findings = _cached_findings(lot_id) or deforestation.check_plots(lot)
+    return scoring.simulate(lot, findings, body.exclude)
+
+def _consignment_items(d):
+    """[(lot, findings)] del envío (cache-first), reutilizando la lógica del dossier."""
+    items = []
+    for lid in d.get("lot_ids", []):
+        try:
+            lot = _load(lid)
+        except HTTPException:
+            continue
+        items.append((lot, _cached_findings(lid) or deforestation.check_plots(lot)))
+    if not items:
+        raise HTTPException(404, "El envío no tiene lotes válidos")
+    return items
+
+@app.get("/consignments/{cid}/whatif")
+def cons_whatif_default(cid: str, request: Request):
+    d = _load_owned_cons(cid, auth.require_coop(request))
+    items = _consignment_items(d)
+    suggested = scoring.suggest_exclusions_consignment(items)
+    return {"suggest_exclude": suggested,
+            "simulation": scoring.simulate_consignment(items, suggested)}
+
+@app.post("/consignments/{cid}/whatif")
+def cons_whatif(cid: str, body: WhatIfIn, request: Request):
+    d = _load_owned_cons(cid, auth.require_coop(request))
+    items = _consignment_items(d)
+    return scoring.simulate_consignment(items, body.exclude)
 
 @app.get("/verificar")
 def verificar():

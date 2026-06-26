@@ -112,6 +112,56 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--brand-leaf-2);cur
 .toolbar a.btn{margin-left:auto}
 .rolechip{font-size:11px;padding:3px 9px;border-radius:999px;background:rgba(194,160,76,.16);color:var(--brand-gold-2);font-weight:600}
 .rolechip.tec{background:var(--glass);color:var(--text-3)}
+/* copiloto */
+#copBtn{position:fixed;right:20px;bottom:20px;z-index:45;display:inline-flex;align-items:center;gap:8px;
+ background:linear-gradient(180deg,var(--brand-leaf-2),var(--brand-leaf));color:#04140e;border:0;
+ border-radius:999px;padding:12px 18px;font-family:var(--fh);font-weight:700;font-size:14px;cursor:pointer;
+ box-shadow:0 14px 34px rgba(46,139,94,.4)}
+#copPanel{position:fixed;right:20px;bottom:20px;z-index:46;display:none;flex-direction:column;width:382px;max-width:92vw;
+ height:520px;max-height:80vh;background:var(--bg-2);border:1px solid var(--hair);border-radius:18px;overflow:hidden;
+ box-shadow:0 30px 80px rgba(0,0,0,.55)}
+#copPanel .ch{display:flex;align-items:center;gap:10px;padding:13px 15px;border-bottom:1px solid var(--hair);background:rgba(11,61,46,.6)}
+#copPanel .ch b{font-family:var(--fh);font-size:15px;color:#fff}
+#copPanel .ch .x{margin-left:auto;background:transparent;border:0;color:var(--text-3);font-size:22px;line-height:1;cursor:pointer}
+#copMsgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.cmsg{max-width:88%;padding:10px 13px;border-radius:13px;font-size:13.5px;line-height:1.5}
+.cmsg.bot{background:var(--glass-2);border:1px solid var(--hair);color:var(--text-1);align-self:flex-start;border-bottom-left-radius:4px}
+.cmsg.me{background:linear-gradient(180deg,var(--brand-leaf),var(--brand-pine));color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.cmsg .t{font-family:var(--fh);font-weight:600;color:var(--brand-gold-2);font-size:12px;margin-bottom:3px}
+.cmsg .pl{margin-top:7px;padding-top:7px;border-top:1px solid var(--hair)}
+.ctyping{font-size:12px;color:var(--text-3);padding:0 14px 8px}
+.cinput{display:flex;gap:8px;padding:12px;border-top:1px solid var(--hair)}
+.cinput input{flex:1;padding:10px 12px;border:1px solid var(--hair);border-radius:10px;background:rgba(0,0,0,.25);color:#fff;font-family:var(--fb);font-size:14px}
+.cinput input:focus{outline:none;border-color:var(--brand-leaf-2)}
+.cinput button{background:var(--brand-gold);color:#231a04;border:0;border-radius:10px;padding:0 16px;font-family:var(--fh);font-weight:700;cursor:pointer}
+@media(max-width:560px){#copPanel{right:3vw;left:3vw;width:auto}}
+/* simulador what-if + score */
+#simModal{position:fixed;inset:0;z-index:72;display:none;place-items:center;background:rgba(4,20,14,.62);padding:22px}
+.scard{background:var(--bg-2);border:1px solid var(--hair);color:#fff;border-radius:18px;padding:22px 24px;max-width:560px;width:100%;max-height:88vh;overflow-y:auto}
+.shead{display:flex;align-items:flex-start;gap:10px;margin-bottom:14px}
+.shead h3{font-size:19px;margin:0 0 2px}.shead p.s{color:var(--text-2);font-size:13px;margin:0}
+.shead .x{margin-left:auto;background:transparent;border:0;color:var(--text-3);font-size:24px;line-height:1;cursor:pointer}
+.sgauge{display:flex;align-items:center;gap:18px;padding:15px;border:1px solid var(--hair);border-radius:14px;background:var(--glass-2);margin-bottom:15px}
+.sgnum{font-family:var(--fh);font-weight:800;font-size:42px;line-height:1}.sgnum small{font-size:15px;color:var(--text-3);font-weight:600}
+.sgband{font-family:var(--fh);font-weight:700;font-size:11.5px;padding:3px 9px;border-radius:999px;display:inline-block;margin-top:5px}
+.sgband.alta{background:rgba(34,180,120,.18);color:#34d399}.sgband.media{background:rgba(214,168,49,.18);color:var(--brand-gold-2)}.sgband.baja{background:rgba(220,80,70,.18);color:#f87171}
+.sfactors{flex:1;display:flex;flex-direction:column;gap:8px;min-width:0}
+.sfac .l{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;color:var(--text-2);margin-bottom:3px}
+.sbar{height:6px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+.sbar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--brand-leaf),var(--brand-leaf-2))}
+.splot{display:flex;align-items:center;gap:11px;padding:10px 12px;border:1px solid var(--hair);border-radius:11px;margin-bottom:7px;cursor:pointer}
+.splot.exc{opacity:.48}.splot input{width:17px;height:17px;accent-color:var(--brand-leaf-2);cursor:pointer}
+.splot .pid{font-family:var(--fh);font-weight:600;font-size:13.5px}
+.splot .meta{margin-left:auto;text-align:right;font-size:11.5px;color:var(--text-3)}
+.rb{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;text-transform:uppercase;letter-spacing:.4px}
+.rb.high{background:rgba(220,80,70,.18);color:#f87171}.rb.review{background:rgba(214,168,49,.18);color:var(--brand-gold-2)}.rb.negligible{background:rgba(34,180,120,.16);color:#34d399}
+.stot{display:flex;flex-wrap:wrap;gap:8px;margin:13px 0 4px}
+.stot .chip{flex:1;min-width:120px;padding:10px 12px;border:1px solid var(--hair);border-radius:11px;background:var(--glass-2)}
+.stot .chip b{display:block;font-family:var(--fh);font-size:18px}.stot .chip span{font-size:11px;color:var(--text-3)}
+.sstatus{font-family:var(--fh);font-weight:700;padding:9px 12px;border-radius:11px;text-align:center;margin:8px 0 0}
+.sstatus.apto{background:rgba(34,180,120,.16);color:#34d399}.sstatus.revisar{background:rgba(214,168,49,.16);color:var(--brand-gold-2)}.sstatus.no_apto{background:rgba(220,80,70,.16);color:#f87171}
+.ssug{font-size:13px;color:var(--text-2);line-height:1.55;margin:10px 0 0}
+@media(max-width:560px){.sgauge{flex-direction:column;align-items:flex-start}}
 </style></head><body>
 
 <div id="gate">
@@ -233,6 +283,37 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--brand-leaf-2);cur
   </div>
 </div></div>
 
+<div id="simModal"><div class="scard">
+  <div class="shead">
+    <div><h3 id="simTitle">Simulador de envío</h3><p class="s" id="simSub">Simula excluir parcelas observadas y mira cómo queda tu envío.</p></div>
+    <button class="x" id="simClose" aria-label="Cerrar">×</button>
+  </div>
+  <div class="sgauge" id="simGauge">
+    <div><div class="sgnum" id="simScore">—<small>/100</small></div><span class="sgband" id="simBand"></span></div>
+    <div class="sfactors" id="simFactors"></div>
+  </div>
+  <div id="simPlots"></div>
+  <div class="stot">
+    <div class="chip"><b id="simNplots">—</b><span>Unidades conformes</span></div>
+    <div class="chip"><b id="simKg">—</b><span>kg conformes</span></div>
+    <div class="chip"><b id="simPct">—</b><span>del volumen</span></div>
+  </div>
+  <div class="sstatus" id="simStatus"></div>
+  <p class="ssug" id="simSug"></p>
+  <div class="acts" style="display:flex;gap:10px;margin-top:16px">
+    <button class="btn btn-ghost" id="simReset">Sugerir exclusión</button>
+    <button class="btn btn-gold" id="simDone">Listo</button>
+  </div>
+</div></div>
+
+<button id="copBtn" style="display:none">✦ Copiloto</button>
+<div id="copPanel">
+  <div class="ch"><b>Copiloto Origen</b><button class="x" id="copClose" aria-label="Cerrar">×</button></div>
+  <div id="copMsgs"></div>
+  <div class="ctyping" id="copTyping" style="display:none">escribiendo…</div>
+  <div class="cinput"><input id="copInput" placeholder="Pregunta sobre el EUDR o un lote…"><button id="copSend">Enviar</button></div>
+</div>
+
 <footer style="max-width:1040px;margin:18px auto 0;padding:22px 20px 40px;border-top:1px solid var(--hair);color:var(--text-3);font-size:13px;text-align:center">
   <a href="/" style="color:var(--leaf2);text-decoration:none;font-weight:600">← Volver a Origen</a>
   <span style="margin:0 9px;opacity:.4">·</span><a href="/capturar" style="color:inherit;text-decoration:none">Capturar</a>
@@ -283,6 +364,7 @@ async function showApp(s){
   $('coopLabel').textContent=s.coop.name||'';
   $('userChip').innerHTML=(s.user.picture?'<img src="'+s.user.picture+'" alt="">':'')+'<span>'+(s.user.email||'')+'</span>';
   loadLots(); loadCons(); loadTeam();
+  $('copBtn').style.display='inline-flex';
 }
 function lotMatches(l){
   const q=($('lotSearch')?$('lotSearch').value:'').trim().toLowerCase();
@@ -301,7 +383,9 @@ function lotRowHTML(l){
   return '<tr><td class="sel"><input type="checkbox" class="lotck" data-id="'+l.lot_id+'"'+ck+'></td>'+
     '<td><b>'+l.lot_id+'</b></td><td>'+(l.producer||'—')+
     '<div class="who">'+(l.captured_by||'')+'</div></td><td>'+(l.commodity||'')+'</td><td>'+badge+vflag+'</td>'+
-    '<td>'+date+'</td><td class="dl"><a href="#" data-dl="dossier" data-id="'+l.lot_id+'">Dossier</a>'+
+    '<td>'+date+'</td><td class="dl"><a href="#" data-cop="'+l.lot_id+'">Copiloto</a>'+
+    '<a href="#" data-sim="'+l.lot_id+'">Simular</a>'+
+    '<a href="#" data-dl="dossier" data-id="'+l.lot_id+'">Dossier</a>'+
     '<a href="#" data-dl="geojson" data-id="'+l.lot_id+'">GeoJSON</a>'+
     '<a href="#" data-map="'+l.lot_id+'">Ver en mapa</a>'+
     '<a href="#" data-reproc="'+l.lot_id+'">Reprocesar</a>'+
@@ -360,6 +444,8 @@ $('rows').addEventListener('click',function(ev){
   var w=ev.target.closest('a[data-wa]'); if(w){ev.preventDefault();openWa(w.getAttribute('data-wa'));return;}
   var m=ev.target.closest('a[data-map]'); if(m){ev.preventDefault();viewMap(m.getAttribute('data-map'));return;}
   var rp=ev.target.closest('a[data-reproc]'); if(rp){ev.preventDefault();reprocLot(rp.getAttribute('data-reproc'));return;}
+  var cp=ev.target.closest('a[data-cop]'); if(cp){ev.preventDefault();copAnalyze(cp.getAttribute('data-cop'));return;}
+  var sm=ev.target.closest('a[data-sim]'); if(sm){ev.preventDefault();simOpen('lot',sm.getAttribute('data-sim'));return;}
   var a=ev.target.closest('a[data-dl]'); if(!a)return; ev.preventDefault(); dl(a.getAttribute('data-id'),a.getAttribute('data-dl'));
 });
 async function reprocLot(id){
@@ -435,7 +521,8 @@ async function loadCons(){
       const vol=c.total_kg?(Number(c.total_kg).toLocaleString()+' kg'):'—';
       return '<tr><td><b>'+(c.name||c.consignment_id)+'</b><div class="who">'+c.consignment_id+'</div></td>'+
         '<td>'+(c.destination||'—')+'</td><td>'+c.n_lots+'</td><td>'+c.n_plots+'</td><td>'+vol+'</td>'+
-        '<td>'+badge+'</td><td class="dl"><a href="#" data-cdl="dossier" data-id="'+c.consignment_id+'">Dossier</a>'+
+        '<td>'+badge+'</td><td class="dl"><a href="#" data-csim="'+c.consignment_id+'">Simular</a>'+
+        '<a href="#" data-cdl="dossier" data-id="'+c.consignment_id+'">Dossier</a>'+
         '<a href="#" data-cdl="geojson" data-id="'+c.consignment_id+'">GeoJSON</a>'+
         '<a href="#" data-creg="'+c.consignment_id+'">Regenerar</a>'+
         '<a href="#" data-cwa="'+c.consignment_id+'">WhatsApp</a></td></tr>';
@@ -446,6 +533,7 @@ async function loadCons(){
 $('consrows').addEventListener('click',function(ev){
   var w=ev.target.closest('a[data-cwa]'); if(w){ev.preventDefault();openWaCons(w.getAttribute('data-cwa'));return;}
   var rg=ev.target.closest('a[data-creg]'); if(rg){ev.preventDefault();regenCons(rg.getAttribute('data-creg'));return;}
+  var cs=ev.target.closest('a[data-csim]'); if(cs){ev.preventDefault();simOpen('cons',cs.getAttribute('data-csim'));return;}
   var a=ev.target.closest('a[data-cdl]'); if(!a)return; ev.preventDefault(); dlCons(a.getAttribute('data-id'),a.getAttribute('data-cdl'));
 });
 async function regenCons(id){
@@ -472,6 +560,111 @@ function openWaCons(id){
 }
 (function(){ var b=$('invBtn'); if(b)b.onclick=invite; })();
 if('serviceWorker' in navigator){ addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){})}); }
+
+/* ----- Copiloto Gemini ----- */
+var COP_LOT=null;
+function cesc(s){return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+function copAppend(cls,html){ var d=document.createElement('div'); d.className='cmsg '+cls; d.innerHTML=html; $('copMsgs').appendChild(d); $('copMsgs').scrollTop=999999; if(window.i18nSync)i18nSync(); return d; }
+function copBot(text,title){ return copAppend('bot',(title?'<div class="t">'+cesc(title)+'</div>':'')+cesc(text).replace(/\n/g,'<br>')); }
+function copMe(text){ return copAppend('me',cesc(text)); }
+function copTyping(on){ $('copTyping').style.display=on?'block':'none'; if(on)$('copMsgs').scrollTop=999999; }
+function copOpen(){ $('copPanel').style.display='flex'; $('copBtn').style.display='none';
+  if(!$('copMsgs').children.length) copBot('Hola, soy tu copiloto EUDR. Pregúntame qué significa un hallazgo o qué parcela excluir — o pulsa «Copiloto» en un lote para analizarlo.');
+  setTimeout(function(){$('copInput').focus();},50); }
+function copClose(){ $('copPanel').style.display='none'; $('copBtn').style.display='inline-flex'; }
+async function copAsk(){
+  var q=($('copInput').value||'').trim(); if(!q)return; $('copInput').value=''; copMe(q); copTyping(true);
+  try{ var r=await fetch('/copilot/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,lot_id:COP_LOT})});
+    var d=await r.json(); copBot(d.answer||'No pude responder ahora.');
+  }catch(e){ copBot('Error de red.'); }
+  copTyping(false);
+}
+async function copAnalyze(lot_id){
+  COP_LOT=lot_id; copOpen(); copMe('Analiza el lote '+lot_id); copTyping(true);
+  try{ var r=await fetch('/lots/'+lot_id+'/copilot',{method:'POST'}); if(!r.ok)throw 0;
+    var a=await r.json();
+    var html=cesc(a.resumen||'');
+    if(a.parcelas&&a.parcelas.length){ html+='<div class="pl">'; a.parcelas.forEach(function(p){ html+='<b>'+cesc(p.plot_id)+'</b> — '+cesc(p.explicacion||'')+' <i>('+cesc(p.accion||'')+')</i><br>'; }); html=html.replace(/<br>$/,'')+'</div>'; }
+    if(a.recomendacion) html+='<div class="pl"><b>Recomendación:</b> '+cesc(a.recomendacion)+'</div>';
+    copAppend('bot','<div class="t">Análisis del lote '+cesc(lot_id)+'</div>'+html);
+    if(a.legalidad) copBot(a.legalidad,'Borrador de legalidad');
+  }catch(e){ copBot('No pude analizar el lote. Reintenta en unos segundos.'); }
+  copTyping(false);
+}
+(function(){ $('copBtn').onclick=copOpen; $('copClose').onclick=copClose; $('copSend').onclick=copAsk;
+  $('copInput').addEventListener('keydown',function(e){ if(e.key==='Enter')copAsk(); }); })();
+
+/* ----- Simulador what-if de segregación + score ----- */
+var SIM_KIND=null, SIM_ID=null, SIM_EXC={};
+function simBandLabel(b){ return {alta:'Alta',media:'Media',baja:'Baja'}[b]||b; }
+function simStatusLabel(s){ return {apto:'Apto para enviar',revisar:'Requiere revisión',no_apto:'No apto: hay unidades observadas'}[s]||s; }
+function simRiskLabel(r){ return {high:'observada',review:'revisar',negligible:'en orden'}[r]||r; }
+function simRenderScore(sc){
+  $('simGauge').style.display=sc?'flex':'none'; if(!sc)return;
+  $('simScore').innerHTML=sc.score+'<small>/100</small>';
+  var b=$('simBand'); b.className='sgband '+sc.band; b.textContent='Confianza '+simBandLabel(sc.band);
+  $('simFactors').innerHTML=sc.factors.map(function(f){
+    return '<div class="sfac"><div class="l"><span>'+cesc(f.label)+'</span><span>'+f.value+'</span></div>'+
+           '<div class="sbar"><i style="width:'+Math.max(3,Math.min(100,f.value))+'%"></i></div></div>';
+  }).join('');
+}
+function simRenderSim(sm){
+  $('simPlots').innerHTML=sm.plots.map(function(p){
+    var meta=(p.area_ha?(p.area_ha+' ha · '):(p.label?(cesc(p.label)+' · '):''))+Number(p.kg||0).toLocaleString()+' kg';
+    return '<label class="splot'+(p.included?'':' exc')+'">'+
+      '<input type="checkbox" data-simplot="'+cesc(p.plot_id)+'"'+(p.included?' checked':'')+'>'+
+      '<span class="pid">'+cesc(p.plot_id)+'</span>'+
+      '<span class="rb '+(p.risk||'negligible')+'">'+cesc(simRiskLabel(p.risk))+'</span>'+
+      '<span class="meta">'+meta+'</span></label>';
+  }).join('');
+  $('simNplots').textContent=sm.n_remaining+'/'+sm.n_total;
+  $('simKg').textContent=Number(sm.kg_remaining||0).toLocaleString();
+  $('simPct').textContent=(sm.pct_kept==null?'—':sm.pct_kept+'%');
+  var st=$('simStatus'); st.className='sstatus '+sm.status_after; st.textContent=simStatusLabel(sm.status_after);
+  $('simSug').textContent=sm.suggestion||'';
+  if(window.i18nSync)i18nSync();
+}
+async function simOpen(kind,id){
+  SIM_KIND=kind; SIM_ID=id; SIM_EXC={};
+  $('simModal').style.display='grid';
+  $('simSub').textContent = kind==='cons' ? 'Excluye lotes observados del contenedor y mira el volumen conforme.' : 'Excluye parcelas observadas y mira cómo queda el lote.';
+  $('simScore').textContent='…'; $('simFactors').innerHTML=''; $('simPlots').innerHTML=''; $('simSug').textContent='';
+  $('simStatus').className='sstatus'; $('simStatus').textContent='';
+  try{
+    var url = kind==='cons' ? '/consignments/'+id+'/whatif' : '/lots/'+id+'/score';
+    var r=await fetch(url); if(!r.ok)throw 0; var d=await r.json();
+    (d.suggest_exclude||[]).forEach(function(x){ SIM_EXC[x]=1; });
+    simRenderScore(d.score||null);
+    simRenderSim(d.simulation);
+  }catch(e){ simRenderScore(null); $('simPlots').innerHTML='<p class="ssug">No pude cargar la simulación. Reintenta en unos segundos.</p>'; }
+}
+function simClose(){ $('simModal').style.display='none'; }
+async function simRecalc(){
+  var exc=Object.keys(SIM_EXC).filter(function(k){ return SIM_EXC[k]; });
+  var url = SIM_KIND==='cons' ? '/consignments/'+SIM_ID+'/whatif' : '/lots/'+SIM_ID+'/whatif';
+  try{
+    var r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({exclude:exc})});
+    if(r.ok) simRenderSim(await r.json());
+  }catch(e){}
+}
+function simReset(){
+  SIM_EXC={};
+  document.querySelectorAll('#simPlots .splot').forEach(function(row){
+    if(row.querySelector('.rb.high')){ SIM_EXC[row.querySelector('input').getAttribute('data-simplot')]=1; }
+  });
+  simRecalc();
+}
+(function(){
+  $('simClose').onclick=simClose; $('simDone').onclick=simClose; $('simReset').onclick=simReset;
+  $('simModal').addEventListener('click',function(e){ if(e.target===this)simClose(); });
+  $('simPlots').addEventListener('change',function(e){
+    var c=e.target.closest('input[data-simplot]'); if(!c)return;
+    SIM_EXC[c.getAttribute('data-simplot')]=c.checked?0:1;
+    var row=c.closest('.splot'); if(row)row.classList.toggle('exc',!c.checked);
+    simRecalc();
+  });
+})();
+
 boot();
 </script>
 <script src="/static/i18n.js" defer></script>

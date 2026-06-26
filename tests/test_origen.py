@@ -7,7 +7,7 @@ os.makedirs(_DD, exist_ok=True)
 os.environ.setdefault("DATA_DIR", _DD)
 
 from app.models import Lot, Plot, GeoPoint, DeforestationFinding as DF
-from app import dossier, geo
+from app import dossier, geo, scoring
 
 
 def _lot_point():
@@ -88,3 +88,47 @@ def test_geometry_issues_flags_invalid_polygon():
     bow = Plot("P1", [GeoPoint(0, 0), GeoPoint(0, 1), GeoPoint(1, 0), GeoPoint(1, 1)], 1.0)
     issues = geo.geometry_issues(bow)
     assert any("inválido" in i or "TRACES" in i for i in issues)
+
+
+# ---- Simulador what-if + score de confianza ----
+def _lot_multi():
+    return Lot("LOT-WI", "Juan", "Coop", "coffee", "PE", "Cusco",
+               [Plot("P1", [GeoPoint(-12.0, -72.0)], 1.0),
+                Plot("P2", [GeoPoint(-12.1, -72.1)], 2.0),
+                Plot("P3", [GeoPoint(-12.2, -72.2)], 1.0)],
+               "", "", "3,000 kg", extra={"legality": {"title": "Título 123"}})
+
+
+def _findings_multi():
+    return [DF("P1", "negligible", False, "ok"),
+            DF("P2", "high", True, "pérdida 2022"),
+            DF("P3", "review", False, "borde")]
+
+
+def test_simulate_distributes_kg_by_area_and_status():
+    lot, fnd = _lot_multi(), _findings_multi()
+    assert scoring.suggest_exclusions(fnd) == ["P2"]
+    sim = scoring.simulate(lot, fnd, ["P2"])           # excluir solo la observada
+    kg = {p["plot_id"]: p["kg"] for p in sim["plots"]}
+    assert kg["P2"] == 1500                              # 2 de 4 ha → mitad de 3000
+    assert sim["kg_remaining"] == 1500 and sim["status_after"] == "revisar"  # queda P3
+    sim2 = scoring.simulate(lot, fnd, ["P2", "P3"])     # excluir ambas
+    assert sim2["status_after"] == "apto" and sim2["all_clear"] is True
+
+
+def test_confidence_score_bounds_and_factors():
+    sc = scoring.confidence_score(_lot_multi(), _findings_multi())
+    assert 0 <= sc["score"] <= 100 and sc["band"] in ("alta", "media", "baja")
+    assert sum(f["weight"] for f in sc["factors"]) == 100
+
+
+def test_simulate_consignment_excludes_flagged_lots():
+    class L:
+        def __init__(s, i, q, p): s.lot_id, s.quantity, s.producer_name = i, q, p
+    items = [(L("L1", "1000 kg", "Ana"), [DF("PA", "negligible", False, "")]),
+             (L("L2", "800 kg", "Beto"), [DF("PB", "high", True, "")]),
+             (L("L3", "1200 kg", "Caro"), [DF("PC", "review", False, "")])]
+    assert scoring.suggest_exclusions_consignment(items) == ["L2"]
+    cs = scoring.simulate_consignment(items, ["L2"])
+    assert cs["kg_remaining"] == 2200 and cs["n_remaining"] == 2
+    assert cs["status_after"] == "revisar"

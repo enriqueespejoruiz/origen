@@ -26,6 +26,18 @@ Formato: cambios agrupados por fecha. El proyecto sigue el espíritu *build-in-p
 - Pruebas: `tests/test_origen.py` cubre prorrateo por área, límites del score y exclusión por envío.
 - i18n ES/EN para toda la interfaz nueva.
 
+### Compartir con el comprador + portabilidad de datos
+- Nuevo módulo `app/portability.py`: `build_export_zip()` arma un ZIP con la data de la coop en
+  **formatos abiertos** — `lotes.csv`, `lotes.geojson` (TRACES), `manifest.json` (con sellos de
+  notarización), los dossiers PDF y un `LEEME.txt`. Es el moat de *la coop es dueña de su data*.
+- Página pública del comprador `web/share.html` servida en `/s/c/{cid}` y `/s/{lot_id}`: marca,
+  veredicto, datos del envío/lote, descargas (dossier + GeoJSON) y verificación. Reemplaza el envío
+  de un PDF crudo por un link con todo.
+- Endpoints `GET /api/share/c/{cid}`, `GET /api/share/{lot_id}` (resumen público seguro) y
+  `GET /api/export.zip` (auth).
+- Panel: enlace **Compartir** (copia el link del comprador) en lotes y envíos, botón **Llévate tu
+  data**, y el WhatsApp ahora envía la página. i18n ES/EN. Test del ZIP en el suite.
+
 ## Antes
 - Captura PWA (GPS + polígono + foto), multi-tenant con login Google, dossier EUDR + GeoJSON TRACES,
   envíos consolidados, 4 fuentes de deforestación (Hansen/JRC/GFW alerts/WDPA), anti-fraude de

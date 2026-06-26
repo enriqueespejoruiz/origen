@@ -2,7 +2,7 @@ import os, uuid, json, base64, datetime
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
-from . import gemini, deforestation, dossier, storage, config, auth, geo, notarize, copilot, scoring
+from . import gemini, deforestation, dossier, storage, config, auth, geo, notarize, copilot, scoring, portability
 from .models import Lot, Plot, GeoPoint, Consignment, DeforestationFinding
 
 app = FastAPI(title="Origen - EUDR + Export Copilot")
@@ -489,6 +489,60 @@ def api_verify(lot: str = ""):
             "anchor": rec.get("anchor", "")}
 
 # ---- Enlace público compartible (para WhatsApp / comprador) ----
+
+# ---- Página del comprador (compartible) + portabilidad de datos ----
+
+def _share_dl(kind, _id):
+    base = config.PUBLIC_BASE_URL
+    seg = f"c/{_id}" if kind == "c" else _id
+    return {"dossier": f"{base}/share/{seg}/dossier", "geojson": f"{base}/share/{seg}/geojson"}
+
+@app.get("/s/c/{cid}")
+def share_page_cons(cid: str):
+    return _page("share.html")
+
+@app.get("/s/{lot_id}")
+def share_page_lot(lot_id: str):
+    return _page("share.html")
+
+@app.get("/api/share/c/{cid}")
+def api_share_cons(cid: str):
+    d = storage.load_consignment(cid)
+    if not d:
+        raise HTTPException(404, "Envío no encontrado")
+    s = _consignment_summary(d)
+    return {"kind": "consignment", "id": cid, "title": s["name"] or cid,
+            "commodity": s["commodity"], "destination": s["destination"], "buyer": s["buyer"],
+            "verdict": s["verdict"], "processed": s["processed"],
+            "n_lots": s["n_lots"], "n_plots": s["n_plots"], "total_kg": s["total_kg"],
+            "producers": s["producers"], "regions": s["regions"], "created_at": s["created_at"],
+            "downloads": _share_dl("c", cid), "verify_url": config.PUBLIC_BASE_URL + "/verificar"}
+
+@app.get("/api/share/{lot_id}")
+def api_share_lot(lot_id: str):
+    d = storage.load_lot(lot_id)
+    if not d:
+        raise HTTPException(404, "Lote no encontrado")
+    note = storage.get_notary(lot_id) or {}
+    return {"kind": "lot", "id": lot_id, "title": d.get("producer_name") or lot_id,
+            "commodity": d.get("commodity", ""), "region": d.get("region", ""),
+            "destination": "", "verdict": d.get("overall_risk", ""),
+            "processed": bool(d.get("overall_risk")), "n_plots": len(d.get("plots", [])),
+            "total_kg": dossier.parse_qty_kg(d.get("quantity", "")), "n_lots": 1,
+            "cooperative": d.get("cooperative", ""), "created_at": d.get("created_at", ""),
+            "downloads": _share_dl("l", lot_id),
+            "notary": {"sha256": note.get("sha256")} if note.get("sha256") else None,
+            "verify_url": config.PUBLIC_BASE_URL + "/verificar?lot=" + lot_id}
+
+@app.get("/api/export.zip")
+def api_export_zip(request: Request):
+    ctx = auth.require_coop(request)
+    lots = sorted(storage.list_lots(ctx["coop"]["id"]), key=lambda d: d.get("created_at", ""), reverse=True)
+    data, n = portability.build_export_zip(ctx["coop"], lots)
+    log("export_zip", coop=ctx["coop"]["id"], lots=n)
+    fn = "origen_data_" + (ctx["coop"].get("id", "coop")) + ".zip"
+    return Response(data, media_type="application/zip",
+                    headers={"Content-Disposition": f'attachment; filename="{fn}"'})
 
 @app.get("/share/{lot_id}/dossier")
 def share_dossier(lot_id: str):

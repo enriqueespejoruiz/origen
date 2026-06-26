@@ -219,6 +219,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--brand-leaf-2);cur
       <option value="none">Sin procesar</option>
     </select>
     <a class="btn btn-ghost" href="/api/lots.csv">Exportar CSV</a>
+    <a class="btn btn-ghost" href="/api/export.zip" title="Descarga toda tu data en formatos abiertos">Llévate tu data</a>
   </div>
   <div class="card">
     <table>
@@ -385,6 +386,7 @@ function lotRowHTML(l){
     '<div class="who">'+(l.captured_by||'')+'</div></td><td>'+(l.commodity||'')+'</td><td>'+badge+vflag+'</td>'+
     '<td>'+date+'</td><td class="dl"><a href="#" data-cop="'+l.lot_id+'">Copiloto</a>'+
     '<a href="#" data-sim="'+l.lot_id+'">Simular</a>'+
+    '<a href="#" data-share="'+l.lot_id+'">Compartir</a>'+
     '<a href="#" data-dl="dossier" data-id="'+l.lot_id+'">Dossier</a>'+
     '<a href="#" data-dl="geojson" data-id="'+l.lot_id+'">GeoJSON</a>'+
     '<a href="#" data-map="'+l.lot_id+'">Ver en mapa</a>'+
@@ -446,6 +448,7 @@ $('rows').addEventListener('click',function(ev){
   var rp=ev.target.closest('a[data-reproc]'); if(rp){ev.preventDefault();reprocLot(rp.getAttribute('data-reproc'));return;}
   var cp=ev.target.closest('a[data-cop]'); if(cp){ev.preventDefault();copAnalyze(cp.getAttribute('data-cop'));return;}
   var sm=ev.target.closest('a[data-sim]'); if(sm){ev.preventDefault();simOpen('lot',sm.getAttribute('data-sim'));return;}
+  var sh=ev.target.closest('a[data-share]'); if(sh){ev.preventDefault();shareLink('/s/'+sh.getAttribute('data-share'),sh);return;}
   var a=ev.target.closest('a[data-dl]'); if(!a)return; ev.preventDefault(); dl(a.getAttribute('data-id'),a.getAttribute('data-dl'));
 });
 async function reprocLot(id){
@@ -454,9 +457,16 @@ async function reprocLot(id){
     hideModal(); loadLots();
   }catch(e){ modalErr(e.message||'Error de red'); }
 }
+function shareLink(path,el){
+  var url=location.origin+path;
+  var ok=function(){ if(!el)return; var t=el.getAttribute('data-t')||el.textContent; el.setAttribute('data-t',t);
+    el.textContent='¡Link copiado!'; setTimeout(function(){ el.textContent=t; if(window.i18nSync)i18nSync(); },1600); };
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(ok,function(){ prompt('Copia el link para tu comprador:',url); }); }
+  else { prompt('Copia el link para tu comprador:',url); }
+}
 function openWa(id){
   var b=location.origin;
-  var msg='Origen — Dossier EUDR · lote '+id+'\n\nDossier (PDF): '+b+'/share/'+id+'/dossier\nDatos (GeoJSON): '+b+'/share/'+id+'/geojson\nVerifica autenticidad: '+b+'/verificar?lot='+id;
+  var msg='Origen — Paquete EUDR · lote '+id+'\n\nVer y descargar: '+b+'/s/'+id+'\n(Dossier PDF + GeoJSON para TRACES + verificación)';
   window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
 function viewMap(id){
@@ -522,6 +532,7 @@ async function loadCons(){
       return '<tr><td><b>'+(c.name||c.consignment_id)+'</b><div class="who">'+c.consignment_id+'</div></td>'+
         '<td>'+(c.destination||'—')+'</td><td>'+c.n_lots+'</td><td>'+c.n_plots+'</td><td>'+vol+'</td>'+
         '<td>'+badge+'</td><td class="dl"><a href="#" data-csim="'+c.consignment_id+'">Simular</a>'+
+        '<a href="#" data-cshare="'+c.consignment_id+'">Compartir</a>'+
         '<a href="#" data-cdl="dossier" data-id="'+c.consignment_id+'">Dossier</a>'+
         '<a href="#" data-cdl="geojson" data-id="'+c.consignment_id+'">GeoJSON</a>'+
         '<a href="#" data-creg="'+c.consignment_id+'">Regenerar</a>'+
@@ -534,6 +545,7 @@ $('consrows').addEventListener('click',function(ev){
   var w=ev.target.closest('a[data-cwa]'); if(w){ev.preventDefault();openWaCons(w.getAttribute('data-cwa'));return;}
   var rg=ev.target.closest('a[data-creg]'); if(rg){ev.preventDefault();regenCons(rg.getAttribute('data-creg'));return;}
   var cs=ev.target.closest('a[data-csim]'); if(cs){ev.preventDefault();simOpen('cons',cs.getAttribute('data-csim'));return;}
+  var csh=ev.target.closest('a[data-cshare]'); if(csh){ev.preventDefault();shareLink('/s/c/'+csh.getAttribute('data-cshare'),csh);return;}
   var a=ev.target.closest('a[data-cdl]'); if(!a)return; ev.preventDefault(); dlCons(a.getAttribute('data-id'),a.getAttribute('data-cdl'));
 });
 async function regenCons(id){
@@ -554,7 +566,7 @@ function openWaCons(id){
   var w=window.open('','_blank');
   fetch('/consignments/'+id+'/dossier').catch(function(){}).then(function(){
     var b=location.origin;
-    var msg='Origen — Dossier EUDR consolidado · envío '+id+'\n\nDossier (PDF): '+b+'/share/c/'+id+'/dossier\nDatos (GeoJSON): '+b+'/share/c/'+id+'/geojson\nVerifica autenticidad: '+b+'/verificar?lot='+id;
+    var msg='Origen — Paquete EUDR · envío '+id+'\n\nVer y descargar: '+b+'/s/c/'+id+'\n(Dossier consolidado + GeoJSON para TRACES + verificación)';
     if(w) w.location.href='https://wa.me/?text='+encodeURIComponent(msg);
   });
 }

@@ -132,3 +132,22 @@ def test_simulate_consignment_excludes_flagged_lots():
     cs = scoring.simulate_consignment(items, ["L2"])
     assert cs["kg_remaining"] == 2200 and cs["n_remaining"] == 2
     assert cs["status_after"] == "revisar"
+
+
+# ---- Portabilidad: export ZIP "llévate tu data" ----
+def test_export_zip_has_open_formats():
+    import io, json, zipfile
+    from app import portability
+    lots = [{"lot_id": "LOT-A", "producer_name": "Ana", "cooperative": "CoopX", "commodity": "coffee",
+             "country": "PE", "region": "Cusco", "quantity": "1,200 kg", "overall_risk": "negligible",
+             "plots": [{"plot_id": "P1", "points": [{"lat": -13.5, "lon": -71.9}], "area_ha": 2.0}],
+             "created_at": "2026-06-26"}]
+    data, n = portability.build_export_zip({"id": "coop1", "name": "Coop Demo"}, lots)
+    z = zipfile.ZipFile(io.BytesIO(data))
+    assert n == 1
+    for f in ("lotes.csv", "lotes.geojson", "manifest.json", "LEEME.txt"):
+        assert f in z.namelist()
+    gj = json.loads(z.read("lotes.geojson"))
+    assert gj["type"] == "FeatureCollection" and len(gj["features"]) == 1
+    assert "ProducerName" in gj["features"][0]["properties"]
+    assert json.loads(z.read("manifest.json"))["n_lots"] == 1

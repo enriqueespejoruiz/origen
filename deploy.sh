@@ -24,9 +24,11 @@ gcloud run deploy "$SERVICE" \
   --allow-unauthenticated \
   --memory 1Gi \
   --timeout 300 \
-  --update-env-vars "GOOGLE_GENAI_USE_VERTEXAI=1,GOOGLE_CLOUD_PROJECT=${PROJECT},GOOGLE_CLOUD_LOCATION=${REGION},GEMINI_MODEL=gemini-2.5-flash"
-# --update-env-vars (no --set-env-vars): añade/actualiza solo estas claves y CONSERVA el resto
-# (secretos como GFW_API_KEY, GOOGLE_OAUTH_CLIENT_ID, SESSION_SECRET, GCS_BUCKET).
+  --min-instances 1 \
+  --update-env-vars "GOOGLE_GENAI_USE_VERTEXAI=1,GOOGLE_CLOUD_PROJECT=${PROJECT},GOOGLE_CLOUD_LOCATION=${REGION},GEMINI_MODEL=gemini-2.5-flash,DATA_DIR=/tmp" \
+  --update-secrets "GFW_API_KEY=gfw-api-key:latest"
+# --update-env-vars / --update-secrets (no --set-*): añaden/actualizan solo estas claves y
+# CONSERVAN el resto (GOOGLE_OAUTH_CLIENT_ID, SESSION_SECRET, GCS_BUCKET, etc.).
 
 echo "▸ Listo. URL del servicio:"
 gcloud run services describe "$SERVICE" --project "$PROJECT" --region "$REGION" \

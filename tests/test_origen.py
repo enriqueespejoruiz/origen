@@ -151,3 +151,39 @@ def test_export_zip_has_open_formats():
     assert gj["type"] == "FeatureCollection" and len(gj["features"]) == 1
     assert "ProducerName" in gj["features"][0]["properties"]
     assert json.loads(z.read("manifest.json"))["n_lots"] == 1
+
+
+# ---- Notarización: huella SHA-256 + (Fase 1) anclaje OpenTimestamps con fallback ----
+def test_notarize_always_records_sha256(tmp_path):
+    from app import notarize
+    p = tmp_path / "dossier.pdf"
+    p.write_bytes(b"%PDF-1.4 origen notary test")
+    rec = notarize.notarize("LOT-NOTARY", str(p))
+    assert rec["sha256"] == notarize.sha256_file(str(p)) and rec["algo"] == "SHA-256"
+    # con OpenTimestamps disponible ancla en Bitcoin; sin red/lib cae a Fase 0 — ambos válidos
+    assert rec["anchor"] in ("origen-registry", "opentimestamps")
+
+
+# ---- WhatsApp: parseo de webhook entrante ----
+def test_whatsapp_parse_messages():
+    from app import whatsapp
+    payload = {"entry": [{"changes": [{"value": {"messages": [
+        {"from": "51999", "text": {"body": "LOT-ABC123"}}]}}]}]}
+    msgs = whatsapp.parse_messages(payload)
+    assert msgs and msgs[0]["from"] == "51999" and msgs[0]["text"] == "LOT-ABC123"
+    assert whatsapp.send_text("51999", "hola") is False   # best-effort sin credenciales
+
+
+# ---- Monitoreo continuo: alerta cuando un lote empeora ----
+def test_monitor_alerts_on_worsening(monkeypatch):
+    from app import monitor, storage
+    lot = Lot("LOT-MON", "Ana", "CoopZ", "coffee", "PE", "Cusco",
+              [Plot("P1", [GeoPoint(-12.0, -72.0)], 1.0)], "", "", "100", coop_id="coopZmon")
+    storage.save_lot(lot)
+    storage.merge_lot("LOT-MON", {"overall_risk": "negligible"})
+    monkeypatch.setattr(monitor.deforestation, "check_plots",
+                        lambda l: [DF("P1", "high", True, "pérdida nueva")])
+    res = monitor.run_monitor(coop_id="coopZmon")
+    assert res["alerts"] == 1
+    al = storage.list_alerts("coopZmon")
+    assert al and al[0]["from"] == "negligible" and al[0]["to"] == "high"

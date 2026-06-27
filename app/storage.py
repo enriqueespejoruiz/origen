@@ -136,6 +136,70 @@ def list_lots(coop_id, limit=300):
             pass
     return out
 
+def list_all_lots(limit=1000):
+    """Todos los lotes (para el monitoreo continuo, multi-coop)."""
+    out = []
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            for d in firestore.Client(project=config.GCP_PROJECT).collection("lots").limit(limit).stream():
+                out.append(d.to_dict())
+            return out
+        except Exception:
+            pass
+    import glob
+    for fp in glob.glob(os.path.join(config.DATA_DIR, "LOT-*.json")):
+        try:
+            d = json.load(open(fp))
+            if isinstance(d, dict) and d.get("lot_id"):
+                out.append(d)
+        except Exception:
+            pass
+    return out
+
+# ---------- Alertas de monitoreo continuo ----------
+
+def save_alert(alert):
+    """Guarda una alerta (id autogenerado). Devuelve el id."""
+    import uuid, datetime
+    aid = alert.get("id") or ("AL-" + uuid.uuid4().hex[:10])
+    alert["id"] = aid
+    alert.setdefault("created_at", datetime.datetime.utcnow().isoformat() + "Z")
+    alert.setdefault("read", False)
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            firestore.Client(project=config.GCP_PROJECT).collection("alerts").document(aid).set(alert)
+            return aid
+        except Exception:
+            pass
+    d = os.path.join(config.DATA_DIR, "alerts"); os.makedirs(d, exist_ok=True)
+    json.dump(alert, open(os.path.join(d, f"{aid}.json"), "w"), default=str)
+    return aid
+
+def list_alerts(coop_id, limit=50):
+    out = []
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            from google.cloud.firestore_v1.base_query import FieldFilter
+            q = (firestore.Client(project=config.GCP_PROJECT).collection("alerts")
+                 .where(filter=FieldFilter("coop_id", "==", coop_id)).limit(limit))
+            for d in q.stream():
+                out.append(d.to_dict())
+            return out
+        except Exception:
+            pass
+    import glob
+    for fp in glob.glob(os.path.join(config.DATA_DIR, "alerts", "AL-*.json")):
+        try:
+            d = json.load(open(fp))
+            if d.get("coop_id") == coop_id:
+                out.append(d)
+        except Exception:
+            pass
+    return out
+
 # ---------- Envíos / consignaciones (agregación de lotes) ----------
 
 def save_consignment(c):

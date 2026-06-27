@@ -28,7 +28,14 @@ inteligencia comercial del lote. Un solo flujo de datos, varias salidas.
 - **Simulador what-if + score de confianza:** simula excluir parcelas/lotes observados y muestra, en
   vivo, el **volumen conforme** y el estado resultante (`apto`/`revisar`/`no apto`); resume la salud
   del lote en un **score 0–100** explicable (conformidad, geometría, volumen, legalidad).
-- **Notarización (Fase 0):** sella el hash del dossier (OpenTimestamps) y lo expone en `/verificar`.
+- **Notarización (Fase 1):** ancla el hash del dossier en **Bitcoin vía OpenTimestamps** (prueba
+  `.ots` verificable de forma independiente) y lo expone en `/verificar`.
+- **WhatsApp (Cloud API):** la coop consulta el estado EUDR de un lote/envío enviando su código por
+  WhatsApp; canal de cero fricción donde ya viven las cooperativas.
+- **Monitoreo continuo + alertas:** re-verifica las parcelas periódicamente y avisa (banner en el
+  panel) si una se vuelve no conforme — vigilancia, no un chequeo único.
+- **Módulo de legalidad:** checklist (tenencia, ambiental, laboral) + carga de documentos por lote;
+  el EUDR exige legalidad además de cero deforestación.
 - **Multi-tenant:** login con Google, cuentas por cooperativa, roles e invitaciones, panel con
   búsqueda/filtro, export CSV y logs de uso.
 
@@ -52,7 +59,11 @@ Todo sobre **Google Cloud** (cumplimiento XPRIZE).
 | `POST` | `/lots/{id}/copilot` · `POST /copilot/chat` | **Copiloto Gemini** (análisis + chat) |
 | `GET` | `/lots/{id}/score` · `POST /lots/{id}/whatif` | **Score + simulador** por lote |
 | `GET` | `/consignments/{cid}/whatif` · `POST` | **Simulador** por envío |
-| `GET` | `/verificar` · `/api/verify` | Verificación pública del dossier notarizado |
+| `GET` | `/verificar` · `/api/verify` · `/verificar/{id}.ots` | Verificación pública + prueba OpenTimestamps |
+| `GET` | `/s/c/{cid}` · `/s/{lot}` · `/api/export.zip` | Página del comprador + portabilidad (ZIP) |
+| `GET/POST` | `/webhooks/whatsapp` | Consulta de estado por WhatsApp (Cloud API) |
+| `POST` | `/cron/monitor` · `GET /api/alerts` | Monitoreo continuo + alertas |
+| `GET/POST` | `/lots/{id}/legality` | Checklist + documentos de legalidad |
 
 ## Correr local
 
@@ -72,6 +83,10 @@ Sin claves, el chequeo de deforestación y Gemini usan *mocks* deterministas: la
 - **Deforestación:** `GFW_API_KEY` (Global Forest Watch). `EE_PROJECT` opcional (Earth Engine).
 - **Auth / sesión:** `GOOGLE_OAUTH_CLIENT_ID`, `SESSION_SECRET`, `PUBLIC_BASE_URL`.
 - **Storage:** `GCS_BUCKET` (prod) o `DATA_DIR=./_data` (local).
+- **WhatsApp (opcional):** `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_ID`, `WHATSAPP_VERIFY_TOKEN`. En Meta,
+  apunta el webhook a `…/webhooks/whatsapp` con ese verify token. Sin esto, el resto funciona igual.
+- **Monitoreo (opcional):** `CRON_TOKEN`. Programa Cloud Scheduler para `POST /cron/monitor` con la
+  cabecera `X-Cron-Token: <CRON_TOKEN>` (p. ej. diario).
 
 ## Desplegar (Cloud Run)
 

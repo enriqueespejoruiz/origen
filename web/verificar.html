@@ -28,6 +28,9 @@ input[type=text]{flex:1;padding:11px;border:1px solid var(--hair);border-radius:
 button{white-space:nowrap;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#231a04;border:0;border-radius:10px;padding:0 16px;font-family:var(--fh);font-weight:600;cursor:pointer}
 .muted{color:var(--t3);font-size:12.5px;margin-top:14px}
 a{color:var(--leaf2)}
+.otsbtn{display:inline-block;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#231a04;border:0;border-radius:10px;padding:9px 14px;font-family:var(--fh);font-weight:600;font-size:13px;text-decoration:none;cursor:pointer}
+.otsbtn.ghost{background:rgba(255,255,255,.06);color:var(--t1);border:1px solid var(--hair)}
+code{background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px;font-size:12px;font-family:ui-monospace,monospace}
 </style></head><body>
 <button data-langbtn onclick="toggleLang()" aria-label="Switch language" style="position:fixed;top:16px;right:16px;z-index:10;background:rgba(255,255,255,.08);border:1px solid var(--hair);color:var(--t2);padding:7px 13px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fh)">EN</button>
 <div class="wrap">
@@ -47,7 +50,7 @@ a{color:var(--leaf2)}
     <input type="file" id="file" accept="application/pdf">
     <div id="match" style="margin-top:12px"></div>
   </div>
-  <p class="muted">La notarización registra la huella <b>SHA-256</b> del dossier con su fecha de emisión, a prueba de manipulación. Anclaje público en cadena (OpenTimestamps): en preparación.</p>
+  <p class="muted">La notarización registra la huella <b>SHA-256</b> del dossier con su fecha de emisión, a prueba de manipulación, y la <b>ancla en Bitcoin</b> mediante OpenTimestamps: una prueba <code>.ots</code> verificable de forma independiente.</p>
 </div>
 <footer style="max-width:600px;margin:0 auto;padding:22px 22px 42px;border-top:1px solid var(--hair);color:var(--t3);font-size:13px;text-align:center">
   <a href="/" style="color:var(--leaf2);text-decoration:none;font-weight:600">← Volver a Origen</a>
@@ -64,10 +67,24 @@ async function lookup(){
   try{ const r=await fetch('/api/verify?lot='+encodeURIComponent(lot)); const d=await r.json();
     if(!d.found){ REC=null; $('rec').innerHTML='<div class="state warn"><span class="dot"></span>No encontrado</div><p class="muted">No hay registro para ese lote.</p>'; return; }
     REC=d;
+    var anchor='';
+    if(d.anchor==='opentimestamps'){
+      var o=d.ots||{};
+      var stTxt=o.anchored?('Confirmado en Bitcoin (bloque '+(o.bitcoin_blocks||[]).join(', ')+')'):'Anclado · pendiente de confirmación en Bitcoin';
+      anchor='<div class="rw"><span class="k">Anclaje</span><span class="v" style="font-family:var(--fb)">'+stTxt+'</span></div>'+
+        '<div style="margin-top:13px;display:flex;gap:8px;flex-wrap:wrap">'+
+        (d.ots_url?'<a class="otsbtn" href="'+d.ots_url+'">Descargar prueba .ots</a>':'')+
+        (o.anchored?'':'<button class="otsbtn ghost" onclick="upgradeOts()">Actualizar estado</button>')+
+        '</div>'+
+        '<p class="muted">Prueba pública verificable de forma independiente en <a href="https://opentimestamps.org" target="_blank" rel="noopener">opentimestamps.org</a> o con <code>ots verify</code>. La confirmación en Bitcoin toma unas horas.</p>';
+    } else {
+      anchor='<div class="rw"><span class="k">Anclaje</span><span class="v" style="font-family:var(--fb)">Registro con fecha (SHA-256)</span></div>';
+    }
     $('rec').innerHTML='<div class="state ok"><span class="dot"></span>Registrado</div>'+
       '<div class="rw"><span class="k">Lote</span><span class="v">'+d.lot_id+'</span></div>'+
       '<div class="rw"><span class="k">Emitido</span><span class="v">'+(d.created_at||'').replace('T',' ').replace('Z',' UTC')+'</span></div>'+
-      '<div class="rw"><span class="k">Huella '+d.algo+'</span><span class="v">'+d.sha256+'</span></div>';
+      '<div class="rw"><span class="k">Huella '+d.algo+'</span><span class="v">'+d.sha256+'</span></div>'+anchor;
+    if(window.i18nSync)i18nSync();
     checkFile();
   }catch(e){ $('rec').innerHTML='<span class="muted">Error al consultar.</span>'; }
 }
@@ -82,6 +99,13 @@ async function checkFile(){
     if(hex===REC.sha256) $('match').innerHTML='<div class="state ok"><span class="dot"></span>✓ Documento auténtico</div><p class="muted">La huella coincide con el registro.</p>';
     else $('match').innerHTML='<div class="state bad"><span class="dot"></span>✗ No coincide</div><p class="muted">Este archivo no es el dossier registrado, o fue modificado.</p>';
   }catch(e){ $('match').innerHTML='<span class="muted">No se pudo calcular la huella.</span>'; }
+}
+async function upgradeOts(){
+  if(!REC)return;
+  try{ const r=await fetch('/api/verify/upgrade?lot='+encodeURIComponent(REC.lot_id),{method:'POST'}); const d=await r.json();
+    if(d.anchored){ lookup(); }
+    else { const b=document.querySelector('.otsbtn.ghost'); if(b){ b.textContent='Aún pendiente en Bitcoin'; b.disabled=true; setTimeout(function(){b.textContent='Actualizar estado';b.disabled=false;if(window.i18nSync)i18nSync();},2500); } }
+  }catch(e){}
 }
 $('file').onchange=checkFile;
 (function(){ const lot=qs('lot'); if(lot){ $('lotin').value=lot; lookup(); } })();

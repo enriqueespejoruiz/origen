@@ -162,6 +162,22 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--brand-leaf-2);cur
 .sstatus.apto{background:rgba(34,180,120,.16);color:#34d399}.sstatus.revisar{background:rgba(214,168,49,.16);color:var(--brand-gold-2)}.sstatus.no_apto{background:rgba(220,80,70,.16);color:#f87171}
 .ssug{font-size:13px;color:var(--text-2);line-height:1.55;margin:10px 0 0}
 @media(max-width:560px){.sgauge{flex-direction:column;align-items:flex-start}}
+/* alertas de monitoreo */
+#alerts{margin-top:18px;border:1px solid rgba(220,90,80,.4);background:rgba(220,90,80,.10);border-radius:14px;padding:14px 16px}
+#alerts .ah{font-family:var(--fh);font-weight:700;color:#f3897f;font-size:14px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+#alerts .ai{font-size:13px;color:var(--text-2);padding:3px 0}
+#alerts .ai b{color:var(--text-1)}
+/* modal de legalidad */
+#legalModal{position:fixed;inset:0;z-index:74;display:none;place-items:center;background:rgba(4,20,14,.62);padding:22px}
+#legalModal .lcard{background:var(--bg-2);border:1px solid var(--hair);color:#fff;border-radius:18px;padding:24px;max-width:480px;width:100%;max-height:88vh;overflow-y:auto}
+#legalModal h3{font-size:19px;margin:0 0 2px}#legalModal p.s{color:var(--text-2);font-size:13px;margin:0 0 10px}
+#legalModal label{display:block;font-size:12.5px;color:var(--text-2);margin:12px 0 5px;font-weight:500}
+#legalModal input[type=text],#legalModal textarea{width:100%;padding:10px 12px;font-size:14px;border:1px solid var(--hair);border-radius:10px;background:rgba(0,0,0,.25);color:#fff;font-family:var(--fb)}
+#legalModal textarea{min-height:54px;resize:vertical}
+#legalModal input[type=file]{width:100%;color:var(--text-2);font-size:13px;margin-top:4px}
+#legalModal .acts{display:flex;gap:10px;margin-top:18px}#legalModal .acts button{flex:1;justify-content:center}
+.legbadge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px}
+.legbadge.full{background:rgba(34,180,120,.16);color:#34d399}.legbadge.part{background:rgba(214,168,49,.16);color:var(--brand-gold-2)}.legbadge.none{background:rgba(255,255,255,.07);color:var(--text-3)}
 </style></head><body>
 
 <div id="gate">
@@ -206,6 +222,8 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--brand-leaf-2);cur
     <h1 id="title">Tu cooperativa</h1>
     <p class="muted">Cada lote verificado contra las 4 fuentes, y los envíos consolidados listos para tu comprador.</p>
   </div>
+
+  <div id="alerts" style="display:none"></div>
 
   <div class="sectit"><h2 id="lotsTitle">Tus lotes</h2><span id="lotsCount" data-count style="color:var(--text-3);font-family:var(--fh);font-weight:600"></span>
     <span class="hint">Marca los lotes que entran en un envío y pulsa «Crear envío».</span></div>
@@ -307,6 +325,23 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--brand-leaf-2);cur
   </div>
 </div></div>
 
+<div id="legalModal"><div class="lcard">
+  <h3>Legalidad del lote</h3>
+  <p class="s">El EUDR exige <b>legalidad</b> además de cero deforestación: tenencia y conformidad ambiental y laboral.</p>
+  <label for="legTitle">Título o derecho de uso del predio</label>
+  <input type="text" id="legTitle" placeholder="ej. Título N.º 12345 / contrato de cesión">
+  <label for="legEnv">Conformidad ambiental y forestal</label>
+  <textarea id="legEnv" placeholder="ej. predio fuera de ANP; sin cambio de uso; constancia forestal"></textarea>
+  <label for="legLabor">Conformidad laboral</label>
+  <textarea id="legLabor" placeholder="ej. sin trabajo infantil; condiciones conforme a ley"></textarea>
+  <label for="legDocs">Documentos de respaldo (PDF/imagen, opcional)</label>
+  <input type="file" id="legDocs" accept="application/pdf,image/*" multiple>
+  <div class="acts">
+    <button class="btn btn-ghost" id="legCancel">Cancelar</button>
+    <button class="btn btn-gold" id="legSave">Guardar legalidad</button>
+  </div>
+</div></div>
+
 <button id="copBtn" style="display:none">✦ Copiloto</button>
 <div id="copPanel">
   <div class="ch"><b>Copiloto Origen</b><button class="x" id="copClose" aria-label="Cerrar">×</button></div>
@@ -364,7 +399,7 @@ async function showApp(s){
   $('gate').style.display='none'; $('hdr').style.display='flex'; $('app').style.display='block';
   $('coopLabel').textContent=s.coop.name||'';
   $('userChip').innerHTML=(s.user.picture?'<img src="'+s.user.picture+'" alt="">':'')+'<span>'+(s.user.email||'')+'</span>';
-  loadLots(); loadCons(); loadTeam();
+  loadLots(); loadCons(); loadTeam(); loadAlerts();
   $('copBtn').style.display='inline-flex';
 }
 function lotMatches(l){
@@ -387,6 +422,7 @@ function lotRowHTML(l){
     '<td>'+date+'</td><td class="dl"><a href="#" data-cop="'+l.lot_id+'">Copiloto</a>'+
     '<a href="#" data-sim="'+l.lot_id+'">Simular</a>'+
     '<a href="#" data-share="'+l.lot_id+'">Compartir</a>'+
+    '<a href="#" data-legal="'+l.lot_id+'">Legalidad</a>'+
     '<a href="#" data-dl="dossier" data-id="'+l.lot_id+'">Dossier</a>'+
     '<a href="#" data-dl="geojson" data-id="'+l.lot_id+'">GeoJSON</a>'+
     '<a href="#" data-map="'+l.lot_id+'">Ver en mapa</a>'+
@@ -449,6 +485,7 @@ $('rows').addEventListener('click',function(ev){
   var cp=ev.target.closest('a[data-cop]'); if(cp){ev.preventDefault();copAnalyze(cp.getAttribute('data-cop'));return;}
   var sm=ev.target.closest('a[data-sim]'); if(sm){ev.preventDefault();simOpen('lot',sm.getAttribute('data-sim'));return;}
   var sh=ev.target.closest('a[data-share]'); if(sh){ev.preventDefault();shareLink('/s/'+sh.getAttribute('data-share'),sh);return;}
+  var lg=ev.target.closest('a[data-legal]'); if(lg){ev.preventDefault();legalOpen(lg.getAttribute('data-legal'));return;}
   var a=ev.target.closest('a[data-dl]'); if(!a)return; ev.preventDefault(); dl(a.getAttribute('data-id'),a.getAttribute('data-dl'));
 });
 async function reprocLot(id){
@@ -676,6 +713,41 @@ function simReset(){
     simRecalc();
   });
 })();
+
+/* ----- #5 Alertas de monitoreo continuo ----- */
+async function loadAlerts(){
+  try{ var r=await fetch('/api/alerts'); if(!r.ok)return; var d=await r.json();
+    var al=(d.alerts||[]).slice(0,6);
+    if(!al.length){ $('alerts').style.display='none'; return; }
+    var rk={negligible:'en orden',review:'a revisar',high:'observado'};
+    var html='<div class="ah">⚠ '+al.length+' lote(s) cambiaron de estado</div>';
+    al.forEach(function(a){ html+='<div class="ai"><b>'+cesc(a.lot_id)+'</b>'+(a.producer?(' · '+cesc(a.producer)):'')+': '+(rk[a.from]||a.from)+' → <b>'+(rk[a.to]||a.to)+'</b></div>'; });
+    $('alerts').innerHTML=html; $('alerts').style.display='block'; if(window.i18nSync)i18nSync();
+  }catch(e){}
+}
+
+/* ----- #5 Módulo de legalidad ----- */
+var LEGAL_LOT=null;
+async function legalOpen(lot_id){
+  LEGAL_LOT=lot_id; $('legalModal').style.display='grid';
+  $('legTitle').value=''; $('legEnv').value=''; $('legLabor').value=''; $('legDocs').value='';
+  try{ var r=await fetch('/api/lots/'+lot_id+'/legality'); if(r.ok){ var d=await r.json(); var L=d.legality||{};
+    $('legTitle').value=L.title||''; $('legEnv').value=L.env||''; $('legLabor').value=L.labor||''; } }catch(e){}
+}
+function legalClose(){ $('legalModal').style.display='none'; }
+function fileToB64(f){ return new Promise(function(res){ var fr=new FileReader(); fr.onload=function(){res({name:f.name,base64:fr.result});}; fr.onerror=function(){res(null);}; fr.readAsDataURL(f); }); }
+async function legalSave(){
+  if(!LEGAL_LOT)return; var btn=$('legSave'); var t=btn.textContent; btn.disabled=true; btn.textContent='Guardando…';
+  var docs=[]; var files=$('legDocs').files||[];
+  for(var i=0;i<Math.min(files.length,10);i++){ var b=await fileToB64(files[i]); if(b)docs.push(b); }
+  try{ var r=await fetch('/lots/'+LEGAL_LOT+'/legality',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({title:$('legTitle').value,env:$('legEnv').value,labor:$('legLabor').value,docs:docs})});
+    if(r.ok){ legalClose(); btn.textContent=t; } else { btn.textContent='Error'; setTimeout(function(){btn.textContent=t;if(window.i18nSync)i18nSync();},1500); }
+  }catch(e){ btn.textContent='Error de red'; setTimeout(function(){btn.textContent=t;if(window.i18nSync)i18nSync();},1500); }
+  btn.disabled=false;
+}
+(function(){ $('legCancel').onclick=legalClose; $('legSave').onclick=legalSave;
+  $('legalModal').addEventListener('click',function(e){ if(e.target===this)legalClose(); }); })();
 
 boot();
 </script>

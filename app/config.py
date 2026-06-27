@@ -24,5 +24,14 @@ GOOGLE_OAUTH_CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID", "")
 SESSION_SECRET         = os.getenv("SESSION_SECRET", "dev-insecure-change-me")
 PUBLIC_BASE_URL        = os.getenv("PUBLIC_BASE_URL", "https://origen-711831043664.us-central1.run.app")
 
-def gemini_ready(): return bool(GEMINI_API_KEY or USE_VERTEX)
-def auth_ready():   return bool(GOOGLE_OAUTH_CLIENT_ID)
+# --- WhatsApp Cloud API (entrante + alertas) ---
+WHATSAPP_TOKEN        = os.getenv("WHATSAPP_TOKEN", "")
+WHATSAPP_PHONE_ID     = os.getenv("WHATSAPP_PHONE_ID", "")
+WHATSAPP_VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN", "origen-verify")
+WHATSAPP_API_VERSION  = os.getenv("WHATSAPP_API_VERSION", "v20.0")
+# --- Monitoreo continuo (protege el endpoint que dispara Cloud Scheduler) ---
+CRON_TOKEN = os.getenv("CRON_TOKEN", "")
+
+def gemini_ready():   return bool(GEMINI_API_KEY or USE_VERTEX)
+def auth_ready():     return bool(GOOGLE_OAUTH_CLIENT_ID)
+def whatsapp_ready(): return bool(WHATSAPP_TOKEN and WHATSAPP_PHONE_ID)

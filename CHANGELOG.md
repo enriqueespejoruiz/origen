@@ -2,6 +2,28 @@
 
 Formato: cambios agrupados por fecha. El proyecto sigue el espíritu *build-in-public* del XPRIZE.
 
+## 2026-06-27 — Canal, vigilancia y legalidad
+
+### WhatsApp (Cloud API)
+- `app/whatsapp.py`: `send_text()` (alertas/respuestas) + `parse_messages()`. Webhook `GET/POST
+  /webhooks/whatsapp`: el gerente envía un código de lote (LOT-…) o envío (ENV-…) y recibe el estado
+  EUDR + el link de la página. Solo lecturas seguras — nunca ejecuta órdenes del mensaje entrante.
+  Best-effort: sin credenciales, no rompe nada. Config: `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_ID`,
+  `WHATSAPP_VERIFY_TOKEN`.
+
+### Monitoreo continuo + alertas
+- `app/monitor.py`: `run_monitor()` re-verifica las parcelas y crea una **alerta** si el veredicto
+  empeora (una parcela se vuelve no conforme), actualizando el estado y el cache. Endpoint protegido
+  `POST /cron/monitor` (header `X-Cron-Token`) para Cloud Scheduler; `GET /api/alerts` para el panel.
+- Panel: **banner de alertas** arriba del tablero (lotes que cambiaron de estado). Config: `CRON_TOKEN`.
+
+### Módulo de legalidad
+- El EUDR exige legalidad además de cero deforestación. Endpoints `GET/POST /lots/{id}/legality`:
+  checklist (título/tenencia, conformidad ambiental, laboral) + **carga de documentos** de respaldo.
+- Panel: enlace **Legalidad** por lote → modal para completar y adjuntar. Alimenta el factor de
+  legalidad del score de confianza; el dossier ya muestra esta sección.
+- Tests nuevos (WhatsApp + monitoreo) en el suite.
+
 ## 2026-06-26 — Inteligencia del lote
 
 ### Copiloto Gemini
@@ -25,6 +47,18 @@ Formato: cambios agrupados por fecha. El proyecto sigue el espíritu *build-in-p
   unidad y totales en vivo.
 - Pruebas: `tests/test_origen.py` cubre prorrateo por área, límites del score y exclusión por envío.
 - i18n ES/EN para toda la interfaz nueva.
+
+### Notarización Fase 1 — anclaje en Bitcoin (OpenTimestamps)
+- `app/notarize.py` pasa del registro SHA-256 (Fase 0) a un **anclaje público real**: `ots_stamp()`
+  envía la huella a los calendarios OpenTimestamps y guarda una prueba **`.ots`** (verificable de
+  forma independiente en opentimestamps.org / `ots verify`). `ots_status()` lee si ya está confirmada
+  en un bloque de Bitcoin o pendiente; `ots_upgrade()` la completa cuando el bloque confirma. Todo
+  best-effort: si falla la red/lib, conserva la Fase 0 y nada se rompe.
+- Endpoints: `/api/verify` enriquecido (tipo de ancla + estado OTS), `GET /verificar/{id}.ots`
+  (descarga la prueba), `POST /api/verify/upgrade`.
+- `web/verificar.html`: muestra el estado del ancla (confirmado en Bitcoin / pendiente), botón para
+  descargar la prueba `.ots` e instrucciones de verificación independiente. i18n ES/EN.
+- Dependencia nueva: `opentimestamps-client`. Test de notarización en el suite.
 
 ### Compartir con el comprador + portabilidad de datos
 - Nuevo módulo `app/portability.py`: `build_export_zip()` arma un ZIP con la data de la coop en

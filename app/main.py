@@ -2,7 +2,7 @@ import os, uuid, json, base64, datetime
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
-from . import gemini, deforestation, dossier, storage, config, auth, geo, notarize, copilot, scoring, portability
+from . import gemini, deforestation, dossier, storage, config, auth, geo, notarize, copilot, scoring, portability, whatsapp, monitor
 from .models import Lot, Plot, GeoPoint, Consignment, DeforestationFinding
 
 app = FastAPI(title="Origen - EUDR + Export Copilot")
@@ -479,14 +479,158 @@ def cons_whatif(cid: str, body: WhatIfIn, request: Request):
 def verificar():
     return _page("verificar.html")
 
+def _load_ots(lot_id):
+    """Lee la prueba .ots (disco junto al PDF, o blob durable). None si no existe."""
+    p = os.path.join(config.DATA_DIR, "dossiers", f"{lot_id}_dossier.ots")
+    if os.path.exists(p):
+        try:
+            return open(p, "rb").read()
+        except Exception:
+            pass
+    return storage.load_blob(lot_id, "dossier.ots")
+
 @app.get("/api/verify")
 def api_verify(lot: str = ""):
     rec = storage.get_notary(lot) if lot else None
     if not rec:
         return {"found": False}
-    return {"found": True, "lot_id": rec.get("lot_id"), "sha256": rec.get("sha256"),
-            "algo": rec.get("algo", "SHA-256"), "created_at": rec.get("created_at", ""),
-            "anchor": rec.get("anchor", "")}
+    out = {"found": True, "lot_id": rec.get("lot_id"), "sha256": rec.get("sha256"),
+           "algo": rec.get("algo", "SHA-256"), "created_at": rec.get("created_at", ""),
+           "anchor": rec.get("anchor", "")}
+    if rec.get("anchor") == "opentimestamps":
+        ots = _load_ots(lot)
+        if ots:
+            out["ots_available"] = True
+            out["ots_url"] = "/verificar/" + lot + ".ots"
+            st = notarize.ots_status(ots)
+            if st:
+                out["ots"] = {"anchored": st["anchored"], "bitcoin_blocks": st["bitcoin_blocks"],
+                              "pending": len(st["pending_calendars"])}
+    return out
+
+@app.get("/verificar/{lot_id}.ots")
+def download_ots(lot_id: str):
+    ots = _load_ots(lot_id)
+    if ots:
+        return Response(ots, media_type="application/octet-stream",
+                        headers={"Content-Disposition": f'attachment; filename="{lot_id}.ots"'})
+    raise HTTPException(404, "Prueba .ots no disponible")
+
+@app.post("/api/verify/upgrade")
+def api_verify_upgrade(lot: str = ""):
+    ots = _load_ots(lot) if lot else None
+    if not ots:
+        raise HTTPException(404, "No hay prueba .ots para este registro")
+    up = notarize.ots_upgrade(ots)
+    if up:
+        try:
+            storage.save_blob(lot, "dossier.ots", up)
+            with open(os.path.join(config.DATA_DIR, "dossiers", f"{lot}_dossier.ots"), "wb") as f:
+                f.write(up)
+        except Exception:
+            pass
+    st = notarize.ots_status(up or ots)
+    return {"upgraded": bool(up), "anchored": bool(st and st["anchored"]),
+            "bitcoin_blocks": (st or {}).get("bitcoin_blocks", [])}
+
+# ---- WhatsApp (Cloud API): consulta de estado por el canal de las coops ----
+
+def _verdict_es(v):
+    return {"high": "observado — requiere acción", "review": "a revisar",
+            "negligible": "en orden (sin deforestación)"}.get(v, "en proceso")
+
+def _wa_reply(text):
+    """Respuesta a un mensaje entrante. Solo lecturas seguras por código; nunca ejecuta órdenes del texto."""
+    import re
+    m = re.search(r"(LOT-[A-Za-z0-9]+|ENV-[A-Za-z0-9]+)", (text or "").upper())
+    if m:
+        code = m.group(1)
+        if code.startswith("ENV-"):
+            d = storage.load_consignment(code)
+            if d:
+                s = _consignment_summary(d)
+                return (f"Envío {s['name'] or code}: {_verdict_es(s['verdict'])}.\n"
+                        f"{s['n_lots']} lotes · {s['n_plots']} parcelas · {s['total_kg']:.0f} kg\n"
+                        f"{config.PUBLIC_BASE_URL}/s/c/{code}")
+            return f"No encontré el envío {code}."
+        d = storage.load_lot(code)
+        if d:
+            return (f"Lote {code} ({d.get('producer_name','')}): {_verdict_es(d.get('overall_risk',''))}.\n"
+                    f"{config.PUBLIC_BASE_URL}/s/{code}")
+        return f"No encontré el lote {code}."
+    return ("Hola, soy Origen 🌱. Envíame un código de lote (LOT-…) o de envío (ENV-…) y te doy su "
+            "estado EUDR.\nPanel: " + config.PUBLIC_BASE_URL + "/panel")
+
+@app.get("/webhooks/whatsapp")
+def wa_verify(request: Request):
+    p = request.query_params
+    if p.get("hub.mode") == "subscribe" and p.get("hub.verify_token") == config.WHATSAPP_VERIFY_TOKEN:
+        return Response(p.get("hub.challenge", ""), media_type="text/plain")
+    raise HTTPException(403, "verify failed")
+
+@app.post("/webhooks/whatsapp")
+async def wa_incoming(request: Request):
+    try:
+        payload = await request.json()
+    except Exception:
+        return {"ok": True}
+    for msg in whatsapp.parse_messages(payload):
+        frm = msg.get("from"); txt = (msg.get("text") or "").strip()
+        if frm and txt:
+            whatsapp.send_text(frm, _wa_reply(txt))
+    return {"ok": True}
+
+# ---- Monitoreo continuo + alertas ----
+
+@app.post("/cron/monitor")
+def cron_monitor(request: Request):
+    tok = request.headers.get("X-Cron-Token", "") or request.query_params.get("token", "")
+    if not config.CRON_TOKEN or tok != config.CRON_TOKEN:
+        raise HTTPException(403, "forbidden")
+    res = monitor.run_monitor()
+    log("cron_monitor", checked=res["checked"], alerts=res["alerts"])
+    return {"checked": res["checked"], "alerts": res["alerts"]}
+
+@app.get("/api/alerts")
+def api_alerts(request: Request):
+    ctx = auth.require_coop(request)
+    al = sorted(storage.list_alerts(ctx["coop"]["id"]), key=lambda a: a.get("created_at", ""), reverse=True)
+    return {"alerts": al}
+
+# ---- Módulo de legalidad (checklist + documentos por lote) ----
+
+class LegalityIn(BaseModel):
+    title: str = ""
+    env: str = ""
+    labor: str = ""
+    docs: list[dict] | None = None     # [{name, base64}]
+
+@app.get("/api/lots/{lot_id}/legality")
+def get_legality(lot_id: str, request: Request):
+    ctx = auth.require_coop(request)
+    _load_owned(lot_id, ctx)
+    d = storage.load_lot(lot_id) or {}
+    return {"legality": (d.get("extra") or {}).get("legality", {})}
+
+@app.post("/lots/{lot_id}/legality")
+def set_legality(lot_id: str, body: LegalityIn, request: Request):
+    ctx = auth.require_coop(request)
+    _load_owned(lot_id, ctx)
+    d = storage.load_lot(lot_id) or {}
+    extra = d.get("extra") or {}
+    extra["legality"] = {"title": (body.title or "").strip(), "env": (body.env or "").strip(),
+                         "labor": (body.labor or "").strip()}
+    storage.merge_lot(lot_id, {"extra": extra})
+    saved = 0
+    for i, doc in enumerate((body.docs or [])[:10]):
+        try:
+            raw = base64.b64decode((doc.get("base64") or "").split(",", 1)[-1])
+            if raw and len(raw) < 6_000_000:
+                storage.save_blob(lot_id, f"legal_{i}", raw); saved += 1
+        except Exception:
+            pass
+    log("legality", lot_id=lot_id, coop=ctx["coop"]["id"], docs=saved)
+    return {"ok": True, "docs": saved, "legality": extra["legality"]}
 
 # ---- Enlace público compartible (para WhatsApp / comprador) ----
 

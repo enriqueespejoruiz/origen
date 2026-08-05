@@ -237,6 +237,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--brand-leaf-2);cur
       <option value="none">Sin procesar</option>
     </select>
     <a class="btn btn-ghost" href="/api/lots.csv">Exportar CSV</a>
+    <a class="btn btn-ghost" href="#" id="impBtn" title="Sube el Excel/CSV con las parcelas que ya tienes georreferenciadas">Importar parcelas</a>
     <a class="btn btn-ghost" href="/api/export.zip" title="Descarga toda tu data en formatos abiertos">Llévate tu data</a>
   </div>
   <div class="card">
@@ -322,6 +323,19 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--brand-leaf-2);cur
   <div class="acts" style="display:flex;gap:10px;margin-top:16px">
     <button class="btn btn-ghost" id="simReset">Sugerir exclusión</button>
     <button class="btn btn-gold" id="simDone">Listo</button>
+  </div>
+</div></div>
+
+<div id="impModal" style="position:fixed;inset:0;z-index:76;display:none;place-items:center;background:rgba(4,20,14,.62);padding:22px"><div class="lcard" style="background:var(--bg-2);border:1px solid var(--hair);color:#fff;border-radius:18px;padding:24px;max-width:500px;width:100%">
+  <h3 style="font-size:19px;margin:0 0 2px">Importar parcelas</h3>
+  <p class="s" style="color:var(--text-2);font-size:13px;margin:0 0 10px">¿Tu cooperativa ya tiene la georreferencia de los asociados? Súbela y obtén la misma verificación y el mismo sello — sin repetir el trabajo de campo.</p>
+  <label style="display:block;font-size:12.5px;color:var(--text-2);margin:12px 0 5px;font-weight:500">Archivo (Excel .xlsx, CSV o GeoJSON)</label>
+  <input type="file" id="impFile" accept=".xlsx,.xlsm,.csv,.geojson,.json" style="width:100%;color:var(--text-2);font-size:13px">
+  <p style="font-size:12.5px;color:var(--text-3);margin:10px 0 0">Columnas: productor, producto, region, lat, lon, area_ha, cantidad_kg — opcional: lote, parcela, poligono. <a href="/api/import/template" style="color:var(--brand-leaf-2)">Descargar plantilla</a></p>
+  <div id="impOut" style="margin-top:12px;font-size:13px;color:var(--text-2)"></div>
+  <div class="acts" style="display:flex;gap:10px;margin-top:18px">
+    <button class="btn btn-ghost" id="impCancel" style="flex:1;justify-content:center">Cancelar</button>
+    <button class="btn btn-gold" id="impSend" style="flex:1;justify-content:center">Importar</button>
   </div>
 </div></div>
 
@@ -748,6 +762,32 @@ async function legalSave(){
 }
 (function(){ $('legCancel').onclick=legalClose; $('legSave').onclick=legalSave;
   $('legalModal').addEventListener('click',function(e){ if(e.target===this)legalClose(); }); })();
+
+/* ----- Importación masiva de parcelas ----- */
+function impOpen(){ $('impModal').style.display='grid'; $('impFile').value=''; $('impOut').textContent=''; }
+function impClose(){ $('impModal').style.display='none'; }
+async function impSend(){
+  var f=$('impFile').files[0];
+  if(!f){ $('impOut').textContent='Elige un archivo primero.'; return; }
+  var btn=$('impSend'), t=btn.textContent; btn.disabled=true; btn.textContent='Importando…';
+  try{
+    var fd=new FormData(); fd.append('file', f);
+    var r=await fetch('/api/import',{method:'POST',body:fd});
+    var d=await r.json();
+    if(!r.ok){ $('impOut').textContent=d.detail||'No se pudo importar.'; }
+    else{
+      var msg='✓ '+d.lots_created+' lote(s) creados de '+d.rows+' fila(s).';
+      if(d.errors&&d.errors.length) msg+=' Avisos: '+d.errors.join(' · ');
+      $('impOut').textContent=msg;
+      loadLots();
+      setTimeout(impClose, 2600);
+    }
+  }catch(e){ $('impOut').textContent='Error de red.'; }
+  btn.disabled=false; btn.textContent=t; if(window.i18nSync)i18nSync();
+}
+(function(){ var b=$('impBtn'); if(b)b.onclick=function(ev){ev.preventDefault();impOpen();};
+  $('impCancel').onclick=impClose; $('impSend').onclick=impSend;
+  $('impModal').addEventListener('click',function(e){ if(e.target===this)impClose(); }); })();
 
 boot();
 </script>

@@ -21,3 +21,5 @@ google-auth>=2.28
 itsdangerous>=2.1
 # --- Notarización Fase 1: anclaje en Bitcoin (OpenTimestamps) ---
 opentimestamps-client>=0.7
+# --- Importación masiva (Excel) ---
+openpyxl>=3.1

@@ -2,7 +2,7 @@ import os, uuid, json, base64, datetime
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import FileResponse, Response, RedirectResponse
 from pydantic import BaseModel
-from . import gemini, deforestation, dossier, storage, config, auth, geo, notarize, copilot, scoring, portability, whatsapp, monitor
+from . import gemini, deforestation, dossier, storage, config, auth, geo, notarize, copilot, scoring, portability, whatsapp, monitor, importer
 from .models import Lot, Plot, GeoPoint, Consignment, DeforestationFinding
 
 app = FastAPI(title="Origen - EUDR + Export Copilot")
@@ -532,6 +532,31 @@ def api_verify_upgrade(lot: str = ""):
     st = notarize.ots_status(up or ots)
     return {"upgraded": bool(up), "anchored": bool(st and st["anchored"]),
             "bitcoin_blocks": (st or {}).get("bitcoin_blocks", [])}
+
+# ---- Importación masiva: la coop que YA tiene la georreferencia sube su archivo ----
+
+@app.get("/api/import/template")
+def import_template():
+    return Response(importer.TEMPLATE_CSV, media_type="text/csv",
+                    headers={"Content-Disposition": 'attachment; filename="origen_plantilla_parcelas.csv"'})
+
+@app.post("/api/import")
+async def api_import(request: Request, file: UploadFile = File(...)):
+    ctx = auth.require_coop(request)
+    data = await file.read()
+    if len(data) > 8_000_000:
+        raise HTTPException(413, "Archivo muy grande (máx. 8 MB)")
+    try:
+        rows, errs = importer.parse(data, file.filename or "")
+    except Exception as e:
+        print("import parse error:", repr(e))
+        raise HTTPException(400, "No pude leer el archivo. Usa la plantilla CSV/Excel o un GeoJSON.")
+    if not rows:
+        raise HTTPException(400, errs[0] if errs else "No encontré filas válidas en el archivo.")
+    created = importer.create_lots(rows, ctx["coop"]["id"], ctx["coop"]["name"], ctx["user"].get("email", ""))
+    log("import", coop=ctx["coop"]["id"], rows=len(rows), lots=len(created), errors=len(errs))
+    return {"ok": True, "rows": len(rows), "lots_created": len(created),
+            "lots": created[:50], "errors": errs[:20]}
 
 # ---- Acceso demo por link único (para prospectos: sin login, coop sandbox precargada) ----
 

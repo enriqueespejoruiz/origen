@@ -164,6 +164,22 @@ def test_notarize_always_records_sha256(tmp_path):
     assert rec["anchor"] in ("origen-registry", "opentimestamps")
 
 
+# ---- Importación masiva: CSV/Excel/GeoJSON → lotes ----
+def test_importer_csv_template_groups_and_polygons():
+    from app import importer
+    rows, errs = importer.parse(importer.TEMPLATE_CSV.encode(), "parcelas.csv")
+    assert len(rows) == 3 and not errs
+    created = importer.create_lots(rows, "coop-t", "Coop Test", "t@x.pe")
+    by = {c["producer"]: c["n_plots"] for c in created}
+    assert by == {"Ana Quispe": 2, "Beto Rios": 1}     # agrupa por lote; polígono parseado
+
+
+def test_importer_rejects_rows_without_coordinates():
+    from app import importer
+    rows, errs = importer.parse(b"productor,lat,lon\nJuan,,\nRosa,-12.1,-72.2\n", "x.csv")
+    assert len(rows) == 1 and any("Fila 2" in e for e in errs)
+
+
 # ---- WhatsApp: parseo de webhook entrante ----
 def test_whatsapp_parse_messages():
     from app import whatsapp

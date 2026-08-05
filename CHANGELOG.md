@@ -2,6 +2,15 @@
 
 Formato: cambios agrupados por fecha. El proyecto sigue el espíritu *build-in-public* del XPRIZE.
 
+## 2026-06-27 (2) — Demo por link + importación masiva
+- **Acceso demo** `GET /demo?key=…` (env `DEMO_KEY`): sesión de invitado sin login, coop sandbox
+  precargada (3 lotes con veredictos distintos + envío "Contenedor Taipéi #1"). 404 sin la llave.
+- **Importación masiva** (`app/importer.py`): la coop que ya tiene la georreferencia sube
+  **Excel/CSV/GeoJSON** (encabezados flexibles ES/EN, puntos o polígonos, agrupación por lote o
+  productor) → mismos lotes → misma verificación → mismo sello. Endpoints `POST /api/import` +
+  `GET /api/import/template`; botón "Importar parcelas" + modal en el panel. Dependencia: `openpyxl`.
+  Tests en el suite.
+
 ## 2026-06-27 — Canal, vigilancia y legalidad
 
 ### WhatsApp (Cloud API)

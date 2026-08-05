@@ -232,6 +232,11 @@
     "Documentos de respaldo (PDF/imagen, opcional)": "Supporting documents (PDF/image, optional)",
     "El EUDR exige legalidad además de cero deforestación: tenencia y conformidad ambiental y laboral.":
       "The EUDR requires legality on top of zero deforestation: tenure and environmental & labor compliance.",
+    "Importar parcelas": "Import plots", "Importar": "Import", "Importando…": "Importing…",
+    "Archivo (Excel .xlsx, CSV o GeoJSON)": "File (Excel .xlsx, CSV or GeoJSON)",
+    "Descargar plantilla": "Download template", "Elige un archivo primero.": "Choose a file first.",
+    "¿Tu cooperativa ya tiene la georreferencia de los asociados? Súbela y obtén la misma verificación y el mismo sello — sin repetir el trabajo de campo.":
+      "Does your cooperative already have its members' geolocation? Upload it and get the same verification and the same seal — without redoing the field work.",
     "Nuevo envío": "New shipment", "Consolida los lotes seleccionados en un solo dossier EUDR.": "Consolidate the selected lots into a single EUDR dossier.",
     "Identificación del envío": "Shipment ID", "Destino (UE)": "Destination (EU)",
     "Comprador / importador (opcional)": "Buyer / importer (optional)", "Cancelar": "Cancel", "Seleccionar todo": "Select all",

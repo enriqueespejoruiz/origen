@@ -1,6 +1,6 @@
 import os, uuid, json, base64, datetime
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse, Response, RedirectResponse
 from pydantic import BaseModel
 from . import gemini, deforestation, dossier, storage, config, auth, geo, notarize, copilot, scoring, portability, whatsapp, monitor
 from .models import Lot, Plot, GeoPoint, Consignment, DeforestationFinding
@@ -532,6 +532,57 @@ def api_verify_upgrade(lot: str = ""):
     st = notarize.ots_status(up or ots)
     return {"upgraded": bool(up), "anchored": bool(st and st["anchored"]),
             "bitcoin_blocks": (st or {}).get("bitcoin_blocks", [])}
+
+# ---- Acceso demo por link único (para prospectos: sin login, coop sandbox precargada) ----
+
+_DEMO_COOP = {"id": "demo-origen", "name": "Cooperativa Demo Origen"}
+
+def _ensure_demo_data():
+    """Crea la coop demo + 3 lotes (limpio / revisar / observado) + 1 envío, una sola vez.
+    Findings precargados (deterministas): la demo no depende de servicios externos."""
+    if storage.load_lot("LOT-DEMO01"):
+        return
+    storage.save_coop({"id": _DEMO_COOP["id"], "name": _DEMO_COOP["name"],
+                       "admin_email": "demo@origen.pe", "members": ["demo@origen.pe"], "created_at": _now()})
+    demo = [
+        ("LOT-DEMO01", "Ana Quispe", "San Martín",
+         [GeoPoint(-6.478, -76.372), GeoPoint(-6.478, -76.368), GeoPoint(-6.474, -76.368), GeoPoint(-6.474, -76.372)],
+         5.2, "1,800 kg", "negligible",
+         [{"plot_id": "P1", "risk": "negligible", "loss_after_cutoff": False,
+           "detail": "Sin pérdida de cobertura posterior al corte (31-dic-2020) en las 4 fuentes."}],
+         {"legality": {"title": "Título N.º 04512-SM", "env": "Fuera de ANP; sin cambio de uso", "labor": "Conforme"}}),
+        ("LOT-DEMO02", "Beto Ríos", "Cusco",
+         [GeoPoint(-12.869, -72.941)], 2.0, "900 kg", "review",
+         [{"plot_id": "P1", "risk": "review", "loss_after_cutoff": False,
+           "detail": "Alerta reciente a ~60 m del límite de la parcela; verificar en campo antes de exportar."}], {}),
+        ("LOT-DEMO03", "Carla Díaz", "Amazonas",
+         [GeoPoint(-5.751, -78.442)], 3.1, "1,200 kg", "high",
+         [{"plot_id": "P1", "risk": "high", "loss_after_cutoff": True,
+           "detail": "Pérdida de cobertura detectada en 2023 dentro de la parcela (Hansen + alertas integradas)."}], {}),
+    ]
+    for lid, prod, region, pts, ha, qty, risk, findings, extra in demo:
+        lot = Lot(lid, prod, _DEMO_COOP["name"], "coffee", "PE", region,
+                  [Plot("P1", pts, ha)], "", "", qty, _DEMO_COOP["id"], "demo@origen.pe", _now(), extra)
+        storage.save_lot(lot)
+        storage.merge_lot(lid, {"overall_risk": risk, "findings": findings, "volume_flag": False})
+    storage.save_consignment(Consignment(
+        "ENV-DEMO01", _DEMO_COOP["id"], "Contenedor Taipéi #1", "coffee",
+        "Taipéi, TW", "Importadora Formosa Ltd.",
+        ["LOT-DEMO01", "LOT-DEMO02", "LOT-DEMO03"], _now(), "demo@origen.pe", {"lang": "es"}))
+
+@app.get("/demo")
+def demo_access(request: Request, key: str = ""):
+    if not config.DEMO_KEY or key != config.DEMO_KEY:
+        raise HTTPException(404, "No encontrado")
+    try:
+        _ensure_demo_data()
+    except Exception as e:
+        print("demo seed error:", repr(e))
+    request.session["user"] = {"sub": "demo-user", "email": "demo@origen.pe",
+                               "name": "Visitante (demo)", "picture": ""}
+    request.session["coop"] = {"id": _DEMO_COOP["id"], "name": _DEMO_COOP["name"], "role": "tecnico"}
+    log("demo_access", ip=(request.client.host if request.client else ""))
+    return RedirectResponse("/panel")
 
 # ---- WhatsApp (Cloud API): consulta de estado por el canal de las coops ----
 

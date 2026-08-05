@@ -31,6 +31,8 @@ WHATSAPP_VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN", "origen-verify")
 WHATSAPP_API_VERSION  = os.getenv("WHATSAPP_API_VERSION", "v20.0")
 # --- Monitoreo continuo (protege el endpoint que dispara Cloud Scheduler) ---
 CRON_TOKEN = os.getenv("CRON_TOKEN", "")
+# --- Acceso demo por link único (vacío = deshabilitado) ---
+DEMO_KEY = os.getenv("DEMO_KEY", "")
 
 def gemini_ready():   return bool(GEMINI_API_KEY or USE_VERTEX)
 def auth_ready():     return bool(GOOGLE_OAUTH_CLIENT_ID)

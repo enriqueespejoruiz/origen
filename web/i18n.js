@@ -225,6 +225,12 @@
     "Anclado · pendiente de confirmación en Bitcoin": "Anchored · pending Bitcoin confirmation",
     "Descargar prueba .ots": "Download .ots proof", "Actualizar estado": "Refresh status",
     "Aún pendiente en Bitcoin": "Still pending in Bitcoin",
+    "Ingresar coordenadas manualmente": "Enter coordinates manually",
+    "Ocultar entrada manual": "Hide manual entry",
+    "Usar estas coordenadas": "Use these coordinates",
+    "Latitud": "Latitude", "Longitud": "Longitude",
+    "Para coordenadas que ya tienes (GPS externo, título, plano). Usa punto decimal y al menos 5 decimales; en Perú la latitud es negativa (ej. -6.478123) y la longitud ~ -70 a -81.":
+      "For coordinates you already have (external GPS, land title, survey). Use decimal point and at least 5 decimals; in Peru latitude is negative (e.g. -6.478123) and longitude ~ -70 to -81.",
     "Legalidad": "Legality", "Legalidad del lote": "Lot legality", "Guardar legalidad": "Save legality", "Guardando…": "Saving…",
     "Título o derecho de uso del predio": "Land title or right of use",
     "Conformidad ambiental y forestal": "Environmental & forestry compliance",

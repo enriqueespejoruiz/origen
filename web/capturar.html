@@ -174,6 +174,15 @@ input[type=file]::file-selector-button{font-family:var(--font-heading);font-weig
     <div id="pointBox">
       <button class="sec" id="gps"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 22s8-5.6 8-12a8 8 0 1 0-16 0c0 6.4 8 12 8 12Z" stroke="currentColor" stroke-width="1.9"/><circle cx="12" cy="10" r="2.6" stroke="currentColor" stroke-width="1.9"/></svg>Capturar ubicación GPS</button>
       <div class="gps" id="gpsout" style="display:none" aria-live="polite"></div>
+      <button type="button" id="manToggle" style="background:none;border:0;padding:6px 0;margin-top:6px;color:var(--brand-pine);font-size:13.5px;font-weight:600;cursor:pointer;text-decoration:underline">Ingresar coordenadas manualmente</button>
+      <div id="manBox" style="display:none;margin-top:4px">
+        <div class="row">
+          <div><label for="manlat">Latitud</label><input id="manlat" inputmode="decimal" placeholder="ej. -6.478123" autocomplete="off"></div>
+          <div><label for="manlon">Longitud</label><input id="manlon" inputmode="decimal" placeholder="ej. -76.372045" autocomplete="off"></div>
+        </div>
+        <button type="button" class="sec" id="manUse">Usar estas coordenadas</button>
+        <p class="muted" style="margin-top:6px">Para coordenadas que ya tienes (GPS externo, título, plano). Usa punto decimal y al menos 5 decimales; en Perú la latitud es negativa (ej. -6.478123) y la longitud ~ -70 a -81.</p>
+      </div>
     </div>
     <div id="polyBox" style="display:none">
       <button class="sec" id="vtx"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Marcar esquina (vértice)</button>
@@ -240,6 +249,27 @@ $('gps').onclick=()=>{
     if(a<=10 || Date.now()-t0>20000){ gpsStop(); $('gps').textContent='Volver a capturar ubicación'; }
   },e=>{ gpsStop(); $('gps').textContent='Capturar ubicación GPS'; $('gpsout').textContent='No se pudo obtener GPS: '+e.message; },
   {enableHighAccuracy:true,timeout:20000,maximumAge:0});
+};
+
+$('manToggle').onclick=()=>{
+  const open=$('manBox').style.display==='none';
+  $('manBox').style.display=open?'block':'none';
+  $('manToggle').textContent=open?'Ocultar entrada manual':'Ingresar coordenadas manualmente';
+};
+$('manUse').onclick=()=>{
+  const lat=parseFloat(($('manlat').value||'').replace(',','.'));
+  const lon=parseFloat(($('manlon').value||'').replace(',','.'));
+  if(isNaN(lat)||isNaN(lon)){alert('Escribe latitud y longitud (con punto decimal)');return;}
+  if(lat<-90||lat>90||lon<-180||lon>180){alert('Coordenadas fuera de rango: latitud entre -90 y 90, longitud entre -180 y 180');return;}
+  if(Math.abs(lat)<0.001&&Math.abs(lon)<0.001){alert('Coordenadas (0,0): revisa los valores');return;}
+  const dec=v=>{const s=String(v).split('.')[1]||'';return s.length;};
+  if(dec($('manlat').value)<4||dec($('manlon').value)<4){
+    if(!confirm('Tienes menos de 4 decimales: la precisión será de cientos de metros y el sistema de la UE exige al menos 6. ¿Usar de todos modos?'))return;
+  }
+  gpsStop(); coords={lat:lat,lon:lon,acc:null,manual:true};
+  $('gpsout').style.display='flex'; $('gpsout').style.background='#eaf3ee'; $('gpsout').style.color='#0a5236';
+  $('gpsout').textContent='✓ '+lat.toFixed(6)+', '+lon.toFixed(6)+'  (ingresada manualmente)';
+  $('gps').textContent='Capturar ubicación GPS';
 };
 
 let mode='point', verts=[], vWatch=null;
@@ -322,12 +352,13 @@ $('save').onclick=()=>{
     item.points=verts.map(v=>({lat:v.lat,lon:v.lon})); item.geom='poly';
     item.lat=verts.reduce((s,v)=>s+v.lat,0)/verts.length; item.lon=verts.reduce((s,v)=>s+v.lon,0)/verts.length;
   }else{
-    if(!coords){alert('Primero captura la ubicación GPS, parado en la parcela');return;}
+    if(!coords){alert('Primero captura la ubicación GPS (o ingrésala manualmente)');return;}
     item.lat=coords.lat; item.lon=coords.lon; item.geom='point';
+    if(coords.manual) item.extra.coord_method='manual';   // transparencia en el expediente
   }
   queue.push(item); save(); render();
   gpsStop(); $('prod').value='';$('area').value='';$('region').value='';$('cantidad').value='';
-  ['legtitle','legenv','leglabor','buyername','buyercountry','buyereori'].forEach(function(id){var e=$(id);if(e)e.value='';});
+  ['legtitle','legenv','leglabor','buyername','buyercountry','buyereori','manlat','manlon'].forEach(function(id){var e=$(id);if(e)e.value='';});
   photo=null;coords=null;verts=[];renderV();
   $('prev').style.display='none';$('gpsout').style.display='none';$('vtxout').style.display='none';
   $('gps').textContent='Capturar ubicación GPS';

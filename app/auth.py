@@ -31,8 +31,23 @@ def require_user(request: Request) -> dict:
     return u
 
 
+def agent_ctx(request: Request):
+    """Acceso servidor-a-servidor para el agente (Sentinel): header X-Agent-Key.
+    Opera sobre una cooperativa dedicada; deshabilitado si AGENT_API_KEY está vacío."""
+    key = request.headers.get("X-Agent-Key", "")
+    if key and config.AGENT_API_KEY and key == config.AGENT_API_KEY:
+        return {"user": {"sub": "agent-sentinel", "email": "sentinel@origen.pe",
+                         "name": "Sentinel (agente)", "picture": ""},
+                "coop": {"id": "sentinel-ops", "name": "Sentinel Ops", "role": "admin"}}
+    return None
+
+
 def require_coop(request: Request) -> dict:
-    """Exige usuario autenticado + cooperativa elegida. Devuelve {user, coop}."""
+    """Exige usuario autenticado + cooperativa elegida. Devuelve {user, coop}.
+    También acepta el acceso de agente por header (ver agent_ctx)."""
+    a = agent_ctx(request)
+    if a:
+        return a
     u = require_user(request)
     coop = request.session.get("coop")
     if not coop:

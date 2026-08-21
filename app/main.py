@@ -475,6 +475,48 @@ def cons_whatif(cid: str, body: WhatIfIn, request: Request):
     items = _consignment_items(d)
     return scoring.simulate_consignment(items, body.exclude)
 
+@app.post("/consignments/{cid}/segregate")
+def cons_segregate(cid: str, body: WhatIfIn, request: Request):
+    """Aplica una segregación DE VERDAD: quita los lotes excluidos del envío y regenera
+    el dossier consolidado (el what-if solo simula; esto persiste)."""
+    ctx = auth.require_coop(request)
+    d = _load_owned_cons(cid, ctx)
+    exclude = set(body.exclude or [])
+    keep = [l for l in d.get("lot_ids", []) if l not in exclude]
+    if not keep:
+        raise HTTPException(400, "La exclusión dejaría el envío vacío; excluye menos lotes.")
+    if len(keep) == len(d.get("lot_ids", [])):
+        return {"ok": True, "changed": False, **_consignment_summary(d)}
+    storage.merge_consignment(cid, {"lot_ids": keep})
+    d["lot_ids"] = keep
+    try:
+        _build_consignment_outputs(d, force=True)   # regenera dossier + geojson ya segregados
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("segregate regenerate error:", repr(e))
+    log("segregate", consignment_id=cid, coop=ctx["coop"]["id"], excluded=len(exclude))
+    return {"ok": True, "changed": True, "excluded": sorted(exclude & set(exclude)), **_consignment_summary(d)}
+
+class SubstantiateIn(BaseModel):
+    note: str = ""
+
+@app.post("/lots/{lot_id}/substantiate")
+def lot_substantiate(lot_id: str, body: SubstantiateIn, request: Request):
+    """Registra la sustentación de un lote observado/en revisión (la alternativa a excluirlo):
+    queda en el expediente del lote con autor y fecha, y aparece disponible para el dossier."""
+    ctx = auth.require_coop(request)
+    _load_owned(lot_id, ctx)
+    note = (body.note or "").strip()
+    if not note:
+        raise HTTPException(400, "Escribe la justificación de la sustentación")
+    d = storage.load_lot(lot_id) or {}
+    extra = d.get("extra") or {}
+    extra["substantiation"] = {"note": note[:2000], "by": ctx["user"].get("email", ""), "at": _now()}
+    storage.merge_lot(lot_id, {"extra": extra})
+    log("substantiate", lot_id=lot_id, coop=ctx["coop"]["id"])
+    return {"ok": True, "lot_id": lot_id, "substantiation": extra["substantiation"]}
+
 @app.get("/verificar")
 def verificar():
     return _page("verificar.html")
@@ -553,6 +595,13 @@ async def api_import(request: Request, file: UploadFile = File(...)):
         raise HTTPException(400, "No pude leer el archivo. Usa la plantilla CSV/Excel o un GeoJSON.")
     if not rows:
         raise HTTPException(400, errs[0] if errs else "No encontré filas válidas en el archivo.")
+    if ctx["coop"]["id"] == _DEMO_COOP["id"]:            # candado demo: 1 lote propio, 1 dossier
+        if _demo_own_lots(ctx["coop"]["id"]) >= 1:
+            raise HTTPException(403, "El entorno demo permite crear 1 lote propio (ya lo usaste). "
+                                     "Contáctanos para activar la cuenta de tu organización.")
+        if len(rows) > 1:
+            rows = rows[:1]
+            errs.append("Entorno demo: se importó solo la primera fila (1 lote de prueba).")
     created = importer.create_lots(rows, ctx["coop"]["id"], ctx["coop"]["name"], ctx["user"].get("email", ""))
     log("import", coop=ctx["coop"]["id"], rows=len(rows), lots=len(created), errors=len(errs))
     return {"ok": True, "rows": len(rows), "lots_created": len(created),
@@ -561,6 +610,11 @@ async def api_import(request: Request, file: UploadFile = File(...)):
 # ---- Acceso demo por link único (para prospectos: sin login, coop sandbox precargada) ----
 
 _DEMO_COOP = {"id": "demo-origen", "name": "Cooperativa Demo Origen"}
+
+def _demo_own_lots(coop_id):
+    """Lotes creados por el visitante en la coop demo (excluye los LOT-DEMO* precargados del tour)."""
+    return sum(1 for l in storage.list_lots(coop_id)
+               if not str(l.get("lot_id", "")).startswith("LOT-DEMO"))
 
 def _ensure_demo_data():
     """Crea la coop demo + 3 lotes (limpio / revisar / observado) + 1 envío, una sola vez.
@@ -798,6 +852,9 @@ class CaptureIn(BaseModel):
 @app.post("/capture")
 def capture(c: CaptureIn, request: Request):
     ctx = auth.require_coop(request)
+    if ctx["coop"]["id"] == _DEMO_COOP["id"] and _demo_own_lots(ctx["coop"]["id"]) >= 1:
+        raise HTTPException(403, "El entorno demo permite crear 1 lote propio (ya lo usaste). "
+                                 "Contáctanos para activar la cuenta de tu organización.")
     lot_id = "LOT-" + uuid.uuid4().hex[:8].upper()
     if c.points and len(c.points) >= 3:
         pts = [GeoPoint(float(p["lat"]), float(p["lon"])) for p in c.points]

@@ -9,6 +9,27 @@ def overall_risk(findings):
     if any(f.risk == "review" for f in findings): return "review"
     return "negligible"
 
+def _demo_banner(width, lang=None):
+    """Franja de advertencia para dossiers generados en la cooperativa DEMO (candado comercial)."""
+    from reportlab.lib import colors
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.platypus import Paragraph, Table, TableStyle
+    en = (lang or "es").lower().startswith("en")
+    txt = ("DEMO DOCUMENT — generated in Origen's trial environment. Not valid for commercial use or "
+           "EUDR submission. Contact us to activate your organization's account.") if en else (
+           "DOCUMENTO DEMO — generado en el entorno de prueba de Origen. No válido para uso comercial "
+           "ni para presentación EUDR. Contáctanos para activar la cuenta de tu organización.")
+    st = ParagraphStyle("DEMO", textColor=colors.HexColor("#8A1C0F"), fontName="Helvetica-Bold",
+                        fontSize=9.5, leading=12)
+    tb = Table([[Paragraph(txt, st)]], colWidths=[width])
+    tb.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#FDE8E4")),
+        ("BOX", (0, 0), (-1, -1), 1, colors.HexColor("#C0392B")),
+        ("LEFTPADDING", (0, 0), (-1, -1), 10), ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+        ("TOPPADDING", (0, 0), (-1, -1), 7), ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+    ]))
+    return tb
+
 def build_geojson(lot, out_dir):
     _ensure(out_dir)
     path = os.path.join(out_dir, f"{lot.lot_id}.geojson")
@@ -175,6 +196,9 @@ def build_pdf(lot, findings, narrative, profile, out_dir, lang=None, photo_path=
     doc = SimpleDocTemplate(path, pagesize=A4, topMargin=1.3*cm, bottomMargin=1.3*cm, leftMargin=1.6*cm, rightMargin=1.6*cm)
     W = doc.width
     E = []
+
+    if getattr(lot, "coop_id", "") == "demo-origen":     # candado demo: documento marcado
+        E.append(_demo_banner(W, lang))
 
     def kv(rows, fill=False):
         data = [[Paragraph(_esc(a), Kk), Paragraph(_esc(b) if b else "&nbsp;", Kv)] for a, b in rows]
@@ -455,6 +479,9 @@ def build_consignment_pdf(cons, items, out_dir, lang=None):
     doc = SimpleDocTemplate(path, pagesize=A4, topMargin=1.3*cm, bottomMargin=1.3*cm, leftMargin=1.6*cm, rightMargin=1.6*cm)
     W = doc.width
     E = []
+
+    if cons.get("coop_id", "") == "demo-origen":         # candado demo: documento marcado
+        E.append(_demo_banner(W, lang))
 
     def kv(rows, fill=False):
         data = [[Paragraph(_esc(a), Kk), Paragraph(_esc(b) if b else "&nbsp;", Kv)] for a, b in rows]

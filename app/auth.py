@@ -36,9 +36,15 @@ def agent_ctx(request: Request):
     Opera sobre una cooperativa dedicada; deshabilitado si AGENT_API_KEY está vacío."""
     key = request.headers.get("X-Agent-Key", "")
     if key and config.AGENT_API_KEY and key == config.AGENT_API_KEY:
+        import re as _re
+        cid = request.headers.get("X-Agent-Coop", "") or "sentinel-ops"
+        if not (_re.fullmatch(r"[a-z0-9-]{3,40}", cid)
+                and (cid == "sentinel-ops" or cid.startswith("piloto-"))):
+            cid = "sentinel-ops"
         return {"user": {"sub": "agent-sentinel", "email": "sentinel@origen.pe",
                          "name": "Sentinel (agente)", "picture": ""},
-                "coop": {"id": "sentinel-ops", "name": "Sentinel Ops", "role": "admin"}}
+                "coop": {"id": cid, "name": ("Sentinel Ops" if cid == "sentinel-ops" else cid),
+                         "role": "admin"}}
     return None
 
 

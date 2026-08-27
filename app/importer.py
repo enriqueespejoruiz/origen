@@ -167,3 +167,36 @@ TEMPLATE_CSV = (
     "Ana Quispe,cafe,San Martin,LOTE-A,P2,-6.4760,-76.3705,1.8,600,\n"
     "Beto Rios,cacao,Cusco,,P1,,,5.2,1800,\"-12.869,-72.941; -12.869,-72.938; -12.866,-72.938; -12.866,-72.941\"\n"
 )
+
+
+def template_xlsx_bytes():
+    """La misma plantilla, en Excel (.xlsx) con encabezados destacados y notas de uso."""
+    import io as _io
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill
+    wb = Workbook(); ws = wb.active; ws.title = "Parcelas"
+    rows = [r.split(",") for r in TEMPLATE_CSV.strip().splitlines()]
+    # la fila del polígono trae comas entrecomilladas: re-parsear con csv
+    import csv as _csv
+    rows = list(_csv.reader(_io.StringIO(TEMPLATE_CSV)))
+    for r in rows:
+        ws.append(r)
+    hf = Font(bold=True, color="FFFFFF")
+    for c in ws[1]:
+        c.font = hf; c.fill = PatternFill("solid", fgColor="0B3D2E")
+    for col, w in zip("ABCDEFGHIJ", (16, 10, 12, 10, 9, 11, 11, 9, 12, 46)):
+        ws.column_dimensions[col].width = w
+    notes = wb.create_sheet("Instrucciones")
+    for t in (
+        "Cómo usar esta plantilla (una fila = una parcela):",
+        "· productor: nombre del agricultor. · producto: cafe o cacao. · region: departamento/zona.",
+        "· lote (opcional): filas con el mismo lote se agrupan en un solo lote. Si se deja vacío, se agrupa por productor.",
+        "· lat / lon: coordenadas decimales con al menos 5 decimales (en Perú lat es negativa, ej. -6.478123).",
+        "· area_ha: hectáreas de la parcela. · cantidad_kg: kilos estimados de la parcela.",
+        "· poligono (opcional, para parcelas >4 ha): vértices 'lat,lon; lat,lon; ...' (mínimo 3). Si se llena, lat/lon pueden quedar vacíos.",
+        "Guarde el archivo y súbalo en 'Importar parcelas' (app o panel).",
+    ):
+        notes.append([t])
+    notes.column_dimensions["A"].width = 110
+    buf = _io.BytesIO(); wb.save(buf)
+    return buf.getvalue()

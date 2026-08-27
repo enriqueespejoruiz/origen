@@ -15,10 +15,10 @@ def _demo_banner(width, lang=None):
     from reportlab.lib.styles import ParagraphStyle
     from reportlab.platypus import Paragraph, Table, TableStyle
     en = (lang or "es").lower().startswith("en")
-    txt = ("DEMO DOCUMENT — generated in Origen's trial environment. Not valid for commercial use or "
-           "EUDR submission. Contact us to activate your organization's account.") if en else (
-           "DOCUMENTO DEMO — generado en el entorno de prueba de Origen. No válido para uso comercial "
-           "ni para presentación EUDR. Contáctanos para activar la cuenta de tu organización.")
+    txt = ("SAMPLE DOCUMENT — account under evaluation / Origen trial environment. Not valid for "
+           "commercial use or EUDR submission. Contact us to activate your organization's account.") if en else (
+           "DOCUMENTO DEMO — cuenta en evaluación / entorno de prueba de Origen. No válido para uso "
+           "comercial ni para presentación EUDR. Contáctanos para activar la cuenta de tu organización.")
     st = ParagraphStyle("DEMO", textColor=colors.HexColor("#8A1C0F"), fontName="Helvetica-Bold",
                         fontSize=9.5, leading=12)
     tb = Table([[Paragraph(txt, st)]], colWidths=[width])
@@ -116,8 +116,9 @@ _STR = {
     },
 }
 
-def plot_map_png(plot, out_path, size=(1000, 460)):
-    """Renderiza la parcela (poligono o punto) sobre imagen satelital. None si falla (no rompe el dossier)."""
+def plot_map_png(plot, out_path, size=(1000, 460), alerts=None):
+    """Renderiza la parcela (poligono o punto) sobre imagen satelital. None si falla (no rompe el dossier).
+    `alerts`: [{lat,lon}] pixeles de alerta — se pintan en rojo para ubicar la verificación en campo."""
     try:
         from staticmap import StaticMap, CircleMarker, Line
     except Exception:
@@ -126,15 +127,21 @@ def plot_map_png(plot, out_path, size=(1000, 460)):
         url = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
         m = StaticMap(size[0], size[1], url_template=url, padding_x=50, padding_y=50)
         pts = plot.points
-        if len(pts) >= 3:
+        poly = len(pts) >= 3
+        if poly:
             ring = [(p.lon, p.lat) for p in pts]; ring.append(ring[0])
             m.add_line(Line(ring, "#E0C277", 4))
-            img = m.render()
         else:
             p = pts[0]
             m.add_marker(CircleMarker((p.lon, p.lat), "#0B3D2E", 24))
             m.add_marker(CircleMarker((p.lon, p.lat), "#E0C277", 13))
-            img = m.render(zoom=16)
+        for a in (alerts or [])[:25]:
+            try:
+                m.add_marker(CircleMarker((float(a["lon"]), float(a["lat"])), "#C0392B", 18))
+                m.add_marker(CircleMarker((float(a["lon"]), float(a["lat"])), "#FFFFFF", 6))
+            except Exception:
+                continue
+        img = m.render() if poly else m.render(zoom=16)
         img.convert("RGB").save(out_path, "JPEG", quality=82)
         return out_path
     except Exception as e:
@@ -163,7 +170,7 @@ def _qr_png(data, out_dir, lot_id):
     except Exception as e:
         print("qr error:", repr(e)); return None
 
-def build_pdf(lot, findings, narrative, profile, out_dir, lang=None, photo_path=None):
+def build_pdf(lot, findings, narrative, profile, out_dir, lang=None, photo_path=None, field_photos=None):
     """Dossier de Diligencia Debida EUDR (Art. 9) — bilingüe (ES/EN)."""
     _ensure(out_dir)
     lang = (lang or (lot.extra or {}).get("lang") or "es")
@@ -197,7 +204,8 @@ def build_pdf(lot, findings, narrative, profile, out_dir, lang=None, photo_path=
     W = doc.width
     E = []
 
-    if getattr(lot, "coop_id", "") == "demo-origen":     # candado demo: documento marcado
+    from . import storage as _st
+    if _st.coop_restricted(getattr(lot, "coop_id", "")):  # muro de activación: documento marcado
         E.append(_demo_banner(W, lang))
 
     def kv(rows, fill=False):
@@ -256,12 +264,20 @@ def build_pdf(lot, findings, narrative, profile, out_dir, lang=None, photo_path=
                               ("RIGHTPADDING",(0,0),(-1,-1),5),("TOPPADDING",(0,0),(-1,-1),4),
                               ("BOTTOMPADDING",(0,0),(-1,-1),4),("ROWBACKGROUNDS",(0,1),(-1,-1),[colors.white, IVORY])]))
     E += [ptab, Spacer(1, 5), Paragraph(t["geom_note"], S)]
+    _amap = {f.plot_id: getattr(f, "alert_points", None) for f in findings}
     for pl in lot.plots:
         try:
+            _al = _amap.get(pl.plot_id) or []
             mp = os.path.join(out_dir, f"{lot.lot_id}_{pl.plot_id}_map.jpg")
-            if plot_map_png(pl, mp):
+            if plot_map_png(pl, mp, alerts=_al):
                 from reportlab.platypus import Image as RLImage
-                E += [Spacer(1, 6), RLImage(mp, width=W, height=W * 0.46), Paragraph(t["map_cap"], S)]
+                cap = t["map_cap"]
+                if _al:
+                    cap += (" · En rojo: píxel(es) de alerta de deforestación reciente — punto a verificar en campo ("
+                            if lang == "es" else
+                            " · In red: recent deforestation alert pixel(s) — point to verify in the field (")
+                    cap += ", ".join(f"{a['lat']:.6f}, {a['lon']:.6f}" for a in _al[:3]) + (", …)" if len(_al) > 3 else ")")
+                E += [Spacer(1, 6), RLImage(mp, width=W, height=W * 0.46), Paragraph(cap, S)]
         except Exception as e:
             print("map embed error:", repr(e))
     try:
@@ -273,13 +289,54 @@ def build_pdf(lot, findings, narrative, profile, out_dir, lang=None, photo_path=
     except Exception:
         pass
 
-    if photo_path and os.path.exists(photo_path):
+    _fps = [(p, m) for p, m in (field_photos or []) if p and os.path.exists(p)]
+    if not _fps and photo_path and os.path.exists(photo_path):
         try:
             from reportlab.platypus import Image as RLImage
             pw, ph = _img_dims(photo_path, W * 0.6, 8.0 * cm)
             E += [Paragraph(t["h_photo"], H), RLImage(photo_path, width=pw, height=ph), Paragraph(t["photo_cap"], S)]
         except Exception as e:
             print("photo embed error:", repr(e))
+
+    # ---- Anexo: verificación en campo (fotos con sello GPS + sustentación) ----
+    _sub = (lot.extra or {}).get("substantiation") if isinstance(lot.extra, dict) else None
+    if _fps or (_sub and _sub.get("note")):
+        E += [Paragraph("Verificación en campo" if lang == "es" else "Field verification", H)]
+    if _fps:
+        try:
+            from reportlab.platypus import Image as RLImage
+            cells, row = [], []
+            for p, m in _fps:
+                try:
+                    pw, ph = _img_dims(p, W * 0.46, 6.5 * cm)
+                    cap = []
+                    if m.get("lat") is not None and m.get("lon") is not None:
+                        cap.append(f"{float(m['lat']):.6f}, {float(m['lon']):.6f}"
+                                   + (f"  ±{m['acc']} m" if m.get("acc") is not None else ""))
+                    if m.get("at"):
+                        cap.append(str(m["at"])[:16].replace("T", " ") + " UTC")
+                    row.append([RLImage(p, width=pw, height=ph),
+                                Paragraph(_esc("  ·  ".join(cap)) if cap else ("sin sello GPS" if lang == "es" else "no GPS stamp"), S)])
+                except Exception:
+                    continue
+                if len(row) == 2:
+                    cells.append(row); row = []
+            if row:
+                cells.append(row + [""])
+            if cells:
+                ft = Table(cells, colWidths=[W * 0.5, W * 0.5])
+                ft.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"),
+                                        ("LEFTPADDING", (0, 0), (-1, -1), 2), ("RIGHTPADDING", (0, 0), (-1, -1), 2),
+                                        ("TOPPADDING", (0, 0), (-1, -1), 4), ("BOTTOMPADDING", (0, 0), (-1, -1), 6)]))
+                E += [ft, Paragraph("Fotos tomadas durante el levantamiento, con coordenadas, precisión y fecha selladas en la imagen."
+                                    if lang == "es" else
+                                    "Photos taken during the field survey, with coordinates, accuracy and date stamped into the image.", S)]
+        except Exception as e:
+            print("field photos embed error:", repr(e))
+    if _sub and _sub.get("note"):
+        E += [Paragraph((("<b>Sustentación registrada:</b> " if lang == "es" else "<b>Substantiation on record:</b> ")
+                         + _esc(_sub.get("note", ""))
+                         + f'<br/><font size="7" color="#6F726B">{_esc(_sub.get("by", ""))} · {_esc(str(_sub.get("at", ""))[:16])}</font>'), P)]
 
     E += [Paragraph(t["h_eval"], H), Paragraph(_esc(narrative), P)]
     _lg = (lot.extra or {}).get("legality", {}) if isinstance(lot.extra, dict) else {}
@@ -480,7 +537,8 @@ def build_consignment_pdf(cons, items, out_dir, lang=None):
     W = doc.width
     E = []
 
-    if cons.get("coop_id", "") == "demo-origen":         # candado demo: documento marcado
+    from . import storage as _st2
+    if _st2.coop_restricted(cons.get("coop_id", "")):     # muro de activación: documento marcado
         E.append(_demo_banner(W, lang))
 
     def kv(rows, fill=False):

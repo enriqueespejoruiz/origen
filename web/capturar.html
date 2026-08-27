@@ -183,15 +183,36 @@ input[type=file]::file-selector-button{font-family:var(--font-heading);font-weig
         <button type="button" class="sec" id="manUse">Usar estas coordenadas</button>
         <p class="muted" style="margin-top:6px">Para coordenadas que ya tienes (GPS externo, título, plano). Usa punto decimal y al menos 5 decimales; en Perú la latitud es negativa (ej. -6.478123) y la longitud ~ -70 a -81.</p>
       </div>
+      <button type="button" id="pmapToggle" style="background:none;border:0;padding:6px 0;margin-top:2px;color:var(--brand-pine);font-size:13.5px;font-weight:600;cursor:pointer;text-decoration:underline">Elegir el punto en el mapa</button>
+      <div id="pmapBox" style="display:none;margin-top:6px">
+        <div id="pmap" style="height:300px;border-radius:12px;overflow:hidden;background:#e8ece9"></div>
+        <p class="muted" style="margin-top:6px">Vista satelital: toca el centro del predio para marcarlo. Arrastra el marcador para afinarlo. Necesita conexión.</p>
+      </div>
     </div>
     <div id="polyBox" style="display:none">
       <button class="sec" id="vtx"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Marcar esquina (vértice)</button>
       <div class="gps" id="vtxout" style="display:none" aria-live="polite"></div>
+      <button type="button" id="mapToggle" style="background:none;border:0;padding:6px 0;margin-top:6px;color:var(--brand-pine);font-size:13.5px;font-weight:600;cursor:pointer;text-decoration:underline">Marcar esquinas en el mapa</button>
+      <div id="mapBox" style="display:none;margin-top:6px">
+        <div id="map" style="height:320px;border-radius:12px;overflow:hidden;background:#e8ece9"></div>
+        <p class="muted" style="margin-top:6px">Vista satelital: toca cada esquina del predio para marcarla. Arrastra un marcador para afinarlo. Necesita conexión.</p>
+      </div>
+      <button type="button" id="vmanToggle" style="background:none;border:0;padding:6px 0;margin-top:2px;color:var(--brand-pine);font-size:13.5px;font-weight:600;cursor:pointer;text-decoration:underline">Escribir coordenadas de una esquina</button>
+      <div id="vmanBox" style="display:none;margin-top:4px">
+        <div class="row">
+          <div><label for="vmanlat">Latitud</label><input id="vmanlat" inputmode="decimal" placeholder="ej. -11.441528" autocomplete="off"></div>
+          <div><label for="vmanlon">Longitud</label><input id="vmanlon" inputmode="decimal" placeholder="ej. -74.434113" autocomplete="off"></div>
+        </div>
+        <button type="button" class="sec" id="vmanAdd">Agregar esquina</button>
+        <p class="muted" style="margin-top:6px">Para vértices que ya tienes (GPS externo, plano, título). Punto decimal y al menos 5 decimales.</p>
+      </div>
       <div id="vlist"></div>
       <p class="muted">Párate en cada esquina del predio y marca el vértice. Mínimo 3; lo ideal, todas las esquinas.</p>
     </div>
-    <label for="photo">Foto del predio (opcional) — cámara o galería</label>
-    <div class="filerow"><input id="photo" type="file" accept="image/*"></div>
+    <label for="photo">Fotos del predio con sello GPS — recomendado 3 a 6 (esquinas y centro del cultivo)</label>
+    <div class="filerow"><input id="photo" type="file" accept="image/*" capture="environment" multiple></div>
+    <div id="phgrid" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div>
+    <p class="muted" style="margin-top:4px">Cada foto queda sellada con coordenadas, precisión y fecha — evidencia de campo para el dossier. Si luego el satélite marca algo, estas fotos lo sustentan sin volver al predio.</p>
     <img class="prev" id="prev" style="display:none" alt="Vista previa de la foto del predio">
     <details style="margin-top:12px">
       <summary style="cursor:pointer;font-size:14px;color:var(--brand-pine);font-weight:600;font-family:var(--font-heading);padding:4px 0">Datos adicionales (opcional)</summary>
@@ -218,6 +239,55 @@ input[type=file]::file-selector-button{font-family:var(--font-heading);font-weig
     <div id="list"></div>
     <p class="muted" id="hint">Las parcelas se guardan en tu teléfono y se envían solas cuando hay señal.</p>
   </div>
+  <div class="card" id="sustCard" style="display:none">
+    <h3>Sustentar hallazgo — <span id="sustLot"></span></h3>
+    <p class="muted" id="sustPt"></p>
+    <label for="sustNote">¿Qué encontraste en el punto observado?</label>
+    <input id="sustNote" placeholder="ej. claro natural por caída de árbol, sin cambio de uso">
+    <label for="sustPhoto">Fotos del punto (con sello GPS) — párate lo más cerca posible</label>
+    <div class="filerow"><input id="sustPhoto" type="file" accept="image/*" capture="environment" multiple></div>
+    <div id="sustGrid" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div>
+    <button class="sec" id="sustSend" style="margin-top:10px">Enviar sustentación</button>
+    <button type="button" id="sustClose" style="background:none;border:0;padding:8px 0;color:var(--brand-pine);font-size:13.5px;font-weight:600;cursor:pointer;text-decoration:underline">Cancelar</button>
+    <p class="muted" id="sustOut"></p>
+  </div>
+  <div class="card" id="srvCard" style="display:none">
+    <div class="qhead">
+      <b id="srvTitle">Lotes de la cooperativa</b>
+      <button class="sec" id="srvRefresh">Actualizar</button>
+    </div>
+    <div id="slist"></div>
+    <p class="muted">Todos los lotes de tu cooperativa en el servidor — también los capturados desde otros equipos. Desde aquí puedes bajar dossiers, ir al punto observado, sustentar y editar.</p>
+  </div>
+  <div class="card" id="editCard" style="display:none">
+    <h3>Editar lote — <span id="editLot"></span></h3>
+    <div class="row">
+      <div><label for="edProd">Productor</label><input id="edProd"></div>
+      <div><label for="edRegion">Región</label><input id="edRegion"></div>
+    </div>
+    <div class="row">
+      <div><label for="edArea">Área (ha)</label><input id="edArea" inputmode="decimal"></div>
+      <div><label for="edQty">Cantidad (kg)</label><input id="edQty" inputmode="decimal"></div>
+    </div>
+    <label for="edNote">Observaciones / sustentación (aparece en el dossier)</label>
+    <input id="edNote" placeholder="ej. cultivo agroforestal establecido, sin cambio de uso">
+    <div id="emapBox" style="margin-top:8px">
+      <div id="emap" style="height:320px;border-radius:12px;overflow:hidden;background:#e8ece9"></div>
+      <p class="muted" style="margin-top:6px">Arrastra los marcadores para corregir la geometría. Al guardar, el lote se reverifica contra satélite y el dossier se regenera.</p>
+    </div>
+    <button class="sec" id="edSave" style="margin-top:8px">Guardar y reverificar</button>
+    <button type="button" id="edClose" style="background:none;border:0;padding:8px 0;color:var(--brand-pine);font-size:13.5px;font-weight:600;cursor:pointer;text-decoration:underline">Cerrar</button>
+    <p class="muted" id="edOut" aria-live="polite"></p>
+  </div>
+  <div id="bgstat" role="status" style="position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:60;display:none;background:#0B3D2E;color:#fff;padding:9px 18px;border-radius:999px;font-size:13px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:88vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+  <div class="card">
+    <div class="qhead"><b>¿Ya tienes la georreferencia?</b></div>
+    <p class="muted" style="margin-top:2px">Si tus parcelas ya están en un Excel o CSV, súbelo y las registramos todas de una vez (necesitas señal).</p>
+    <div class="filerow"><input id="impfile" type="file" accept=".xlsx,.xlsm,.csv,.geojson,.json"></div>
+    <button class="sec" id="impgo" style="margin-top:8px">Importar parcelas</button>
+    <p class="muted" style="margin-top:8px">Descarga la plantilla: <a href="/api/import/template.xlsx" style="color:var(--brand-pine);font-weight:700">Excel</a> &nbsp;·&nbsp; <a href="/api/import/template" style="color:var(--brand-pine);font-weight:700">CSV</a></p>
+    <div id="impout" class="muted" style="margin-top:8px" aria-live="polite"></div>
+  </div>
 </main>
 <script>
 const $=id=>document.getElementById(id);
@@ -225,9 +295,22 @@ let coords=null, photo=null;
 let queue=JSON.parse(localStorage.getItem('origen_queue')||'[]');
 $('coop').value=localStorage.getItem('origen_coop')||'';
 $('coop').oninput=()=>localStorage.setItem('origen_coop',$('coop').value);
-const save=()=>localStorage.setItem('origen_queue',JSON.stringify(queue));
+const save=()=>{
+  try{ localStorage.setItem('origen_queue',JSON.stringify(queue)); }
+  catch(e){
+    // memoria del navegador llena: recorta fotos de los items YA enviados y reintenta
+    queue.forEach(i=>{ if(i.status!=='pendiente'){ i.photo_base64=null; i.field_photos=null; } });
+    try{ localStorage.setItem('origen_queue',JSON.stringify(queue)); }
+    catch(e2){ alert('La memoria del teléfono está llena de fotos pendientes. Sincroniza cuanto antes (con señal) antes de registrar más parcelas.'); }
+  }
+};
 function netUI(){const o=navigator.onLine;$('net').textContent=o?'en línea':'sin señal';$('net').style.background=o?'rgba(255,255,255,.18)':'rgba(0,0,0,.3)';}
 addEventListener('online',()=>{netUI();sync();});addEventListener('offline',netUI);netUI();
+$('sync').onclick=()=>{  // tocar el botón reintenta también los rechazados (p. ej. tras cambiar de cuenta)
+  queue.forEach(i=>{ if(i.status==='rechazado'){ i.status='pendiente'; delete i.reason; } });
+  save(); render();
+  if(navigator.onLine) sync(); else alert('Sin señal ahora: se enviarán solas cuando vuelva la cobertura.');
+};
 
 let gpsWatch=null;
 function gpsStop(){ if(gpsWatch!=null){navigator.geolocation.clearWatch(gpsWatch);gpsWatch=null;} }
@@ -270,14 +353,66 @@ $('manUse').onclick=()=>{
   $('gpsout').style.display='flex'; $('gpsout').style.background='#eaf3ee'; $('gpsout').style.color='#0a5236';
   $('gpsout').textContent='✓ '+lat.toFixed(6)+', '+lon.toFixed(6)+'  (ingresada manualmente)';
   $('gps').textContent='Capturar ubicación GPS';
+  if(pmapReady){pmapSet(lat,lon,true);pmap.setView([lat,lon],16);}
 };
 
-let mode='point', verts=[], vWatch=null;
+$('impgo').onclick=async()=>{
+  const f=$('impfile').files[0];
+  if(!f){alert('Elige el archivo primero');return;}
+  if(!navigator.onLine){$('impout').textContent='Sin señal: la importación necesita conexión. Inténtalo cuando tengas cobertura.';return;}
+  $('impgo').disabled=true; const t=$('impgo').textContent; $('impgo').textContent='Importando…'; $('impout').textContent='';
+  try{
+    const fd=new FormData(); fd.append('file',f);
+    const r=await fetch('/api/import',{method:'POST',body:fd});
+    const d=await r.json();
+    if(!r.ok){ $('impout').textContent=(d&&d.detail)||'No se pudo importar. ¿Iniciaste sesión?'; }
+    else{
+      let msg='✓ '+d.lots_created+' lote(s) creados de '+d.rows+' fila(s). Verificando contra satélite…';
+      if(d.errors&&d.errors.length) msg+=' Avisos: '+d.errors.join(' · ');
+      $('impout').textContent=msg;
+      (d.lots||[]).forEach(l=>{ fetch('/lots/'+l.lot_id+'/process',{method:'POST'}).catch(()=>{}); });
+      $('impfile').value='';
+    }
+  }catch(e){ $('impout').textContent='Error de red; reintenta.'; }
+  $('impgo').disabled=false; $('impgo').textContent=t;
+};
+
+let mode='point', verts=[], vWatch=null, fixes=[], wakeLock=null;
+function distM(a,b){const R=6371000,toR=Math.PI/180,dl=(b.lat-a.lat)*toR,dn=(b.lon-a.lon)*toR,
+  x=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(a.lat*toR)*Math.cos(b.lat*toR)*Math.sin(dn/2)*Math.sin(dn/2);
+  return 2*R*Math.asin(Math.sqrt(x));}
+async function keepAwake(){try{if('wakeLock' in navigator && !wakeLock){wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{wakeLock=null;});}}catch(_){}}
+// Modo levantamiento: un solo watch GPS vivo durante TODO el polígono.
+// El chip GPS nunca se duerme -> marcar cada esquina es casi instantáneo.
+function surveyStart(){
+  if(vWatch!=null)return;
+  if(!navigator.geolocation){alert('Tu teléfono no permite GPS en el navegador');return;}
+  keepAwake();
+  $('vtxout').style.display='flex'; $('vtxout').style.background='#eaf3ee'; $('vtxout').style.color='#0a5236';
+  $('vtxout').textContent='Encendiendo GPS… sal a cielo abierto.';
+  vWatch=navigator.geolocation.watchPosition(p=>{
+    const f={lat:p.coords.latitude,lon:p.coords.longitude,acc:Math.round(p.coords.accuracy),t:Date.now()};
+    fixes.push(f); const cut=Date.now()-15000; while(fixes.length&&fixes[0].t<cut)fixes.shift();
+    const ok=f.acc<=10, mid=f.acc<=25;
+    $('vtxout').style.background=ok?'#eaf3ee':(mid?'#f7efd8':'#fbe8e4');
+    $('vtxout').style.color=ok?'#0a5236':(mid?'#856312':'#a8341f');
+    let s=(ok?'✓':'…')+' GPS vivo ±'+f.acc+' m';
+    if(verts.length)s+=' · a '+Math.round(distM(verts[verts.length-1],f))+' m de la esquina '+verts.length;
+    $('vtxout').textContent=s;
+  },e=>{$('vtxout').textContent='GPS: '+e.message+' (reintentando…)';},
+  {enableHighAccuracy:true,maximumAge:0});
+}
+function surveyStop(){
+  if(vWatch!=null){navigator.geolocation.clearWatch(vWatch);vWatch=null;}
+  fixes=[]; if(wakeLock){try{wakeLock.release();}catch(_){ } wakeLock=null;}
+}
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&mode==='poly')keepAwake(); });
 document.querySelectorAll('.segb').forEach(b=>b.onclick=()=>{
   mode=b.dataset.m;
   document.querySelectorAll('.segb').forEach(x=>x.classList.toggle('on',x===b));
   $('pointBox').style.display = mode==='point'?'block':'none';
   $('polyBox').style.display  = mode==='poly'?'block':'none';
+  if(mode==='poly')surveyStart(); else surveyStop();
 });
 $('area').addEventListener('input',()=>{
   if((parseFloat($('area').value)||0)>4 && mode==='point') document.querySelector('.segb[data-m="poly"]').click();
@@ -285,45 +420,386 @@ $('area').addEventListener('input',()=>{
 function polyAreaHa(v){ if(v.length<3)return 0; const R=6378137,toR=Math.PI/180; let a=0;
   for(let i=0;i<v.length;i++){const p1=v[i],p2=v[(i+1)%v.length]; a+=(p2.lon-p1.lon)*toR*(2+Math.sin(p1.lat*toR)+Math.sin(p2.lat*toR));}
   return Math.abs(a*R*R/2.0)/10000; }
+let editIdx=null;
 function renderV(){
   const ha=polyAreaHa(verts);
-  let h=verts.map((v,i)=>'<div class="item"><div>Esquina '+(i+1)+'<div class="muted">'+v.lat.toFixed(5)+', '+v.lon.toFixed(5)+'  (±'+v.acc+' m)</div></div><span class="b ok">✓</span></div>').join('');
-  if(verts.length) h+='<div class="item"><div><b>'+verts.length+' vértices</b><div class="muted">área medida ≈ '+ha.toFixed(2)+' ha</div></div>'+(verts.length>=3?'<button class="sec" id="vdel" style="width:auto;margin:0;padding:8px 12px;font-size:13px">Quitar último</button>':'<span class="b pend">faltan '+(3-verts.length)+'</span>')+'</div>';
-  $('vlist').innerHTML=h;
-  const d=$('vdel'); if(d)d.onclick=()=>{verts.pop();renderV();};
-  if(ha>0 && !$('area').value) $('area').value=ha.toFixed(2);
-}
-$('vtx').onclick=()=>{
-  if(!navigator.geolocation){alert('Tu teléfono no permite GPS en el navegador');return;}
-  if(vWatch!=null){navigator.geolocation.clearWatch(vWatch);vWatch=null;}
-  let best=null; const t0=Date.now();
-  $('vtx').textContent='Afinando…'; $('vtxout').style.display='flex';
-  $('vtxout').style.background='#eaf3ee'; $('vtxout').style.color='#0a5236';
-  $('vtxout').textContent='Buscando señal en esta esquina… mantente quieto.';
-  vWatch=navigator.geolocation.watchPosition(p=>{
-    const acc=Math.round(p.coords.accuracy);
-    if(!best||acc<best.acc)best={lat:p.coords.latitude,lon:p.coords.longitude,acc:acc};
-    $('vtxout').textContent='Señal ±'+best.acc+' m'+(best.acc<=10?' ✓':' afinando…');
-    if(best.acc<=10||Date.now()-t0>10000){
-      navigator.geolocation.clearWatch(vWatch);vWatch=null;
-      verts.push(best); renderV();
-      $('vtx').textContent='Marcar esquina (vértice)';
-      $('vtxout').textContent='Vértice '+verts.length+' guardado (±'+best.acc+' m)';
+  let h=verts.map((v,i)=>{
+    const meta='('+(v.acc!=null?('±'+v.acc+' m'):(v.src==='mapa'?'mapa':'manual'))+')';
+    let row='<div class="item"><div>Esquina '+(i+1)+'<div class="muted">'+v.lat.toFixed(6)+', '+v.lon.toFixed(6)+'  '+meta+'</div></div>'
+      +'<button type="button" class="sec vedit" data-ei="'+i+'" style="width:auto;margin:0;padding:6px 12px;font-size:13px">'+(editIdx===i?'Cerrar':'Editar')+'</button></div>';
+    if(editIdx===i){
+      row+='<div class="item" style="display:block;background:#f4f7f4;border-radius:10px;padding:10px">'
+        +'<div class="row"><div><label for="velat">Latitud</label><input id="velat" inputmode="decimal" value="'+v.lat.toFixed(6)+'"></div>'
+        +'<div><label for="velon">Longitud</label><input id="velon" inputmode="decimal" value="'+v.lon.toFixed(6)+'"></div></div>'
+        +'<div style="display:flex;gap:8px;margin-top:8px">'
+        +'<button type="button" class="sec" id="vesave" style="margin:0">Guardar esquina</button>'
+        +'<button type="button" class="sec" id="vedel2" style="margin:0;color:#a8341f;border-color:#a8341f">Eliminar</button></div></div>';
     }
-  },e=>{ if(vWatch!=null){navigator.geolocation.clearWatch(vWatch);vWatch=null;} $('vtx').textContent='Marcar esquina (vértice)'; $('vtxout').textContent='No se pudo: '+e.message; },
-  {enableHighAccuracy:true,timeout:12000,maximumAge:0});
+    return row;
+  }).join('');
+  if(verts.length) h+='<div class="item"><div><b>'+verts.length+' vértices</b><div class="muted">área medida ≈ '+ha.toFixed(2)+' ha</div></div>'+(verts.length>=3?'':'<span class="b pend">faltan '+(3-verts.length)+'</span>')+'</div>';
+  $('vlist').innerHTML=h;
+  document.querySelectorAll('.vedit').forEach(b=>b.onclick=()=>{const i=+b.dataset.ei;editIdx=(editIdx===i?null:i);renderV();});
+  const vs=$('vesave'); if(vs)vs.onclick=()=>{
+    const lat=parseFloat(($('velat').value||'').replace(',','.'));
+    const lon=parseFloat(($('velon').value||'').replace(',','.'));
+    if(isNaN(lat)||isNaN(lon)){alert('Escribe latitud y longitud (con punto decimal)');return;}
+    if(lat<-90||lat>90||lon<-180||lon>180){alert('Coordenadas fuera de rango');return;}
+    if(Math.abs(lat)<0.001&&Math.abs(lon)<0.001){alert('Coordenadas (0,0): revisa los valores');return;}
+    verts[editIdx]={lat:lat,lon:lon,acc:null,src:'manual'};
+    editIdx=null; renderV();
+  };
+  const vd2=$('vedel2'); if(vd2)vd2.onclick=()=>{verts.splice(editIdx,1);editIdx=null;renderV();};
+  if(ha>0 && !$('area').value) $('area').value=ha.toFixed(2);
+  mapSync();
+}
+
+// ---- Esquinas escritas a mano (>4 ha) ----
+$('vmanToggle').onclick=()=>{
+  const open=$('vmanBox').style.display==='none';
+  $('vmanBox').style.display=open?'block':'none';
+  $('vmanToggle').textContent=open?'Ocultar entrada de esquinas':'Escribir coordenadas de una esquina';
+};
+$('vmanAdd').onclick=()=>{
+  const lat=parseFloat(($('vmanlat').value||'').replace(',','.'));
+  const lon=parseFloat(($('vmanlon').value||'').replace(',','.'));
+  if(isNaN(lat)||isNaN(lon)){alert('Escribe latitud y longitud (con punto decimal)');return;}
+  if(lat<-90||lat>90||lon<-180||lon>180){alert('Coordenadas fuera de rango: latitud entre -90 y 90, longitud entre -180 y 180');return;}
+  if(Math.abs(lat)<0.001&&Math.abs(lon)<0.001){alert('Coordenadas (0,0): revisa los valores');return;}
+  const dec=v=>{const s=String(v).split('.')[1]||'';return s.length;};
+  if(dec($('vmanlat').value)<4||dec($('vmanlon').value)<4){
+    if(!confirm('Tienes menos de 4 decimales: la precisión será de cientos de metros y el sistema de la UE exige al menos 6. ¿Usar de todos modos?'))return;
+  }
+  if(verts.length){
+    const d=distM(verts[verts.length-1],{lat:lat,lon:lon});
+    if(d<1 && !confirm('Esta esquina está a menos de 1 metro de la anterior ('+d.toFixed(2)+' m). ¿Registrarla de todos modos?'))return;
+  }
+  verts.push({lat:lat,lon:lon,acc:null,src:'manual'}); renderV();
+  $('vmanlat').value='';$('vmanlon').value='';
 };
 
-$('photo').onchange=e=>{
-  const f=e.target.files[0]; if(!f)return;
+// ---- Mapa satelital para marcar esquinas (Leaflet, carga perezosa) ----
+let map=null, mapLayer=null, mapReady=false, mapLoading=false;
+function leafletLoad(cb){
+  if(window.L){cb();return;}
+  if(mapLoading)return; mapLoading=true;
+  const css=document.createElement('link'); css.rel='stylesheet';
+  css.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+  document.head.appendChild(css);
+  const s=document.createElement('script');
+  s.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+  s.onload=()=>{mapLoading=false;cb();};
+  s.onerror=()=>{mapLoading=false;alert('No se pudo cargar el mapa: revisa tu conexión.');};
+  document.head.appendChild(s);
+}
+function mapInit(){
+  if(mapReady)return;
+  let c=[-9.19,-75.02], z=5;                                   // Perú
+  if(verts.length){c=[verts[verts.length-1].lat,verts[verts.length-1].lon];z=16;}
+  else if(fixes.length){const f=fixes[fixes.length-1];c=[f.lat,f.lon];z=16;}
+  map=L.map('map',{tap:false}).setView(c,z);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    {maxZoom:19,attribution:'Imágenes © Esri'}).addTo(map);
+  mapLayer=L.layerGroup().addTo(map);
+  map.on('click',e=>{
+    verts.push({lat:e.latlng.lat,lon:e.latlng.lng,acc:null,src:'mapa'});
+    renderV();
+  });
+  mapReady=true; mapSync();
+}
+function mapSync(){
+  if(!mapReady||!window.L)return;
+  mapLayer.clearLayers();
+  verts.forEach((v,i)=>{
+    const m=L.marker([v.lat,v.lon],{draggable:true,title:'Esquina '+(i+1)}).addTo(mapLayer);
+    m.bindTooltip(String(i+1),{permanent:true,direction:'top',offset:[-15,-12]});
+    m.on('dragend',()=>{const ll=m.getLatLng();verts[i]={lat:ll.lat,lon:ll.lng,acc:null,src:v.src||'mapa'};renderV();});
+    m.on('click',()=>{editIdx=i;renderV();const el=document.querySelector('.vedit[data-ei="'+i+'"]');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});});
+  });
+  if(verts.length>=3)L.polygon(verts.map(v=>[v.lat,v.lon]),{color:'#0a5236',weight:2,fillOpacity:0.15}).addTo(mapLayer);
+  else if(verts.length===2)L.polyline(verts.map(v=>[v.lat,v.lon]),{color:'#0a5236',weight:2,dashArray:'4'}).addTo(mapLayer);
+}
+// ---- Mapa para el modo Punto (≤4 ha): un solo marcador arrastrable ----
+let pmap=null, pmapReady=false, pMarker=null;
+function pmapSet(lat,lon,quiet){
+  if(!quiet){
+    gpsStop(); coords={lat:lat,lon:lon,acc:null,src:'mapa'};
+    $('gpsout').style.display='flex'; $('gpsout').style.background='#eaf3ee'; $('gpsout').style.color='#0a5236';
+    $('gpsout').textContent='✓ '+lat.toFixed(6)+', '+lon.toFixed(6)+'  (elegida en el mapa)';
+    $('gps').textContent='Capturar ubicación GPS';
+  }
+  if(!pMarker){
+    pMarker=L.marker([lat,lon],{draggable:true,title:'Ubicación del predio'}).addTo(pmap);
+    pMarker.on('dragend',()=>{const ll=pMarker.getLatLng();pmapSet(ll.lat,ll.lng);});
+  }else pMarker.setLatLng([lat,lon]);
+}
+function pmapInit(){
+  if(pmapReady)return;
+  let c=[-9.19,-75.02], z=5;                                   // Perú
+  if(coords){c=[coords.lat,coords.lon];z=16;}
+  pmap=L.map('pmap',{tap:false}).setView(c,z);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    {maxZoom:19,attribution:'Imágenes © Esri'}).addTo(pmap);
+  pmap.on('click',e=>{pmapSet(e.latlng.lat,e.latlng.lng);});
+  pmapReady=true;
+  if(coords)pmapSet(coords.lat,coords.lon,true);
+}
+$('pmapToggle').onclick=()=>{
+  const open=$('pmapBox').style.display==='none';
+  $('pmapBox').style.display=open?'block':'none';
+  $('pmapToggle').textContent=open?'Ocultar mapa':'Elegir el punto en el mapa';
+  if(open){
+    if(!navigator.onLine){alert('El mapa necesita conexión. Sin señal usa el GPS o escribe las coordenadas.');}
+    leafletLoad(()=>{pmapInit();setTimeout(()=>{pmap.invalidateSize();},150);});
+  }
+};
+$('mapToggle').onclick=()=>{
+  const open=$('mapBox').style.display==='none';
+  $('mapBox').style.display=open?'block':'none';
+  $('mapToggle').textContent=open?'Ocultar mapa':'Marcar esquinas en el mapa';
+  if(open){
+    if(!navigator.onLine){alert('El mapa necesita conexión. Sin señal usa el GPS o escribe las coordenadas.');}
+    leafletLoad(()=>{mapInit();setTimeout(()=>{map.invalidateSize();},150);});
+  }
+};
+$('vtx').onclick=()=>{
+  surveyStart();  // por si el modo levantamiento no estaba corriendo
+  const take=()=>{
+    const now=Date.now(), fresh=fixes.filter(f=>now-f.t<=12000);  // solo fixes de los últimos 12 s (nunca cacheados)
+    if(!fresh.length)return false;
+    const best=fresh.reduce((a,b)=>b.acc<a.acc?b:a);
+    if(verts.length){
+      const d=distM(verts[verts.length-1],best);
+      const min=Math.max(3,Math.min(10,best.acc*0.8));  // umbral anti-duplicado según precisión actual
+      if(d<min && !confirm('Este punto está a solo '+Math.round(d)+' m de la esquina anterior (señal ±'+best.acc+' m).\n¿Seguro que ya caminaste hasta la siguiente esquina?'))return true;
+    }
+    verts.push({lat:best.lat,lon:best.lon,acc:best.acc}); renderV();
+    $('vtxout').textContent='✓ Esquina '+verts.length+' guardada (±'+best.acc+' m). Camina a la siguiente.';
+    return true;
+  };
+  if(take())return;
+  // aún no hay fix fresco: espera hasta 8 s a que el GPS entregue uno
+  $('vtx').disabled=true; const t=$('vtx').textContent; $('vtx').textContent='Afinando…';
+  const t0=Date.now(); const iv=setInterval(()=>{
+    if(take()||Date.now()-t0>8000){
+      clearInterval(iv); $('vtx').disabled=false; $('vtx').textContent=t;
+      if(Date.now()-t0>8000&&!fixes.length)$('vtxout').textContent='Sin señal GPS todavía: sal a cielo abierto y espera unos segundos.';
+    }
+  },500);
+};
+
+// ---- Fotos con sello GPS quemado en la imagen (evidencia de campo) ----
+let photos=[];
+function bestFixNow(cb){
+  const now=Date.now(), fresh=fixes.filter(f=>now-f.t<=15000);
+  if(fresh.length){cb(fresh.reduce((a,b)=>b.acc<a.acc?b:a));return;}
+  if(coords&&coords.acc!=null){cb({lat:coords.lat,lon:coords.lon,acc:coords.acc});return;}
+  if(!navigator.geolocation){cb(coords||null);return;}
+  navigator.geolocation.getCurrentPosition(
+    p=>cb({lat:p.coords.latitude,lon:p.coords.longitude,acc:Math.round(p.coords.accuracy)}),
+    ()=>cb(coords?{lat:coords.lat,lon:coords.lon,acc:coords.acc}:null),
+    {enableHighAccuracy:true,timeout:6000,maximumAge:20000});
+}
+function stampPhoto(file,fix,cb){
   const img=new Image();
   img.onload=()=>{
-    const max=640,s=Math.min(1,max/Math.max(img.width,img.height));
+    const max=1000,s=Math.min(1,max/Math.max(img.width,img.height));
     const c=document.createElement('canvas');c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);
-    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
-    photo=c.toDataURL('image/jpeg',0.6);$('prev').src=photo;$('prev').style.display='block';
+    const g=c.getContext('2d');g.drawImage(img,0,0,c.width,c.height);
+    const bh=Math.max(36,Math.round(c.height*0.085));
+    g.fillStyle='rgba(0,0,0,0.55)';g.fillRect(0,c.height-bh,c.width,bh);
+    const fs=Math.max(12,Math.round(bh*0.30));
+    g.fillStyle='#fff';g.font='bold '+fs+'px Arial';
+    const dt=new Date(), pad=n=>String(n).padStart(2,'0');
+    const l1=fix&&fix.lat!=null?(fix.lat.toFixed(6)+', '+fix.lon.toFixed(6)+(fix.acc!=null?'  ±'+fix.acc+' m':'')):'sin señal GPS';
+    const l2=pad(dt.getDate())+'/'+pad(dt.getMonth()+1)+'/'+dt.getFullYear()+' '+pad(dt.getHours())+':'+pad(dt.getMinutes())+'  ·  ORIGEN';
+    g.fillText(l1,10,c.height-bh+fs+5);
+    g.fillText(l2,10,c.height-bh+fs*2+12);
+    cb({data:c.toDataURL('image/jpeg',0.55),lat:fix&&fix.lat!=null?fix.lat:null,lon:fix&&fix.lat!=null?fix.lon:null,
+        acc:fix?fix.acc:null,at:dt.toISOString()});
+    URL.revokeObjectURL(img.src);
   };
-  img.src=URL.createObjectURL(f);
+  img.src=URL.createObjectURL(file);
+}
+function renderPhotos(){
+  $('phgrid').innerHTML=photos.map((p,i)=>'<div style="position:relative">'
+    +'<img src="'+p.data+'" style="width:88px;height:88px;object-fit:cover;border-radius:10px" alt="Foto '+(i+1)+'">'
+    +'<button type="button" data-px="'+i+'" aria-label="Quitar foto" style="position:absolute;top:-7px;right:-7px;width:24px;height:24px;border-radius:50%;border:0;background:#a8341f;color:#fff;font-size:13px;line-height:1;cursor:pointer">×</button></div>').join('');
+  document.querySelectorAll('[data-px]').forEach(b=>b.onclick=()=>{photos.splice(+b.dataset.px,1);renderPhotos();});
+}
+$('photo').onchange=e=>{
+  const files=Array.prototype.slice.call(e.target.files); if(!files.length)return;
+  if(photos.length+files.length>6){alert('Máximo 6 fotos por parcela');e.target.value='';return;}
+  bestFixNow(fix=>{
+    if((!fix||fix.lat==null)&&!confirm('No hay señal GPS en este momento: las fotos saldrán selladas como "sin señal GPS". ¿Continuar?')){e.target.value='';return;}
+    files.forEach(f=>stampPhoto(f,fix,p=>{photos.push(p);renderPhotos();}));
+    e.target.value='';
+  });
+};
+
+// ---- Sustentar hallazgo: volver al punto observado y adjuntar fotos selladas ----
+// Respaldo total: el borrador (nota+fotos) y la cola de envío viven en localStorage,
+// así que sobreviven si la app se cierra o el teléfono se apaga.
+let sphotos=[], sustLotId=null;
+let sustQueue=JSON.parse(localStorage.getItem('origen_sustq')||'[]');
+const sustSaveQ=()=>{try{localStorage.setItem('origen_sustq',JSON.stringify(sustQueue));}catch(e){alert('La memoria del teléfono está llena: sincroniza cuanto antes.');}};
+// borradores POR LOTE: sustentar varios puntos seguidos sin perder ninguno
+const sustDraftSave=()=>{try{
+  if(!sustLotId)return;
+  const all=JSON.parse(localStorage.getItem('origen_sustd2')||'{}');
+  all[sustLotId]={note:$('sustNote').value,photos:sphotos,at:Date.now()};
+  localStorage.setItem('origen_sustd2',JSON.stringify(all));
+}catch(e){}};
+const sustDraftClear=()=>{try{
+  const all=JSON.parse(localStorage.getItem('origen_sustd2')||'{}');
+  if(sustLotId)delete all[sustLotId];
+  localStorage.setItem('origen_sustd2',JSON.stringify(all));
+  localStorage.removeItem('origen_sustd');
+}catch(e){}};
+async function sustPost(itm){
+  const r=await fetch('/lots/'+itm.lot_id+'/substantiate',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({note:itm.note,photos:itm.photos||[]})});
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw{status:r.status,detail:e.detail};}
+  try{await fetch('/lots/'+itm.lot_id+'/process',{method:'POST'});}catch(_){}
+}
+function renderSust(){
+  $('sustGrid').innerHTML=sphotos.map((p,i)=>'<div style="position:relative">'
+    +'<img src="'+p.data+'" style="width:88px;height:88px;object-fit:cover;border-radius:10px" alt="Foto '+(i+1)+'">'
+    +'<button type="button" data-spx="'+i+'" aria-label="Quitar foto" style="position:absolute;top:-7px;right:-7px;width:24px;height:24px;border-radius:50%;border:0;background:#a8341f;color:#fff;font-size:13px;line-height:1;cursor:pointer">×</button></div>').join('');
+  document.querySelectorAll('[data-spx]').forEach(b=>b.onclick=()=>{sphotos.splice(+b.dataset.spx,1);renderSust();});
+  sustDraftSave();
+}
+window.sustOpen=(lot_id,alertOpt)=>{
+  sustLotId=lot_id; sphotos=[]; renderSust();
+  $('sustLot').textContent=lot_id; $('sustNote').value=''; $('sustOut').textContent='';
+  const it=queue.find(x=>x.lot_id===lot_id);
+  const al=alertOpt||(it&&it.alert);
+  $('sustPt').textContent=al?('Punto observado: '+al.lat+', '+al.lon+(al.date?(' (alerta del '+al.date+')'):'')+'. Usa "⚑ Ir al punto" para navegar hasta ahí.'):'Toma las fotos parado en la zona del hallazgo.';
+  try{  // si este lote tiene un borrador guardado, se recupera
+    const all=JSON.parse(localStorage.getItem('origen_sustd2')||'{}');
+    const dft=all[lot_id];
+    if(dft){ $('sustNote').value=dft.note||''; sphotos=dft.photos||[]; renderSust();
+             $('sustOut').textContent='Borrador recuperado — revisa y envía.'; }
+  }catch(e){}
+  $('sustCard').style.display='block'; $('sustCard').scrollIntoView({behavior:'smooth'});
+};
+// ---- Lotes de la cooperativa (servidor): visibles desde cualquier equipo ----
+async function loadCoopLots(){
+  if(!navigator.onLine)return;
+  try{
+    const r=await fetch('/api/lots'); if(!r.ok)return;
+    const d=await r.json(); const lots=d.lots||[];
+    if(!lots.length){$('srvCard').style.display='none';return;}
+    $('srvCard').style.display='block';
+    $('srvTitle').textContent='Lotes de la cooperativa ('+lots.length+')';
+    $('slist').innerHTML=lots.map(l=>{
+      let b='<span class="b ok">enviado</span>';
+      if(l.overall_risk==='high')b='<span class="b hi">deforestación</span>';
+      else if(l.overall_risk==='review')b='<span class="b rev">revisar</span>';
+      else if(l.overall_risk==='negligible')b='<span class="b ok">limpio</span>';
+      const al=l.alert;
+      const links='<div class="dl"><a href="#" data-dl="dossier" data-id="'+l.lot_id+'">Dossier PDF</a>'
+        +'<a href="#" data-dl="geojson" data-id="'+l.lot_id+'">Datos (GeoJSON)</a>'
+        +(al?('<a href="https://www.google.com/maps?q='+al.lat+','+al.lon+'" target="_blank" rel="noopener" style="color:#a8341f">⚑ Ir al punto</a>'):'')
+        +((l.overall_risk==='review'||l.overall_risk==='high')?('<a href="#" data-sust="'+l.lot_id+'"'+(al?(' data-alat="'+al.lat+'" data-alon="'+al.lon+'" data-adate="'+(al.date||'')+'"'):'')+'>Sustentar</a>'):'')
+        +'<a href="#" data-edit="'+l.lot_id+'">Editar</a></div>';
+      return '<div class="item"><div>'+(l.producer||l.lot_id)+'<div class="muted">'+l.lot_id+' · '+(l.n_plots||1)+' parcela(s)</div>'+links+'</div>'+b+'</div>';
+    }).join('');
+    if(window.i18nSync)i18nSync();
+  }catch(e){}
+}
+$('srvRefresh').onclick=loadCoopLots;
+
+// ---- Edición post-campo (oficina): datos + geometría arrastrable ----
+let edLot=null, edPts=[], emap=null, emapReady=false, emapLayer=null;
+function emapSync(){
+  if(!emapReady||!window.L)return;
+  emapLayer.clearLayers();
+  edPts.forEach((p,i)=>{
+    const m=L.marker([p.lat,p.lon],{draggable:true,title:'Punto '+(i+1)}).addTo(emapLayer);
+    m.bindTooltip(String(i+1),{permanent:true,direction:'top',offset:[-15,-12]});
+    m.on('dragend',()=>{const ll=m.getLatLng();edPts[i]={lat:ll.lat,lon:ll.lng};emapSync();});
+  });
+  if(edPts.length>=3)L.polygon(edPts.map(p=>[p.lat,p.lon]),{color:'#0a5236',weight:2,fillOpacity:0.15}).addTo(emapLayer);
+}
+window.editOpen=async lot_id=>{
+  if(!navigator.onLine){alert('Editar necesita conexión.');return;}
+  let d=null;
+  try{ d=await (await fetch('/api/lots/'+lot_id+'/detail')).json(); }catch(e){}
+  if(!d||!d.lot_id){alert('No se pudo cargar el lote.');return;}
+  edLot=lot_id; edPts=(d.points||[]).map(p=>({lat:+p.lat,lon:+p.lon}));
+  $('editLot').textContent=lot_id;
+  $('edProd').value=d.producer||''; $('edRegion').value=d.region||'';
+  $('edArea').value=d.area_ha!=null?d.area_ha:''; $('edQty').value=d.quantity||'';
+  $('edNote').value=(d.substantiation&&d.substantiation.note)||'';
+  $('edOut').textContent='';
+  $('editCard').style.display='block'; $('editCard').scrollIntoView({behavior:'smooth'});
+  leafletLoad(()=>{
+    if(!emapReady){
+      emap=L.map('emap',{tap:false});
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Imágenes © Esri'}).addTo(emap);
+      emapLayer=L.layerGroup().addTo(emap); emapReady=true;
+    }
+    if(edPts.length){
+      emap.setView([edPts.reduce((s,p)=>s+p.lat,0)/edPts.length, edPts.reduce((s,p)=>s+p.lon,0)/edPts.length],16);
+    }
+    emapSync(); setTimeout(()=>{emap.invalidateSize();},150);
+  });
+};
+$('edClose').onclick=()=>{ $('editCard').style.display='none'; edLot=null; };
+$('edSave').onclick=async()=>{
+  if(!edLot)return;
+  $('edSave').disabled=true; const t=$('edSave').textContent; $('edSave').textContent='Guardando…';
+  try{
+    const body={producer:$('edProd').value.trim(),region:$('edRegion').value.trim(),
+      quantity:$('edQty').value.trim(),area_ha:parseFloat($('edArea').value)||null,
+      points:edPts.length?edPts:null};
+    const r=await fetch('/lots/'+edLot+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok){ const e=await r.json().catch(()=>({})); $('edOut').textContent=e.detail||'No se pudo guardar.'; }
+    else{
+      const note=$('edNote').value.trim();
+      if(note){ try{ await fetch('/lots/'+edLot+'/substantiate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({note:note})}); }catch(_){} }
+      $('edOut').textContent='✓ Guardado. Reverificando contra satélite…';
+      try{ await fetch('/lots/'+edLot+'/process',{method:'POST'}); }catch(_){}
+      $('edOut').textContent='✓ Guardado y reverificado — dossier actualizado.';
+      loadCoopLots();
+    }
+  }catch(e){ $('edOut').textContent='Error de red; reintenta.'; }
+  $('edSave').disabled=false; $('edSave').textContent=t;
+};
+$('sustClose').onclick=()=>{ $('sustCard').style.display='none'; sustLotId=null; sphotos=[]; };
+$('sustPhoto').onchange=e=>{
+  const files=Array.prototype.slice.call(e.target.files); if(!files.length)return;
+  if(sphotos.length+files.length>6){alert('Máximo 6 fotos');e.target.value='';return;}
+  bestFixNow(fix=>{
+    if((!fix||fix.lat==null)&&!confirm('No hay señal GPS ahora: las fotos saldrán sin sello de ubicación. ¿Continuar?')){e.target.value='';return;}
+    files.forEach(f=>stampPhoto(f,fix,p=>{sphotos.push(p);renderSust();}));
+    e.target.value='';
+  });
+};
+$('sustNote').oninput=sustDraftSave;
+$('sustSend').onclick=async()=>{
+  if(!sustLotId)return;
+  const note=$('sustNote').value.trim();
+  if(!note){alert('Escribe qué encontraste en el punto');return;}
+  if(!sphotos.length&&!confirm('¿Enviar sin fotos? La sustentación es mucho más fuerte con fotos selladas.'))return;
+  const itm={lot_id:sustLotId,note:note,photos:sphotos.slice(),status:'pendiente'};
+  const done=()=>{sphotos=[];renderSust();$('sustNote').value='';sustDraftClear();};
+  if(!navigator.onLine){
+    sustQueue.push(itm); sustSaveQ(); done();
+    $('sustOut').textContent='✓ Guardada en el teléfono: se enviará sola cuando haya señal (toca Sincronizar al tener cobertura).';
+    return;
+  }
+  $('sustSend').disabled=true; $('sustSend').textContent='Enviando…';
+  try{
+    await sustPost(itm); done();
+    $('sustOut').textContent='✓ Sustentación registrada y dossier actualizado con tus fotos.';
+  }catch(e){
+    if(e&&e.status>=400&&e.status<500){ $('sustOut').textContent=e.detail||'No se pudo enviar. ¿Iniciaste sesión?'; }
+    else{ sustQueue.push(itm); sustSaveQ(); done();
+          $('sustOut').textContent='✓ Sin conexión estable: quedó guardada y se enviará sola al sincronizar.'; }
+  }
+  $('sustSend').disabled=false; $('sustSend').textContent='Enviar sustentación';
 };
 
 $('save').onclick=()=>{
@@ -346,20 +822,22 @@ $('save').onclick=()=>{
     extra:{lang:$('lang').value,
            legality:{title:$('legtitle').value.trim(),env:$('legenv').value.trim(),labor:$('leglabor').value.trim()},
            buyer:{name:$('buyername').value.trim(),country:$('buyercountry').value.trim(),eori:$('buyereori').value.trim()}},
-    photo_base64:photo,status:'pendiente'};
+    photo_base64:(photos.length?photos[0].data:photo),field_photos:photos.slice(),status:'pendiente'};
   if(mode==='poly'){
     if(verts.length<3){alert('Marca al menos 3 esquinas del predio (caminando el perímetro)');return;}
     item.points=verts.map(v=>({lat:v.lat,lon:v.lon})); item.geom='poly';
     item.lat=verts.reduce((s,v)=>s+v.lat,0)/verts.length; item.lon=verts.reduce((s,v)=>s+v.lon,0)/verts.length;
+    const srcs=verts.map(v=>v.src||'gps').filter((s,i,a)=>a.indexOf(s)===i);
+    if(srcs.length>1||srcs[0]!=='gps') item.extra.coord_method=srcs.join('+');  // transparencia en el expediente
   }else{
     if(!coords){alert('Primero captura la ubicación GPS (o ingrésala manualmente)');return;}
     item.lat=coords.lat; item.lon=coords.lon; item.geom='point';
-    if(coords.manual) item.extra.coord_method='manual';   // transparencia en el expediente
+    if(coords.manual||coords.src) item.extra.coord_method=coords.manual?'manual':coords.src;   // transparencia en el expediente
   }
   queue.push(item); save(); render();
-  gpsStop(); $('prod').value='';$('area').value='';$('region').value='';$('cantidad').value='';
+  gpsStop(); surveyStop(); $('prod').value='';$('area').value='';$('region').value='';$('cantidad').value='';
   ['legtitle','legenv','leglabor','buyername','buyercountry','buyereori','manlat','manlon'].forEach(function(id){var e=$(id);if(e)e.value='';});
-  photo=null;coords=null;verts=[];renderV();
+  photo=null;photos=[];renderPhotos();coords=null;verts=[];renderV();
   $('prev').style.display='none';$('gpsout').style.display='none';$('vtxout').style.display='none';
   $('gps').textContent='Capturar ubicación GPS';
   if(navigator.onLine)sync();
@@ -369,6 +847,7 @@ function render(){
   $('qtitle').textContent='Parcelas ('+queue.length+')';
   const pend=queue.filter(i=>i.status==='pendiente').length;
   $('sync').textContent=pend?('Sincronizar ('+pend+')'):'Sincronizado';
+  if(typeof bgStat==='function'&&!_syncing)bgStat();
   $('list').innerHTML=queue.slice().reverse().map(i=>{
     let b='<span class="b pend">Pendiente</span>';
     if(i.status==='enviado'){
@@ -377,32 +856,142 @@ function render(){
       else if(i.risk)b='<span class="b ok">limpio</span>';
       else b='<span class="b ok">enviado</span>';
     }
+    if(i.status==='rechazado')b='<span class="b hi" title="'+(i.reason||'').replace(/"/g,'&quot;')+'">rechazado</span>';
     let dl='';
     if(i.status==='enviado'&&i.lot_id){
       dl='<div class="dl"><a href="#" data-dl="dossier" data-id="'+i.lot_id+'">Dossier PDF</a>'+
          '<a href="#" data-dl="geojson" data-id="'+i.lot_id+'">Datos (GeoJSON)</a>'+
-         '<a href="#" data-wa="'+i.lot_id+'">WhatsApp</a></div>';
+         '<a href="#" data-wa="'+i.lot_id+'">WhatsApp</a>'+
+         (i.alert?('<a href="https://www.google.com/maps?q='+i.alert.lat+','+i.alert.lon+'" target="_blank" rel="noopener" style="color:#a8341f">⚑ Ir al punto</a>'):'')+
+         ((i.risk==='review'||i.risk==='high')?('<a href="#" data-sust="'+i.lot_id+'">Sustentar</a>'):'')+'</div>';
     }
-    return '<div class="item"><div>'+i.producer+'<div class="muted">'+(i.geom==='poly'?('polígono · '+(i.points?i.points.length:0)+' vért.'):(i.lat.toFixed(4)+', '+i.lon.toFixed(4)))+'</div>'+dl+'</div>'+b+'</div>';
+    const reason=(i.status==='rechazado'&&i.reason)?('<div class="muted" style="color:#a8341f">'+i.reason+'</div>'):'';
+    return '<div class="item"><div>'+i.producer+'<div class="muted">'+(i.geom==='poly'?('polígono · '+(i.points?i.points.length:0)+' vért.'):(i.lat.toFixed(6)+', '+i.lon.toFixed(6)))+'</div>'+reason+dl+'</div>'+b+'</div>';
   }).join('');
   if(window.i18nSync)i18nSync();
 }
 
+// ---- Indicador de estado en segundo plano (píldora inferior) ----
+function bgStat(msg){
+  const el=$('bgstat'); if(!el)return;
+  if(msg){ el.textContent=msg; el.style.display='block'; return; }
+  const pend=queue.filter(i=>i.status==='pendiente').length;
+  const sp=(typeof sustQueue!=='undefined'?sustQueue:[]).filter(s=>s.status==='pendiente').length;
+  if(_syncing){ el.textContent='Sincronizando…'; el.style.display='block'; }
+  else if(pend||sp){
+    el.textContent='En cola: '+(pend?(pend+' parcela(s)'):'')+((pend&&sp)?' y ':'')+(sp?(sp+' sustentación(es)'):'')+(navigator.onLine?' — toca Sincronizar':' — esperando señal');
+    el.style.display='block';
+  }else el.style.display='none';
+}
+let _syncing=false;
 async function sync(){
   if(!navigator.onLine)return;
+  if(_syncing)return;          // candado: nunca dos sync simultáneos (evita duplicados)
+  _syncing=true; bgStat('Sincronizando…');
+  try{ await _syncBody(); }finally{ _syncing=false; bgStat(); }
+}
+async function _syncBody(){
   for(const i of queue){
     if(i.status!=='pendiente')continue;
+    bgStat('Enviando '+(i.producer||'parcela')+'…');
     try{
       const r=await fetch('/capture',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({producer:i.producer,cooperative:i.cooperative,commodity:i.commodity,
-          area_ha:i.area_ha,region:i.region||'',quantity:i.quantity||'',extra:i.extra||{},lat:i.lat,lon:i.lon,points:i.points||null,photo_base64:i.photo_base64})});
-      if(!r.ok)continue;
-      const d=await r.json(); i.lot_id=d.lot_id; i.status='enviado'; i.photo_base64=null; save(); render();
-      try{const p=await (await fetch('/lots/'+d.lot_id+'/process',{method:'POST'})).json(); i.risk=p.overall_risk; save(); render();}catch(e){}
+          area_ha:i.area_ha,region:i.region||'',quantity:i.quantity||'',extra:i.extra||{},lat:i.lat,lon:i.lon,points:i.points||null,photo_base64:i.photo_base64,field_photos:i.field_photos||null})});
+      if(!r.ok){
+        if(r.status>=400&&r.status<500){          // rechazo definitivo (límite demo, datos inválidos): no reintentar
+          let msg='Rechazado por el servidor';
+          try{ const e=await r.json(); if(e&&e.detail)msg=e.detail; }catch(_){}
+          i.status='rechazado'; i.reason=msg; i.photo_base64=null; i.field_photos=null; save(); render();
+        }
+        continue;                                  // 5xx/red: sigue pendiente y se reintenta
+      }
+      const d=await r.json(); i.lot_id=d.lot_id; i.status='enviado'; i.srv_ok=1; i.photo_base64=null; i.field_photos=null; save(); render();
+      bgStat('Verificando '+(i.producer||'')+' contra satélite…');
+      try{
+        const p=await (await fetch('/lots/'+d.lot_id+'/process',{method:'POST'})).json(); i.risk=p.overall_risk;
+        try{const ap=[].concat.apply([],(p.findings||[]).map(f=>f.alert_points||[])); if(ap.length)i.alert={lat:ap[0].lat,lon:ap[0].lon,date:ap[0].date||''};}catch(_){}
+        save(); render();
+      }catch(e){}
     }catch(e){}
   }
+  // Autocuración: si un lote "enviado" ya no existe en el servidor (p. ej. pérdida de datos
+  // o restauración), se re-envía desde el teléfono. Verificación una sola vez por lote.
+  for(const i of queue){
+    if(i.status==='enviado'&&i.lot_id&&!i.srv_ok){
+      try{
+        const r=await fetch('/lots/'+i.lot_id+'/findings');
+        if(r.status===404){
+          i.status='pendiente'; delete i.lot_id; delete i.risk; delete i.alert; delete i.alert_checked;
+          save(); render();
+        }else if(r.ok){ i.srv_ok=1; save(); }
+      }catch(e){}
+    }
+  }
+  for(const i of queue){   // segundo pase: los recuperados se envían de inmediato
+    if(i.status!=='pendiente'||!i.producer)continue;
+    // (el bucle principal de arriba ya corrió; este reintento cubre los recién liberados)
+    try{
+      const r=await fetch('/capture',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({producer:i.producer,cooperative:i.cooperative,commodity:i.commodity,
+          area_ha:i.area_ha,region:i.region||'',quantity:i.quantity||'',extra:i.extra||{},lat:i.lat,lon:i.lon,points:i.points||null,photo_base64:i.photo_base64||null,field_photos:i.field_photos||null})});
+      if(!r.ok){
+        if(r.status>=400&&r.status<500){let m='Rechazado por el servidor';try{const e=await r.json();if(e&&e.detail)m=e.detail;}catch(_){}
+          i.status='rechazado';i.reason=m;save();render();}
+        continue;
+      }
+      const d=await r.json(); i.lot_id=d.lot_id; i.status='enviado'; i.srv_ok=1; i.photo_base64=null; i.field_photos=null; save(); render();
+      try{
+        const p=await (await fetch('/lots/'+d.lot_id+'/process',{method:'POST'})).json(); i.risk=p.overall_risk;
+        try{const ap=[].concat.apply([],(p.findings||[]).map(f=>f.alert_points||[])); if(ap.length)i.alert={lat:ap[0].lat,lon:ap[0].lon,date:ap[0].date||''};}catch(_){}
+        save(); render();
+      }catch(e){}
+    }catch(e){}
+  }
+  // parcelas antiguas observadas: consigue su punto de alerta (una sola vez)
+  for(const i of queue){
+    if(i.status==='enviado'&&i.lot_id&&!i.alert&&(i.risk==='review'||i.risk==='high')&&!i.alert_checked){
+      try{
+        const p=await (await fetch('/lots/'+i.lot_id+'/findings')).json();
+        let ap=[].concat.apply([],(p.findings||[]).map(f=>f.alert_points||[]));
+        if(!ap.length){  // procesado antes de esta función: re-verifica una vez para ubicar el punto
+          const pr=await (await fetch('/lots/'+i.lot_id+'/process',{method:'POST'})).json();
+          i.risk=pr.overall_risk||i.risk;
+          ap=[].concat.apply([],(pr.findings||[]).map(f=>f.alert_points||[]));
+        }
+        if(ap.length)i.alert={lat:ap[0].lat,lon:ap[0].lon,date:ap[0].date||''};
+        i.alert_checked=1; save(); render();
+      }catch(e){}
+    }
+  }
+  // sustentaciones guardadas offline: se envían aquí
+  for(const s of sustQueue){
+    if(s.status!=='pendiente')continue;
+    bgStat('Enviando sustentación de '+s.lot_id+'…');
+    try{ await sustPost(s); s.status='enviado'; s.photos=null; sustSaveQ(); }
+    catch(e){ if(e&&e.status>=400&&e.status<500){ s.status='rechazado'; s.reason=e.detail||''; s.photos=null; sustSaveQ(); } }
+  }
+  sustQueue=sustQueue.filter(s=>s.status!=='enviado'); sustSaveQ();
+  loadCoopLots();
 }
 render();
+loadCoopLots();
+// recuperar borradores de sustentación si la app se cerró a medio llenar
+try{
+  const leg=JSON.parse(localStorage.getItem('origen_sustd')||'null');   // migrar formato antiguo
+  if(leg&&leg.lot_id){
+    const all=JSON.parse(localStorage.getItem('origen_sustd2')||'{}');
+    if(!all[leg.lot_id])all[leg.lot_id]={note:leg.note,photos:leg.photos,at:Date.now()};
+    localStorage.setItem('origen_sustd2',JSON.stringify(all));
+    localStorage.removeItem('origen_sustd');
+  }
+  const all=JSON.parse(localStorage.getItem('origen_sustd2')||'{}');
+  const ids=Object.keys(all).sort((a,b)=>(all[b].at||0)-(all[a].at||0));
+  if(ids.length){
+    sustOpen(ids[0]);
+    $('sustOut').textContent='Recuperamos tu sustentación guardada'+(ids.length>1?(' ('+ids.length+' borradores en total)'):'')+'. Revisa y toca Enviar.';
+  }
+}catch(e){}
 </script>
 <script>
 if('serviceWorker' in navigator){ addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){})}); }
@@ -476,8 +1065,13 @@ addEventListener('appinstalled',function(){ var c=document.getElementById('insta
   function openWa(id){ var b=location.origin;
     var msg='Origen — Dossier EUDR · lote '+id+'\n\nDossier (PDF): '+b+'/share/'+id+'/dossier\nDatos (GeoJSON): '+b+'/share/'+id+'/geojson\nVerifica autenticidad: '+b+'/verificar?lot='+id;
     window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank'); }
-  var lst=$('list'); if(lst)lst.addEventListener('click',function(ev){
+  // documento completo: cubre la lista local (#list) Y la lista de cooperativa (#slist)
+  document.addEventListener('click',function(ev){
     var w=ev.target.closest('a[data-wa]'); if(w){ev.preventDefault();openWa(w.getAttribute('data-wa'));return;}
+    var s=ev.target.closest('a[data-sust]'); if(s){ev.preventDefault();
+      var al=s.getAttribute('data-alat')?{lat:parseFloat(s.getAttribute('data-alat')),lon:parseFloat(s.getAttribute('data-alon')),date:s.getAttribute('data-adate')||''}:null;
+      window.sustOpen(s.getAttribute('data-sust'),al);return;}
+    var ed=ev.target.closest('a[data-edit]'); if(ed){ev.preventDefault();window.editOpen(ed.getAttribute('data-edit'));return;}
     var a=ev.target.closest('a[data-dl]'); if(!a)return; ev.preventDefault(); dl(a.getAttribute('data-id'),a.getAttribute('data-dl'));});
 })();
 </script>

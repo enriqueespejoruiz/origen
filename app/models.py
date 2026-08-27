@@ -50,3 +50,4 @@ class DeforestationFinding:
     risk: str                       # negligible | review | high
     loss_after_cutoff: bool
     detail: str = ""
+    alert_points: list | None = None  # [{lat,lon,date}] pixeles de alerta (para ubicar en campo)

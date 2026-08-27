@@ -14,10 +14,13 @@ requests>=2.31
 staticmap>=0.5
 qrcode>=7.0
 # --- Google Cloud (opcional: Firestore + Storage) ---
-google-cloud-firestore>=2.16
-google-cloud-storage>=2.16
+# Acotado a la serie 2.x/5.x conocida: un salto de versión mayor en un build
+# rompió Firestore en silencio (25-ago-2026) y se perdieron datos de un día.
+google-cloud-firestore>=2.16,<3
+google-cloud-storage>=2.16,<3
+protobuf>=4.25,<6
 # --- Auth (Login con Google) ---
-google-auth>=2.28
+google-auth>=2.28,<3
 itsdangerous>=2.1
 # --- Notarización Fase 1: anclaje en Bitcoin (OpenTimestamps) ---
 opentimestamps-client>=0.7

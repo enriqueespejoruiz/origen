@@ -30,6 +30,5 @@ gcloud run deploy "$SERVICE" \
 # --update-env-vars / --update-secrets (no --set-*): añaden/actualizan solo estas claves y
 # CONSERVAN el resto (GOOGLE_OAUTH_CLIENT_ID, SESSION_SECRET, GCS_BUCKET, etc.).
 
-echo "▸ Listo. URL del servicio:"
-gcloud run services describe "$SERVICE" --project "$PROJECT" --region "$REGION" \
-  --format 'value(status.url)'
+echo "▸ Listo. URL pública (la única que compartimos):"
+echo "https://origen-711831043664.us-central1.run.app"

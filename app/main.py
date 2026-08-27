@@ -11,6 +11,21 @@ app.add_middleware(SessionMiddleware, secret_key=config.SESSION_SECRET,
                    same_site="lax", max_age=60 * 60 * 24 * 14)
 WEB_DIR = os.path.join(os.path.dirname(__file__), "..", "web")
 
+# Una sola URL pública: si llegan por el alias de Cloud Run (p. ej. *-uc.a.run.app),
+# redirige a la canónica (PUBLIC_BASE_URL). 308 preserva método y cuerpo.
+_CANONICAL_HOST = config.PUBLIC_BASE_URL.split("://", 1)[-1].strip("/")
+
+@app.middleware("http")
+async def _canonical_host(request, call_next):
+    host = (request.headers.get("host") or "").split(":")[0]
+    if _CANONICAL_HOST and host and host != _CANONICAL_HOST and host.endswith(".run.app"):
+        from fastapi.responses import RedirectResponse as _RR
+        url = config.PUBLIC_BASE_URL + request.url.path
+        if request.url.query:
+            url += "?" + request.url.query
+        return _RR(url, status_code=308)
+    return await call_next(request)
+
 from fastapi.staticfiles import StaticFiles
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
 
@@ -52,6 +67,25 @@ def _photo_path(lot_id, out_dir):
             return None
     return None
 
+def _field_photo_files(lot, out_dir):
+    """Materializa las fotos de campo (sello GPS) desde los blobs. Devuelve [(ruta, meta)]."""
+    metas = (lot.extra or {}).get("field_photos") if isinstance(lot.extra, dict) else None
+    out = []
+    for m in (metas or []):
+        try:
+            p = os.path.join(out_dir, f"{lot.lot_id}_fp{m.get('i')}.jpg")
+            if not os.path.exists(p):
+                b = storage.load_blob(lot.lot_id, f"fphoto{m.get('i')}.jpg")
+                if not b:
+                    continue
+                os.makedirs(out_dir, exist_ok=True)
+                with open(p, "wb") as f:
+                    f.write(b)
+            out.append((p, m))
+        except Exception:
+            continue
+    return out
+
 def _page(name):
     return FileResponse(os.path.join(WEB_DIR, name), media_type="text/html")
 
@@ -80,9 +114,20 @@ def normativa():
 def empezar():
     return _page("empezar.html")
 
+@app.get("/api/health")   # /healthz quedó inutilizable: el borde de Google intercepta esa ruta en *.run.app
 @app.get("/healthz")
 def healthz():
-    return {"ok": True, "model": config.GEMINI_MODEL,
+    fs_ok = None
+    if config.GCP_PROJECT:  # prueba real de escritura+lectura: un build con Firestore roto se ve aquí
+        try:
+            from google.cloud import firestore
+            db = firestore.Client(project=config.GCP_PROJECT)
+            db.collection("healthz").document("ping").set({"at": _now()})
+            fs_ok = db.collection("healthz").document("ping").get().exists
+        except Exception as e:
+            print("HEALTHZ-FIRESTORE:", repr(e)[:200])
+            fs_ok = False
+    return {"ok": True, "model": config.GEMINI_MODEL, "firestore_ok": fs_ok,
             "gemini_ready": config.gemini_ready(), "auth_ready": config.auth_ready()}
 
 @app.get("/panel")
@@ -145,8 +190,11 @@ def api_coop(c: CoopIn, request: Request):
     coop = {"id": cid, "name": name, "role": "admin"}
     request.session["coop"] = coop
     storage.save_user(user["sub"], {"coop_id": cid, "coop_name": name, "role": "admin"})
+    existing = storage.get_coop(cid)
     storage.save_coop({"id": cid, "name": name, "admin_email": user.get("email", ""),
-                       "members": [user.get("email", "")], "created_at": _now()})
+                       "members": [user.get("email", "")], "created_at": _now(),
+                       # muro de activación: las cuentas nuevas nacen en evaluación
+                       "approved": existing.get("approved", False) if existing else False})
     return {"coop": coop}
 
 @app.post("/api/coop/invite")
@@ -178,10 +226,20 @@ def api_lots(request: Request):
     ctx = auth.require_coop(request)
     lots = storage.list_lots(ctx["coop"]["id"])
     lots = sorted(lots, key=lambda d: d.get("created_at", ""), reverse=True)
-    out = [{"lot_id": d.get("lot_id"), "producer": d.get("producer_name"),
-            "commodity": d.get("commodity"), "overall_risk": d.get("overall_risk", ""),
-            "created_at": d.get("created_at", ""), "captured_by": d.get("captured_by", ""),
-            "volume_flag": bool(d.get("volume_flag"))} for d in lots]
+    out = []
+    for d in lots:
+        ap = None
+        for f in (d.get("findings") or []):
+            for a in (f.get("alert_points") or []):
+                ap = {"lat": a.get("lat"), "lon": a.get("lon"), "date": a.get("date", "")}
+                break
+            if ap:
+                break
+        out.append({"lot_id": d.get("lot_id"), "producer": d.get("producer_name"),
+                    "commodity": d.get("commodity"), "overall_risk": d.get("overall_risk", ""),
+                    "created_at": d.get("created_at", ""), "captured_by": d.get("captured_by", ""),
+                    "n_plots": len(d.get("plots") or []), "alert": ap,
+                    "volume_flag": bool(d.get("volume_flag"))})
     return {"coop": ctx["coop"], "lots": out}
 
 # ---- Envíos / consignaciones (agregar N lotes en una sola DDS consolidada) ----
@@ -290,7 +348,7 @@ def _cached_findings(lot_id):
     if fr:
         try:
             return [DeforestationFinding(x["plot_id"], x["risk"], x.get("loss_after_cutoff", False),
-                                         x.get("detail", "")) for x in fr]
+                                         x.get("detail", ""), x.get("alert_points")) for x in fr]
         except Exception:
             return None
     return None
@@ -500,6 +558,64 @@ def cons_segregate(cid: str, body: WhatIfIn, request: Request):
 
 class SubstantiateIn(BaseModel):
     note: str = ""
+    photos: list[dict] | None = None   # fotos con sello GPS [{data,lat,lon,acc,at}] tomadas en la visita
+
+class LotEditIn(BaseModel):
+    producer: str | None = None
+    region: str | None = None
+    quantity: str | None = None
+    area_ha: float | None = None
+    points: list[dict] | None = None   # geometría corregida [{lat,lon}]
+
+@app.get("/api/lots/{lot_id}/detail")
+def lot_detail(lot_id: str, request: Request):
+    """Datos editables del lote (para corregir en oficina tras el trabajo de campo)."""
+    ctx = auth.require_coop(request)
+    _load_owned(lot_id, ctx)
+    d = storage.load_lot(lot_id) or {}
+    pl = (d.get("plots") or [{}])[0]
+    return {"lot_id": lot_id, "producer": d.get("producer_name"), "region": d.get("region"),
+            "quantity": d.get("quantity"), "area_ha": pl.get("area_ha"),
+            "points": pl.get("points") or [], "overall_risk": d.get("overall_risk"),
+            "substantiation": (d.get("extra") or {}).get("substantiation") or {}}
+
+@app.post("/lots/{lot_id}/edit")
+def lot_edit(lot_id: str, body: LotEditIn, request: Request):
+    """Corrección post-campo: datos del productor y geometría. Queda registrada la edición
+    (quién/cuándo/qué) y el lote debe reverificarse (/process) tras mover puntos."""
+    ctx = auth.require_coop(request)
+    _load_owned(lot_id, ctx)
+    d = storage.load_lot(lot_id) or {}
+    upd = {}
+    if body.producer is not None and body.producer.strip():
+        upd["producer_name"] = body.producer.strip()[:120]
+    if body.region is not None:
+        upd["region"] = body.region.strip()[:80]
+    if body.quantity is not None:
+        upd["quantity"] = str(body.quantity).strip()[:40]
+    plots = d.get("plots") or []
+    if body.points:
+        try:
+            pts = [{"lat": float(p["lat"]), "lon": float(p["lon"])} for p in body.points][:64]
+        except Exception:
+            raise HTTPException(400, "Puntos inválidos")
+        if pts:
+            pid = (plots[0].get("plot_id") if plots else "P1") or "P1"
+            area = body.area_ha if body.area_ha is not None else (plots[0].get("area_ha") if plots else None)
+            upd["plots"] = [{"plot_id": pid, "points": pts, "area_ha": area}]
+    elif body.area_ha is not None and plots:
+        plots[0]["area_ha"] = body.area_ha
+        upd["plots"] = plots
+    if not upd:
+        raise HTTPException(400, "Nada que actualizar")
+    ex = d.get("extra") or {}
+    ed = list(ex.get("edits") or [])
+    ed.append({"by": ctx["user"].get("email", ""), "at": _now(), "fields": sorted(upd.keys())})
+    ex["edits"] = ed[-20:]
+    upd["extra"] = ex
+    storage.merge_lot(lot_id, upd)
+    log("lot_edit", lot_id=lot_id, coop=ctx["coop"]["id"], fields=sorted(upd.keys()))
+    return {"ok": True, "lot_id": lot_id, "updated": sorted(upd.keys())}
 
 @app.post("/lots/{lot_id}/substantiate")
 def lot_substantiate(lot_id: str, body: SubstantiateIn, request: Request):
@@ -513,9 +629,33 @@ def lot_substantiate(lot_id: str, body: SubstantiateIn, request: Request):
     d = storage.load_lot(lot_id) or {}
     extra = d.get("extra") or {}
     extra["substantiation"] = {"note": note[:2000], "by": ctx["user"].get("email", ""), "at": _now()}
+    if body.photos:  # fotos de la visita de verificación: se suman a la evidencia de campo del lote
+        metas = list(extra.get("field_photos") or [])
+        nxt = max([int(m.get("i", -1)) for m in metas], default=-1) + 1
+        for fp in body.photos[:6]:
+            try:
+                raw = base64.b64decode((fp.get("data") or "").split(",", 1)[-1])
+                if not raw or len(raw) > 3_000_000:
+                    continue
+                storage.save_blob(lot_id, f"fphoto{nxt}.jpg", raw)
+                metas.append({"i": nxt, "lat": fp.get("lat"), "lon": fp.get("lon"),
+                              "acc": fp.get("acc"), "at": str(fp.get("at") or "")[:32], "sust": True})
+                nxt += 1
+            except Exception:
+                continue
+        extra["field_photos"] = metas
     storage.merge_lot(lot_id, {"extra": extra})
-    log("substantiate", lot_id=lot_id, coop=ctx["coop"]["id"])
-    return {"ok": True, "lot_id": lot_id, "substantiation": extra["substantiation"]}
+    log("substantiate", lot_id=lot_id, coop=ctx["coop"]["id"], photos=len(body.photos or []))
+    return {"ok": True, "lot_id": lot_id, "substantiation": extra["substantiation"],
+            "photos_saved": len((extra.get("field_photos") or []))}
+
+@app.get("/lots/{lot_id}/findings")
+def lot_findings(lot_id: str, request: Request):
+    """Findings cacheados del lote (ligero: sin re-verificar por satélite)."""
+    ctx = auth.require_coop(request)
+    _load_owned(lot_id, ctx)
+    d = storage.load_lot(lot_id) or {}
+    return {"lot_id": lot_id, "overall_risk": d.get("overall_risk"), "findings": d.get("findings") or []}
 
 @app.get("/verificar")
 def verificar():
@@ -582,6 +722,12 @@ def import_template():
     return Response(importer.TEMPLATE_CSV, media_type="text/csv",
                     headers={"Content-Disposition": 'attachment; filename="origen_plantilla_parcelas.csv"'})
 
+@app.get("/api/import/template.xlsx")
+def import_template_xlsx():
+    return Response(importer.template_xlsx_bytes(),
+                    media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    headers={"Content-Disposition": 'attachment; filename="origen_plantilla_parcelas.xlsx"'})
+
 @app.post("/api/import")
 async def api_import(request: Request, file: UploadFile = File(...)):
     ctx = auth.require_coop(request)
@@ -595,13 +741,15 @@ async def api_import(request: Request, file: UploadFile = File(...)):
         raise HTTPException(400, "No pude leer el archivo. Usa la plantilla CSV/Excel o un GeoJSON.")
     if not rows:
         raise HTTPException(400, errs[0] if errs else "No encontré filas válidas en el archivo.")
-    if ctx["coop"]["id"] == _DEMO_COOP["id"]:            # candado demo: 1 lote propio, 1 dossier
-        if _demo_own_lots(ctx["coop"]["id"]) >= 1:
-            raise HTTPException(403, "El entorno demo permite crear 1 lote propio (ya lo usaste). "
+    cap = _lot_cap(ctx["coop"]["id"])                    # muro de activación (demo / en evaluación)
+    if cap is not None:
+        own = _demo_own_lots(ctx["coop"]["id"])
+        if own >= cap:
+            raise HTTPException(403, f"Límite del modo evaluación alcanzado ({cap} lote(s)). "
                                      "Contáctanos para activar la cuenta de tu organización.")
-        if len(rows) > 1:
-            rows = rows[:1]
-            errs.append("Entorno demo: se importó solo la primera fila (1 lote de prueba).")
+        if len(rows) > cap - own:
+            rows = rows[:cap - own]
+            errs.append(f"Modo evaluación: se importaron solo {len(rows)} fila(s).")
     created = importer.create_lots(rows, ctx["coop"]["id"], ctx["coop"]["name"], ctx["user"].get("email", ""))
     log("import", coop=ctx["coop"]["id"], rows=len(rows), lots=len(created), errors=len(errs))
     return {"ok": True, "rows": len(rows), "lots_created": len(created),
@@ -615,6 +763,22 @@ def _demo_own_lots(coop_id):
     """Lotes creados por el visitante en la coop demo (excluye los LOT-DEMO* precargados del tour)."""
     return sum(1 for l in storage.list_lots(coop_id)
                if not str(l.get("lot_id", "")).startswith("LOT-DEMO"))
+
+def _lot_cap(coop_id):
+    """Tope de lotes en modo evaluación: demo=1; coops en evaluación (nuevas/piloto)=6; aprobadas=∞.
+    El campo `lot_cap` del doc de la coop permite ampliar el cupo de un piloto sin quitar la marca."""
+    if coop_id == _DEMO_COOP["id"]:
+        return 1
+    if storage.coop_restricted(coop_id):
+        try:
+            doc = storage.get_coop(coop_id) or {}
+            n = int(doc.get("lot_cap") or 0)
+            if n > 0:
+                return n
+        except Exception:
+            pass
+        return 6
+    return None
 
 def _ensure_demo_data():
     """Crea la coop demo + 3 lotes (limpio / revisar / observado) + 1 envío, una sola vez.
@@ -662,6 +826,32 @@ def demo_access(request: Request, key: str = ""):
     request.session["coop"] = {"id": _DEMO_COOP["id"], "name": _DEMO_COOP["name"], "role": "tecnico"}
     log("demo_access", ip=(request.client.host if request.client else ""))
     return RedirectResponse("/panel")
+
+# ---- Administración (server-a-server, llave de agente): aprobar cuentas ----
+
+@app.post("/admin/coops/{coop_id}/approve")
+def admin_approve_coop(coop_id: str, request: Request):
+    if not auth.agent_ctx(request):
+        raise HTTPException(404, "No encontrado")
+    storage.set_coop_approved(coop_id, True)
+    log("coop_approved", coop=coop_id)
+    return {"ok": True, "coop": coop_id, "approved": True}
+
+class CapIn(BaseModel):
+    cap: int = 6
+
+@app.post("/admin/coops/{coop_id}/cap")
+def admin_coop_cap(coop_id: str, body: CapIn, request: Request):
+    """Amplía el cupo de una cuenta en evaluación (sigue con marca de agua). Solo con llave de agente."""
+    if not auth.agent_ctx(request):
+        raise HTTPException(404, "No encontrado")
+    n = max(1, min(int(body.cap), 200))
+    doc = storage.get_coop(coop_id) or {"id": coop_id, "name": coop_id, "created_at": _now()}
+    doc["lot_cap"] = n
+    doc.setdefault("approved", False)
+    storage.save_coop(doc)
+    log("coop_cap", coop=coop_id, cap=n)
+    return {"ok": True, "coop": coop_id, "lot_cap": n, "approved": doc.get("approved", False)}
 
 # ---- WhatsApp (Cloud API): consulta de estado por el canal de las coops ----
 
@@ -848,12 +1038,14 @@ class CaptureIn(BaseModel):
     quantity: str = ""                     # cantidad estimada del lote
     extra: dict | None = None              # legalidad + comprador (opcional)
     photo_base64: str | None = None
+    field_photos: list[dict] | None = None  # fotos con sello GPS [{data,lat,lon,acc,at}]
 
 @app.post("/capture")
 def capture(c: CaptureIn, request: Request):
     ctx = auth.require_coop(request)
-    if ctx["coop"]["id"] == _DEMO_COOP["id"] and _demo_own_lots(ctx["coop"]["id"]) >= 1:
-        raise HTTPException(403, "El entorno demo permite crear 1 lote propio (ya lo usaste). "
+    _cap = _lot_cap(ctx["coop"]["id"])
+    if _cap is not None and _demo_own_lots(ctx["coop"]["id"]) >= _cap:
+        raise HTTPException(403, f"Límite del modo evaluación alcanzado ({_cap} lote(s)). "
                                  "Contáctanos para activar la cuenta de tu organización.")
     lot_id = "LOT-" + uuid.uuid4().hex[:8].upper()
     if c.points and len(c.points) >= 3:
@@ -861,8 +1053,23 @@ def capture(c: CaptureIn, request: Request):
     else:
         pts = [GeoPoint(c.lat, c.lon)]
     plot = Plot("P1", pts, c.area_ha)
+    ex = c.extra or {}
+    if c.field_photos:  # evidencia de campo: fotos con sello GPS (blobs durables + metadatos en el lote)
+        metas = []
+        for idx, fp in enumerate(c.field_photos[:6]):
+            try:
+                raw = base64.b64decode((fp.get("data") or "").split(",", 1)[-1])
+                if not raw or len(raw) > 3_000_000:
+                    continue
+                storage.save_blob(lot_id, f"fphoto{idx}.jpg", raw)
+                metas.append({"i": idx, "lat": fp.get("lat"), "lon": fp.get("lon"),
+                              "acc": fp.get("acc"), "at": str(fp.get("at") or "")[:32]})
+            except Exception:
+                continue
+        if metas:
+            ex["field_photos"] = metas
     lot = Lot(lot_id, c.producer, ctx["coop"]["name"], c.commodity, "PE", c.region, [plot], "", "", c.quantity,
-              ctx["coop"]["id"], ctx["user"]["email"], _now(), c.extra or {})
+              ctx["coop"]["id"], ctx["user"]["email"], _now(), ex)
     if c.photo_base64:
         try:
             data = c.photo_base64.split(",", 1)[-1]
@@ -943,7 +1150,7 @@ def process(lot_id: str, request: Request):
         except Exception: narrative = _fallback_narrative(lot, findings, "es")
     out = os.path.join(config.DATA_DIR, "dossiers")
     gj = dossier.build_geojson(lot, out)
-    pdf = dossier.build_pdf(lot, findings, narrative, "", out, lang, photo_path=_photo_path(lot_id, out))
+    pdf = dossier.build_pdf(lot, findings, narrative, "", out, lang, photo_path=_photo_path(lot_id, out), field_photos=_field_photo_files(lot, out))
     storage.upload_file(gj); storage.upload_file(pdf)
     risk = dossier.overall_risk(findings)
     try:
@@ -999,7 +1206,7 @@ def _ensure_outputs(lot_id: str):
         except Exception as e:
             print("regen narrative error:", repr(e)); narrative = _fallback_narrative(lot, findings, "es")
     gj = dossier.build_geojson(lot, out)
-    pdf = dossier.build_pdf(lot, findings, narrative, "", out, lang, photo_path=_photo_path(lot_id, out))
+    pdf = dossier.build_pdf(lot, findings, narrative, "", out, lang, photo_path=_photo_path(lot_id, out), field_photos=_field_photo_files(lot, out))
     try:
         storage.save_blob(lot_id, "dossier.pdf", open(pdf, "rb").read())
         storage.save_blob(lot_id, "data.geojson", open(gj, "rb").read())

@@ -8,8 +8,8 @@ def save_lot(lot):
             from google.cloud import firestore
             firestore.Client(project=config.GCP_PROJECT).collection("lots").document(lot.lot_id).set(asdict(lot))
             return "firestore"
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     os.makedirs(config.DATA_DIR, exist_ok=True)
     with open(os.path.join(config.DATA_DIR, f"{lot.lot_id}.json"), "w") as f:
         json.dump(asdict(lot), f, indent=2, default=str)
@@ -23,8 +23,8 @@ def load_lot(lot_id):
             doc = firestore.Client(project=config.GCP_PROJECT).collection("lots").document(lot_id).get()
             if doc.exists:
                 return doc.to_dict()
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     fp = os.path.join(config.DATA_DIR, f"{lot_id}.json")
     if os.path.exists(fp):
         return json.load(open(fp))
@@ -37,8 +37,8 @@ def upload_file(path):
             blob = storage.Client(project=config.GCP_PROJECT or None).bucket(config.GCS_BUCKET).blob(os.path.basename(path))
             blob.upload_from_filename(path)
             return f"gs://{config.GCS_BUCKET}/{os.path.basename(path)}"
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     return path
 
 def save_blob(lot_id, name, data: bytes):
@@ -50,8 +50,8 @@ def save_blob(lot_id, name, data: bytes):
             firestore.Client(project=config.GCP_PROJECT).collection("files").document(lot_id)\
                 .set({name: base64.b64encode(data).decode()}, merge=True)
             return "firestore"
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     return "local"
 
 def load_blob(lot_id, name):
@@ -65,8 +65,8 @@ def load_blob(lot_id, name):
                 v = doc.to_dict().get(name)
                 if v:
                     return base64.b64decode(v)
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     return None
 
 # ---------- Usuarios y multi-tenant (login con Google) ----------
@@ -78,8 +78,8 @@ def get_user(sub):
             doc = firestore.Client(project=config.GCP_PROJECT).collection("users").document(sub).get()
             if doc.exists:
                 return doc.to_dict()
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     fp = os.path.join(config.DATA_DIR, "users", f"{sub}.json")
     if os.path.exists(fp):
         return json.load(open(fp))
@@ -91,8 +91,8 @@ def save_user(sub, data):
             from google.cloud import firestore
             firestore.Client(project=config.GCP_PROJECT).collection("users").document(sub).set(data, merge=True)
             return "firestore"
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     d = os.path.join(config.DATA_DIR, "users"); os.makedirs(d, exist_ok=True)
     fp = os.path.join(d, f"{sub}.json")
     cur = json.load(open(fp)) if os.path.exists(fp) else {}
@@ -106,8 +106,8 @@ def merge_lot(lot_id, fields):
             from google.cloud import firestore
             firestore.Client(project=config.GCP_PROJECT).collection("lots").document(lot_id).set(fields, merge=True)
             return
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     fp = os.path.join(config.DATA_DIR, f"{lot_id}.json")
     if os.path.exists(fp):
         d = json.load(open(fp)); d.update(fields)
@@ -124,17 +124,37 @@ def list_lots(coop_id, limit=300):
             for d in q.stream():
                 out.append(d.to_dict())
             return out
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     import glob
     for fp in glob.glob(os.path.join(config.DATA_DIR, "LOT-*.json")):
         try:
             d = json.load(open(fp))
             if isinstance(d, dict) and d.get("lot_id") and d.get("coop_id") == coop_id:
                 out.append(d)
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     return out
+
+def coop_restricted(coop_id):
+    """True si la coop opera en modo evaluación (marca de muestra + topes): la demo siempre;
+    las coops 'piloto-*' y las cuentas nuevas hasta aprobarse. Coops antiguas sin el campo
+    'approved' quedan aprobadas (grandfathering) para no marcar clientes existentes."""
+    cid = str(coop_id or "")
+    if cid == "demo-origen":
+        return True
+    c = get_coop(cid)
+    if c and "approved" in c:
+        return not c["approved"]
+    return cid.startswith("piloto-")
+
+
+def set_coop_approved(coop_id, approved=True):
+    c = get_coop(coop_id) or {"id": coop_id}
+    c["approved"] = bool(approved)
+    save_coop(c)
+    return c
+
 
 def list_all_lots(limit=1000):
     """Todos los lotes (para el monitoreo continuo, multi-coop)."""
@@ -145,16 +165,16 @@ def list_all_lots(limit=1000):
             for d in firestore.Client(project=config.GCP_PROJECT).collection("lots").limit(limit).stream():
                 out.append(d.to_dict())
             return out
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     import glob
     for fp in glob.glob(os.path.join(config.DATA_DIR, "LOT-*.json")):
         try:
             d = json.load(open(fp))
             if isinstance(d, dict) and d.get("lot_id"):
                 out.append(d)
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     return out
 
 # ---------- Alertas de monitoreo continuo ----------
@@ -171,8 +191,8 @@ def save_alert(alert):
             from google.cloud import firestore
             firestore.Client(project=config.GCP_PROJECT).collection("alerts").document(aid).set(alert)
             return aid
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     d = os.path.join(config.DATA_DIR, "alerts"); os.makedirs(d, exist_ok=True)
     json.dump(alert, open(os.path.join(d, f"{aid}.json"), "w"), default=str)
     return aid
@@ -188,16 +208,16 @@ def list_alerts(coop_id, limit=50):
             for d in q.stream():
                 out.append(d.to_dict())
             return out
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     import glob
     for fp in glob.glob(os.path.join(config.DATA_DIR, "alerts", "AL-*.json")):
         try:
             d = json.load(open(fp))
             if d.get("coop_id") == coop_id:
                 out.append(d)
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     return out
 
 # ---------- Envíos / consignaciones (agregación de lotes) ----------
@@ -208,8 +228,8 @@ def save_consignment(c):
             from google.cloud import firestore
             firestore.Client(project=config.GCP_PROJECT).collection("consignments").document(c.consignment_id).set(asdict(c))
             return "firestore"
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     os.makedirs(config.DATA_DIR, exist_ok=True)
     with open(os.path.join(config.DATA_DIR, f"{c.consignment_id}.json"), "w") as f:
         json.dump(asdict(c), f, indent=2, default=str)
@@ -222,8 +242,8 @@ def load_consignment(cid):
             doc = firestore.Client(project=config.GCP_PROJECT).collection("consignments").document(cid).get()
             if doc.exists:
                 return doc.to_dict()
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     fp = os.path.join(config.DATA_DIR, f"{cid}.json")
     if os.path.exists(fp):
         return json.load(open(fp))
@@ -240,16 +260,16 @@ def list_consignments(coop_id, limit=300):
             for d in q.stream():
                 out.append(d.to_dict())
             return out
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     import glob
     for fp in glob.glob(os.path.join(config.DATA_DIR, "ENV-*.json")):
         try:
             d = json.load(open(fp))
             if isinstance(d, dict) and d.get("coop_id") == coop_id:
                 out.append(d)
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     return out
 
 def merge_consignment(cid, fields):
@@ -258,8 +278,8 @@ def merge_consignment(cid, fields):
             from google.cloud import firestore
             firestore.Client(project=config.GCP_PROJECT).collection("consignments").document(cid).set(fields, merge=True)
             return
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     fp = os.path.join(config.DATA_DIR, f"{cid}.json")
     if os.path.exists(fp):
         d = json.load(open(fp)); d.update(fields)
@@ -273,8 +293,8 @@ def save_coop(coop):
             from google.cloud import firestore
             firestore.Client(project=config.GCP_PROJECT).collection("coops").document(coop["id"]).set(coop, merge=True)
             return
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     d = os.path.join(config.DATA_DIR, "coops"); os.makedirs(d, exist_ok=True)
     json.dump(coop, open(os.path.join(d, f"{coop['id']}.json"), "w"), indent=2, default=str)
 
@@ -285,8 +305,8 @@ def get_coop(cid):
             doc = firestore.Client(project=config.GCP_PROJECT).collection("coops").document(cid).get()
             if doc.exists:
                 return doc.to_dict()
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     fp = os.path.join(config.DATA_DIR, "coops", f"{cid}.json")
     if os.path.exists(fp):
         return json.load(open(fp))
@@ -313,16 +333,16 @@ def find_coop_by_member(email):
                  .where(filter=FieldFilter("members", "array_contains", email)).limit(1))
             for d in q.stream():
                 return d.to_dict()
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     import glob
     for fp in glob.glob(os.path.join(config.DATA_DIR, "coops", "*.json")):
         try:
             c = json.load(open(fp))
             if email in (c.get("members") or []):
                 return c
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     return None
 
 def save_notary(lot_id, rec):
@@ -331,8 +351,8 @@ def save_notary(lot_id, rec):
             from google.cloud import firestore
             firestore.Client(project=config.GCP_PROJECT).collection("notary").document(lot_id).set(rec, merge=True)
             return
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     d = os.path.join(config.DATA_DIR, "notary"); os.makedirs(d, exist_ok=True)
     json.dump(rec, open(os.path.join(d, f"{lot_id}.json"), "w"))
 
@@ -343,8 +363,8 @@ def get_notary(lot_id):
             doc = firestore.Client(project=config.GCP_PROJECT).collection("notary").document(lot_id).get()
             if doc.exists:
                 return doc.to_dict()
-        except Exception:
-            pass
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
     fp = os.path.join(config.DATA_DIR, "notary", f"{lot_id}.json")
     if os.path.exists(fp):
         return json.load(open(fp))

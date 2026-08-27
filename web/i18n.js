@@ -226,11 +226,53 @@
     "Descargar prueba .ots": "Download .ots proof", "Actualizar estado": "Refresh status",
     "Aún pendiente en Bitcoin": "Still pending in Bitcoin",
     "Ingresar coordenadas manualmente": "Enter coordinates manually",
+    "¿Ya tienes la georreferencia?": "Already have the geolocation?",
+    "Si tus parcelas ya están en un Excel o CSV, súbelo y las registramos todas de una vez (necesitas señal).":
+      "If your plots are already in an Excel or CSV file, upload it and we register them all at once (requires signal).",
+    "Descarga la plantilla:": "Download the template:", "Elige el archivo primero": "Choose the file first",
+    "Sin señal: la importación necesita conexión. Inténtalo cuando tengas cobertura.":
+      "No signal: importing needs a connection. Try again when you have coverage.",
+    "Verificando contra satélite…": "Verifying against satellite…",
     "Ocultar entrada manual": "Hide manual entry",
     "Usar estas coordenadas": "Use these coordinates",
     "Latitud": "Latitude", "Longitud": "Longitude",
     "Para coordenadas que ya tienes (GPS externo, título, plano). Usa punto decimal y al menos 5 decimales; en Perú la latitud es negativa (ej. -6.478123) y la longitud ~ -70 a -81.":
       "For coordinates you already have (external GPS, land title, survey). Use decimal point and at least 5 decimals; in Peru latitude is negative (e.g. -6.478123) and longitude ~ -70 to -81.",
+    // -- fotos con sello GPS / mapa / esquinas manuales / sustentación --
+    "Fotos del predio con sello GPS — recomendado 3 a 6 (esquinas y centro del cultivo)":
+      "Plot photos with GPS stamp — recommended 3 to 6 (corners and center of the crop)",
+    "Cada foto queda sellada con coordenadas, precisión y fecha — evidencia de campo para el dossier. Si luego el satélite marca algo, estas fotos lo sustentan sin volver al predio.":
+      "Each photo is stamped with coordinates, accuracy and date — field evidence for the dossier. If the satellite later flags something, these photos substantiate it without returning to the plot.",
+    "Elegir el punto en el mapa": "Pick the point on the map",
+    "Ocultar mapa": "Hide map",
+    "Vista satelital: toca el centro del predio para marcarlo. Arrastra el marcador para afinarlo. Necesita conexión.":
+      "Satellite view: tap the center of the plot to mark it. Drag the marker to fine-tune. Requires connection.",
+    "Marcar esquinas en el mapa": "Mark corners on the map",
+    "Vista satelital: toca cada esquina del predio para marcarla. Arrastra un marcador para afinarlo. Necesita conexión.":
+      "Satellite view: tap each corner of the plot to mark it. Drag a marker to fine-tune. Requires connection.",
+    "Escribir coordenadas de una esquina": "Type a corner's coordinates",
+    "Ocultar entrada de esquinas": "Hide corner entry",
+    "Agregar esquina": "Add corner",
+    "Para vértices que ya tienes (GPS externo, plano, título). Punto decimal y al menos 5 decimales.":
+      "For vertices you already have (external GPS, survey, land title). Decimal point and at least 5 decimals.",
+    "Editar": "Edit", "Cerrar": "Close", "Guardar esquina": "Save corner", "Eliminar": "Delete",
+    "Editar lote —": "Edit lot —", "Actualizar": "Refresh",
+    "Observaciones / sustentación (aparece en el dossier)": "Notes / substantiation (appears in the dossier)",
+    "Guardar y reverificar": "Save & re-verify",
+    "Arrastra los marcadores para corregir la geometría. Al guardar, el lote se reverifica contra satélite y el dossier se regenera.":
+      "Drag the markers to correct the geometry. On save, the lot is re-verified against satellite and the dossier is regenerated.",
+    "Todos los lotes de tu cooperativa en el servidor — también los capturados desde otros equipos. Desde aquí puedes bajar dossiers, ir al punto observado, sustentar y editar.":
+      "All your cooperative's lots on the server — including those captured from other devices. From here you can download dossiers, go to the observed point, substantiate and edit.",
+    "Sincronizando…": "Syncing…", "Cantidad (kg)": "Quantity (kg)", "Productor": "Producer", "Región": "Region",
+    "Sustentar hallazgo —": "Substantiate finding —",
+    "¿Qué encontraste en el punto observado?": "What did you find at the observed point?",
+    "Fotos del punto (con sello GPS) — párate lo más cerca posible":
+      "Photos of the point (GPS-stamped) — stand as close as possible",
+    "Enviar sustentación": "Send substantiation",
+    "Cancelar": "Cancel",
+    "⚑ Ir al punto": "⚑ Go to the point",
+    "Sustentar": "Substantiate",
+    "rechazado": "rejected", "deforestación": "deforestation", "Pendiente": "Pending", "enviado": "sent",
     "Legalidad": "Legality", "Legalidad del lote": "Lot legality", "Guardar legalidad": "Save legality", "Guardando…": "Saving…",
     "Título o derecho de uso del predio": "Land title or right of use",
     "Conformidad ambiental y forestal": "Environmental & forestry compliance",

@@ -39,6 +39,18 @@
  .cta2{background:var(--pine);color:#fff!important;text-decoration:none;padding:13px 22px;border-radius:10px;font-weight:600;display:inline-block;font-family:'Familjen Grotesk'}
  footer{padding:24px 0;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
  @media(max-width:680px){.grid,.dates{grid-template-columns:1fr}.head h1{font-size:28px}nav a.lnk{display:none}}
+
+/* === Morpho a color (v2) === */
+:root{--wing:linear-gradient(128deg,#050B24 0%,#0B2470 28%,#1344B0 52%,#1F5BD8 72%,#4FB0F5 100%);
+ --ocelo:linear-gradient(135deg,#F6C35A 0%,#E0A43A 55%,#B8761A 100%);
+ --btn-blue:linear-gradient(180deg,#2E6DF0 0%,#1344B0 100%)}
+body{background:linear-gradient(180deg,#DCE8FF 0%,#EEF4FF 280px,#FFFFFF 640px) fixed!important}
+.top{background:var(--wing)!important;position:relative}
+.top::after{content:'';display:block;height:8px;background:linear-gradient(90deg,#0B0D12 0 70%,#E0A43A 70% 76%,#0B0D12 76%)}
+nav .cta{background:var(--ocelo)!important;color:#0B0D12!important;border-radius:4px!important}
+.logo{background:transparent!important}
+nav svg path[stroke]{stroke:#fff}
+.eyebrow{color:#F6C35A!important}
 </style></head><body>
 
 <div class="top">

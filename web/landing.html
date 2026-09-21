@@ -2,7 +2,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Origen — la prueba EUDR que tu comprador europeo exige</title>
 <meta name="description" content="Sin la prueba EUDR, tu café o cacao se queda fuera de Europa. Origen genera la geolocalización, la verificación contra 4 fuentes satelitales y el dossier + GeoJSON listo para TRACES — de muchas parcelas a un solo dossier por envío, desde el celular.">
-<meta name="theme-color" content="#1344B0">
+<meta name="theme-color" content="#0B0D12">
 <meta property="og:title" content="Cumple el EUDR — o tu café se queda fuera de Europa">
 <meta property="og:description" content="Origen genera la prueba que tu comprador europeo exige: geolocalización parcela por parcela, 4 fuentes satelitales y dossier listo para TRACES. De muchas parcelas a un solo dossier por envío.">
 <meta property="og:type" content="website">
@@ -214,6 +214,85 @@ footer .sp{margin-left:auto}
 }
 @media(max-width:480px){ .stats{grid-template-columns:1fr} .stat{border-right:0;padding-left:0!important} .float-chip{right:0} }
 @media(prefers-reduced-motion:reduce){ *{animation:none!important;scroll-behavior:auto!important} .reveal{transform:none;transition:none} }
+
+/* ============================================================================
+   Morpho a color (v2, 21-sep-2026): el ala entera, no solo el borde.
+   Degradados tomados de la iridiscencia del ala (noche -> azul profundo ->
+   azul morpho -> brillo celeste) y del ocelo ocre del reverso.
+   ========================================================================= */
+:root{
+  --wing:linear-gradient(128deg,#050B24 0%,#0B2470 28%,#1344B0 52%,#1F5BD8 72%,#4FB0F5 100%);
+  --wing-soft:linear-gradient(180deg,#E3ECFF 0%,#F2F6FF 60%,#FFFFFF 100%);
+  --ocelo:linear-gradient(135deg,#F6C35A 0%,#E0A43A 55%,#B8761A 100%);
+  --night-grad:linear-gradient(160deg,#0B0D12 0%,#0A1840 70%,#0F2F8F 100%);
+}
+/* nav sobre noche */
+.nav{background:#0B0D12;border-bottom:0}
+.wm{color:#fff}
+.nl a{color:#C9D6F2}.nl a:hover{color:#fff;border-bottom-color:var(--m-ochre)}
+.nl .live{color:#C9D6F2;border-color:rgba(255,255,255,.22)}
+.nl [data-langbtn]{background:transparent!important;border-color:rgba(255,255,255,.35)!important;color:#fff!important}
+.btn-gold{background:var(--ocelo);border:0;color:#0B0D12!important;padding:12px 20px}
+.btn-gold:hover{background:#fff;color:#0B0D12!important}
+.nav .logo svg path[stroke]{stroke:#fff}
+.nav .logo svg path[fill="#0B0D12"]{fill:#fff}
+
+/* hero: el ala */
+.hero{background:var(--wing);color:#fff;border-bottom:0;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;right:-12%;top:-30%;width:62%;aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle,rgba(111,196,255,.55) 0%,rgba(79,176,245,.18) 38%,transparent 66%);pointer-events:none}
+.hero::after{content:'';position:absolute;left:0;right:0;bottom:0;height:10px;background:linear-gradient(90deg,#0B0D12 0 70%,#E0A43A 70% 76%,#0B0D12 76%)}
+.hero .wrap{position:relative;z-index:1}
+.hero h1{color:#fff}
+.grad{background:var(--ocelo);-webkit-background-clip:text;background-clip:text;color:transparent;box-shadow:none}
+.hero .sub{color:#DCE6FB}
+.eyebrow{color:#F6C35A}.eyebrow::before{background:#F6C35A}
+.hero .btn-ghost{border-color:rgba(255,255,255,.75);color:#fff}
+.hero .btn-ghost:hover{background:#fff;color:var(--m-blue-deep)}
+.trust{border-top-color:rgba(255,255,255,.22)}
+.trust .ic{background:rgba(255,255,255,.14);color:#F6C35A}
+.trust b{color:#fff}.trust span{color:#BFD0F2}
+.stage::before{background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.25)}
+.phone{box-shadow:0 30px 60px -24px rgba(3,8,30,.8)}
+.ph-h{background:var(--wing)}
+.float-chip{border-left:4px solid transparent;border-image:var(--ocelo) 1}
+
+/* tira: ocre */
+.strip{background:var(--ocelo);color:#1B1304}
+.strip .lbl{color:#0B0D12}
+.strip .item svg{color:#0B2470}
+
+/* bandas en azul suave */
+.band{background:var(--wing-soft);border-color:#D2DEF7}
+.why .card{border:1px solid #D2DEF7;border-top:4px solid transparent;border-image:linear-gradient(90deg,#1344B0,#4FB0F5) 1;background:#fff}
+.why .ic{background:var(--wing);color:#fff}
+.chips span{border-color:#C6D5F3}
+.chips span::before{background:var(--ocelo)}
+.s-eyebrow::before{background:var(--ocelo)}
+
+/* pasos con color */
+.step .n{background:var(--night-grad)}
+.step:nth-child(2) .n{background:var(--wing)}
+.step:nth-child(3) .n{background:var(--ocelo);color:#0B0D12}
+.sf{border-top-width:6px}
+
+/* cifras en noche */
+section[aria-label="Cifras EUDR"]{background:var(--night-grad);padding:72px 0!important;margin-top:0}
+.stats{border-top-color:#F6C35A}
+.stat{border-right-color:rgba(255,255,255,.14)}
+.stat .num{color:#fff}.stat .num span{color:#F6C35A}
+.stat .lab{color:#BFD0F2}
+
+/* faq */
+.faq{border-top-color:var(--m-blue-deep)}
+
+/* cierre: otra vez el ala */
+.cta-final{background:var(--wing);border-bottom:0;position:relative;overflow:hidden}
+.cta-final::after{content:'';position:absolute;left:0;right:0;bottom:0;height:8px;background:var(--ocelo)}
+.cta-final .btn-gold{background:var(--ocelo);color:#0B0D12!important}
+.cta-final .btn-gold:hover{background:#fff}
+footer{background:var(--night-grad)}
+@media(max-width:880px){ .hero::before{width:120%;right:-50%;top:-20%} }
 </style></head>
 <body>
 <a class="skip" href="#main">Saltar al contenido</a>

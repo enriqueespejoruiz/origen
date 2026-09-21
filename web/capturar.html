@@ -108,6 +108,18 @@ input[type=file]::file-selector-button{font-family:var(--font-heading);font-weig
 /* Morpho */
 :root{--font-mono:'Martian Mono',ui-monospace,monospace}
 header .logo,.gatecard .glogo{background:transparent;border-radius:0}
+
+/* === Morpho a color (v2) === */
+:root{--wing:linear-gradient(128deg,#050B24 0%,#0B2470 28%,#1344B0 52%,#1F5BD8 72%,#4FB0F5 100%);
+ --ocelo:linear-gradient(135deg,#F6C35A 0%,#E0A43A 55%,#B8761A 100%);
+ --btn-blue:linear-gradient(180deg,#2E6DF0 0%,#1344B0 100%)}
+body{background:linear-gradient(180deg,#DCE8FF 0%,#EEF4FF 280px,#FFFFFF 640px) fixed!important}
+header{background:var(--wing)!important;border-bottom:4px solid transparent!important;border-image:var(--ocelo) 1!important}
+header svg path[stroke]{stroke:#fff}
+button{background:var(--btn-blue)}
+button:hover{background:#0B0D12}
+#gate{background:var(--wing)!important}
+.gatecard{border-top:4px solid #E0A43A!important}
 </style></head><body>
 <div id="gate">
   <div class="gatecard">

@@ -11,14 +11,21 @@ app.add_middleware(SessionMiddleware, secret_key=config.SESSION_SECRET,
                    same_site="lax", max_age=60 * 60 * 24 * 14)
 WEB_DIR = os.path.join(os.path.dirname(__file__), "..", "web")
 
-# Una sola URL pública: si llegan por el alias de Cloud Run (p. ej. *-uc.a.run.app),
-# redirige a la canónica (PUBLIC_BASE_URL). 308 preserva método y cuerpo.
+# Una sola URL pública: si llegan por una URL de Cloud Run (*.run.app), redirige a la
+# canónica (PUBLIC_BASE_URL, hoy https://eudrperu.com). 308 preserva método y cuerpo.
+# MIGRACIÓN SEGURA: la app de captura y las APIs NO se redirigen — los teléfonos con
+# colas pendientes en el origen antiguo (localStorage por origen) deben poder terminar
+# de sincronizar ahí. Solo migran las navegaciones de páginas.
 _CANONICAL_HOST = config.PUBLIC_BASE_URL.split("://", 1)[-1].strip("/")
+_NO_REDIRECT = ("/capturar", "/capture", "/api", "/lots", "/consignments", "/auth",
+                "/healthz", "/sw.js", "/manifest", "/static", "/cron", "/webhooks", "/admin")
 
 @app.middleware("http")
 async def _canonical_host(request, call_next):
     host = (request.headers.get("host") or "").split(":")[0]
-    if _CANONICAL_HOST and host and host != _CANONICAL_HOST and host.endswith(".run.app"):
+    if (_CANONICAL_HOST and host and host != _CANONICAL_HOST and host.endswith(".run.app")
+            and request.method in ("GET", "HEAD")
+            and not request.url.path.startswith(_NO_REDIRECT)):
         from fastapi.responses import RedirectResponse as _RR
         url = config.PUBLIC_BASE_URL + request.url.path
         if request.url.query:

@@ -1,59 +1,83 @@
 <!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Empezar con Origen</title>
-<meta name="theme-color" content="#07211A">
+<meta name="theme-color" content="#F3F5F9">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Atkinson+Hyperlegible+Next:wght@400;500;700&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{--brand-pine:#0B3D2E;--brand-gold:#C2A04C;--brand-gold-2:#E0C277;--brand-leaf-2:#46B681;
- --bg-0:#04140E;--bg-1:#07211A;--text-1:#F3F1E9;--text-2:#B7C8BD;--text-3:#8AA096;
- --glass:rgba(255,255,255,.05);--hair:rgba(255,255,255,.12);
- --font-h:'Sora',system-ui,-apple-system,sans-serif;--font-b:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+:root{--brand-pine:#1344B0;--brand-gold:#E0A43A;--brand-gold-2:#F0B94A;--brand-leaf-2:#1F5BD8;
+ --bg-0:#FFFFFF;--bg-1:#F3F5F9;--text-1:#0B0D12;--text-2:#434B58;--text-3:#5F6775;
+ --glass:#F3F5F9;--hair:#DCE1E8;
+ --font-h:'Familjen Grotesk',system-ui,-apple-system,sans-serif;--font-b:'Atkinson Hyperlegible Next',system-ui,-apple-system,'Segoe UI',sans-serif}
 *{box-sizing:border-box}
 body{margin:0;font-family:var(--font-b);color:var(--text-1);line-height:1.6;min-height:100vh;
- background:radial-gradient(60% 50% at 12% 2%,rgba(46,139,94,.28),transparent 60%),
- radial-gradient(46% 46% at 92% 8%,rgba(194,160,76,.18),transparent 58%),
- linear-gradient(180deg,#07231B,var(--bg-1) 36%,var(--bg-0));-webkit-font-smoothing:antialiased}
+ background:
+ 
+ linear-gradient(180deg,#FFFFFF,var(--bg-1) 36%,var(--bg-0));-webkit-font-smoothing:antialiased}
 h1,h2{font-family:var(--font-h);font-weight:700;letter-spacing:-.02em;margin:0;line-height:1.1}
 a{color:inherit}
 .wrap{max-width:640px;margin:0 auto;padding:0 22px 48px}
 nav{display:flex;align-items:center;gap:10px;padding:18px 0}
 .logo{background:rgba(245,242,235,.96);border-radius:10px;padding:3px;line-height:0}
-nav .wm{font-family:var(--font-h);font-weight:700;font-size:20px;color:#fff;text-decoration:none}
+nav .wm{font-family:var(--font-h);font-weight:700;font-size:20px;color:#0B0D12;text-decoration:none}
 nav .back{margin-left:auto;color:var(--text-2);text-decoration:none;font-size:14px}
 .head{padding:14px 0 6px}
 .eyebrow{color:var(--brand-gold-2);font-weight:600;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;font-family:var(--font-h)}
 .head h1{font-size:clamp(28px,5vw,40px);margin-top:10px;max-width:16ch}
 .head p{color:var(--text-2);font-size:17px;max-width:50ch;margin-top:12px}
-.card{background:var(--glass);border:1px solid var(--hair);border-radius:18px;padding:22px;margin:22px 0 0;backdrop-filter:blur(8px)}
+.card{background:var(--glass);border:1px solid var(--hair);border-radius:18px;padding:22px;margin:22px 0 0;}
 label{display:block;font-size:13px;color:var(--text-2);margin:14px 0 5px;font-weight:500}
 input,select,textarea{width:100%;padding:12px 13px;font-size:16px;border:1px solid var(--hair);border-radius:11px;
- background:rgba(0,0,0,.20);color:#fff;font-family:var(--font-b)}
-input::placeholder,textarea::placeholder{color:#7f968b}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand-leaf-2);box-shadow:0 0 0 3px rgba(70,182,129,.18)}
+ background:#FFFFFF;color:#0B0D12;font-family:var(--font-b)}
+input::placeholder,textarea::placeholder{color:#8A93A0}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand-leaf-2);box-shadow:0 0 0 3px rgba(31,91,216,.18)}
 select{appearance:none;-webkit-appearance:none}
 .row{display:flex;gap:12px}.row>div{flex:1}
 button{width:100%;margin-top:18px;padding:14px;font-size:16px;font-weight:600;border:0;border-radius:12px;cursor:pointer;
- font-family:var(--font-h);background:linear-gradient(180deg,var(--brand-gold-2),var(--brand-gold));color:#231a04;
- box-shadow:0 10px 28px rgba(194,160,76,.3);transition:transform .15s}
+ font-family:var(--font-h);background:var(--m-blue-deep,#1344B0);color:#FFFFFF;
+ transition:transform .15s}
 button:hover{transform:translateY(-2px)} button:disabled{opacity:.7}
 .note{color:var(--text-3);font-size:12.5px;margin-top:14px;text-align:center}
 .ok{display:none;text-align:center;padding:12px 4px}
 .ok .ic{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;margin:4px auto 14px;
- background:rgba(70,182,129,.16);color:var(--brand-leaf-2)}
-.ok a.cta{display:inline-block;margin-top:10px;background:linear-gradient(180deg,var(--brand-gold-2),var(--brand-gold));
- color:#231a04;text-decoration:none;font-weight:600;font-family:var(--font-h);padding:13px 24px;border-radius:12px}
+ background:rgba(31,91,216,.16);color:var(--brand-leaf-2)}
+.ok a.cta{display:inline-block;margin-top:10px;background:var(--m-blue-deep,#1344B0);
+ color:#FFFFFF;text-decoration:none;font-weight:600;font-family:var(--font-h);padding:13px 24px;border-radius:12px}
 @media(max-width:560px){.row{flex-direction:column;gap:0}}
+
+/* === Morpho (sep-2026): fondos claros, sin vidrio ni brillos === */
+:root{--m-blue:#1F5BD8;--m-blue-deep:#1344B0;--m-ochre:#E0A43A;--ink:#0B0D12;--font-mono:'Martian Mono',ui-monospace,monospace}
+body{background:#FFFFFF!important}
+#gate{background:#F3F5F9!important}
+.logo{background:transparent!important;box-shadow:none!important;border-radius:0!important}
+button,
+.ok a.cta{color:#FFFFFF!important}
+input,select,textarea{background:#FFFFFF;color:#0B0D12;border-color:#C3CAD5}
+[data-langbtn]{color:#0B0D12!important;background:#FFFFFF!important;border:1px solid #C3CAD5!important;border-radius:0!important;width:auto!important;margin-top:0!important;padding:6px 10px!important;box-shadow:none!important;font-family:var(--font-mono)!important;font-size:11.5px!important}
+.eyebrow{color:#1344B0!important;font-family:var(--font-mono)!important;font-weight:500!important;letter-spacing:.06em!important}
+.card,.ccard,.scard,.lcard,.mcard,.fact,.verdict{border-radius:6px!important;box-shadow:none!important}
+button,.btn,.btn-gold,.otsbtn,.ok a.cta,input,select,textarea{border-radius:4px!important}
+
+/* === Morpho a color (v2) === */
+:root{--wing:linear-gradient(128deg,#050B24 0%,#0B2470 28%,#1344B0 52%,#1F5BD8 72%,#4FB0F5 100%);
+ --ocelo:linear-gradient(135deg,#F6C35A 0%,#E0A43A 55%,#B8761A 100%);
+ --btn-blue:linear-gradient(180deg,#2E6DF0 0%,#1344B0 100%)}
+body{background:linear-gradient(180deg,#DCE8FF 0%,#EEF4FF 280px,#FFFFFF 640px) fixed!important}
+nav{background:var(--wing);margin:0 -22px;padding:16px 22px!important;border-bottom:6px solid #0B0D12;border-image:linear-gradient(90deg,#0B0D12 0 72%,#E0A43A 72% 78%,#0B0D12 78%) 1}
+nav .wm,nav .back{color:#fff!important}
+nav svg path[stroke]{stroke:#fff}
+button:not([data-langbtn]),.ok a.cta{background:var(--btn-blue)!important}
+.card{border-top:4px solid #1F5BD8!important}
 </style></head><body>
 <div class="wrap">
   <nav>
     <span class="logo"><svg viewBox="0 0 64 64" width="28" height="28" aria-hidden="true">
-      <path d="M32 6C20.4 6 11 15 11 26.2 11 40 32 58 32 58s21-18 21-31.8C53 15 43.6 6 32 6z" fill="#0B3D2E"/>
-      <path d="M32 41V27" stroke="#EAF3EC" stroke-width="3" stroke-linecap="round"/>
-      <path d="M32 31c-5 0-9-3-9.5-8 5.5 0 9 2.5 9.5 8z" fill="#C2A04C"/>
-      <path d="M32 28c5 0 9-3 9.5-8-5.5 0-9 2.5-9.5 8z" fill="#2E8B5E"/></svg></span>
+      <path d="M32 6C20.4 6 11 15 11 26.2 11 40 32 58 32 58s21-18 21-31.8C53 15 43.6 6 32 6z" fill="#1344B0"/>
+      <path d="M32 41V27" stroke="#E8EFFC" stroke-width="3" stroke-linecap="round"/>
+      <path d="M32 31c-5 0-9-3-9.5-8 5.5 0 9 2.5 9.5 8z" fill="#E0A43A"/>
+      <path d="M32 28c5 0 9-3 9.5-8-5.5 0-9 2.5-9.5 8z" fill="#2F8F4E"/></svg></span>
     <a class="wm" href="/">Origen</a>
-    <button data-langbtn onclick="toggleLang()" aria-label="Switch language" style="margin-left:auto;background:rgba(255,255,255,.08);border:1px solid var(--hair);color:var(--text-2);padding:6px 11px;border-radius:999px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:var(--font-h)">EN</button>
+    <button data-langbtn onclick="toggleLang()" aria-label="Switch language" style="margin-left:auto;background:#F3F5F9;border:1px solid var(--hair);color:var(--text-2);padding:6px 11px;border-radius:999px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:var(--font-h)">EN</button>
     <a class="back" href="/" style="margin-left:12px">← Inicio</a>
   </nav>
   <div class="head">
@@ -84,7 +108,7 @@ button:hover{transform:translateY(-2px)} button:disabled{opacity:.7}
     </form>
     <div class="ok" id="ok">
       <div class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M5 12l4.5 4.5L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <h2 style="color:#fff">¡Recibido! Te contactamos pronto.</h2>
+      <h2 style="color:#0B0D12">¡Recibido! Te contactamos pronto.</h2>
       <p style="color:var(--text-2);max-width:42ch;margin:10px auto 0">Mientras, puedes probar la captura de parcelas ahora mismo — sin instalar nada.</p>
       <a class="cta" href="/capturar">Probar la captura</a>
     </div>

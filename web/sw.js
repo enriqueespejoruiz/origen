@@ -1,14 +1,19 @@
 /* Origen — service worker. Red primero para lo propio (los deploys se ven al instante);
    cache solo como respaldo offline para la captura en campo. */
-const CACHE = 'origen-v3';
+const CACHE = 'origen-v4';
 const SHELL = ['/capturar', '/manifest.webmanifest', '/static/icon-192.png'];
-const CANONICAL = 'https://origen-711831043664.us-central1.run.app';
+const CANONICAL = 'https://eudrperu.com';
+// LEGACY: la URL antigua de Cloud Run. Durante la migración NO se autodestruye
+// (los teléfonos con colas pendientes deben poder sincronizar desde ahí), pero
+// tampoco cachea: red directa siempre.
+const LEGACY = 'https://origen-711831043664.us-central1.run.app';
 // Una sola URL: en cualquier otro origen (alias de Cloud Run), el SW se autodestruye
 // y deja pasar la red para que el redirect 308 del servidor lleve al canónico.
-const FOREIGN = location.origin !== CANONICAL && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1';
+const FOREIGN = location.origin !== CANONICAL && location.origin !== LEGACY &&
+                location.hostname !== 'localhost' && location.hostname !== '127.0.0.1';
 
 self.addEventListener('install', e => {
-  if (FOREIGN) { self.skipWaiting(); return; }
+  if (FOREIGN || location.origin === LEGACY) { self.skipWaiting(); return; }
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });
 
@@ -29,7 +34,7 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  if (FOREIGN) return;                                      // origen alias: red directa (redirige el servidor)
+  if (FOREIGN || location.origin === LEGACY) return;        // alias o URL antigua: red directa, sin cache
   const req = e.request;
   if (req.method !== 'GET') return;                         // nunca interceptar acciones (POST)
   const url = new URL(req.url);

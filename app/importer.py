@@ -183,7 +183,7 @@ def template_xlsx_bytes():
         ws.append(r)
     hf = Font(bold=True, color="FFFFFF")
     for c in ws[1]:
-        c.font = hf; c.fill = PatternFill("solid", fgColor="0B3D2E")
+        c.font = hf; c.fill = PatternFill("solid", fgColor="1344B0")
     for col, w in zip("ABCDEFGHIJ", (16, 10, 12, 10, 9, 11, 11, 9, 12, 46)):
         ws.column_dimensions[col].width = w
     notes = wb.create_sheet("Instrucciones")

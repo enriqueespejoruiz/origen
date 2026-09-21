@@ -22,7 +22,7 @@ DATA_DIR       = os.getenv("DATA_DIR", "./_data")
 # --- Login con Google ---
 GOOGLE_OAUTH_CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID", "")
 SESSION_SECRET         = os.getenv("SESSION_SECRET", "dev-insecure-change-me")
-PUBLIC_BASE_URL        = os.getenv("PUBLIC_BASE_URL", "https://origen-711831043664.us-central1.run.app")
+PUBLIC_BASE_URL        = os.getenv("PUBLIC_BASE_URL", "https://eudrperu.com")
 
 # --- WhatsApp Cloud API (entrante + alertas) ---
 WHATSAPP_TOKEN        = os.getenv("WHATSAPP_TOKEN", "")

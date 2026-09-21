@@ -1,7 +1,7 @@
 <!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Origen — captura de parcelas</title>
-<meta name="theme-color" content="#0B3D2E">
+<meta name="theme-color" content="#1344B0">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -10,18 +10,18 @@
 <meta name="apple-mobile-web-app-title" content="Origen">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Atkinson+Hyperlegible+Next:wght@400;500;700&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* tokens (mirror de /assets/design-tokens.css) */
 :root{
-  --brand-pine:#0B3D2E;--brand-pine-2:#0E4A38;--brand-leaf:#2E8B5E;--brand-leaf-2:#46B681;
-  --brand-gold:#C2A04C;--brand-gold-2:#E0C277;--brand-ivory:#F5F2EB;--brand-ink:#16211B;
-  --brand-line:#E3DECF;--brand-muted:#6F726B;
-  --risk-clean:#2E8B5E;--risk-review:#C2A04C;--risk-high:#C0392B;
-  --font-heading:'Sora',system-ui,-apple-system,sans-serif;
-  --font-body:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --brand-pine:#1344B0;--brand-pine-2:#0F2F7A;--brand-leaf:#2F8F4E;--brand-leaf-2:#1F5BD8;
+  --brand-gold:#E0A43A;--brand-gold-2:#F0B94A;--brand-ivory:#F3F5F9;--brand-ink:#0B0D12;
+  --brand-line:#DCE1E8;--brand-muted:#5F6775;
+  --risk-clean:#2F8F4E;--risk-review:#E0A43A;--risk-high:#C0392B;
+  --font-heading:'Familjen Grotesk',system-ui,-apple-system,sans-serif;
+  --font-body:'Atkinson Hyperlegible Next',system-ui,-apple-system,'Segoe UI',sans-serif;
   --radius-md:12px;--radius-lg:16px;--radius-pill:999px;
-  --shadow-sm:0 6px 18px rgba(11,61,46,.08);
+  --shadow-sm:0 6px 18px rgba(11,13,18,.08);
 }
 *{box-sizing:border-box}
 body{font-family:var(--font-body);margin:0;color:var(--brand-ink);background:var(--brand-ivory);
@@ -29,10 +29,8 @@ body{font-family:var(--font-body);margin:0;color:var(--brand-ink);background:var
 :focus-visible{outline:2.5px solid var(--brand-gold);outline-offset:2px}
 /* header */
 header{position:sticky;top:0;z-index:9;color:#fff;padding:13px 16px;display:flex;align-items:center;gap:11px;
-  background:
-    radial-gradient(120% 180% at 100% 0,rgba(46,139,94,.40),transparent 60%),
-    linear-gradient(180deg,var(--brand-pine-2),var(--brand-pine));
-  border-bottom:1px solid rgba(255,255,255,.10);box-shadow:0 6px 22px rgba(4,20,14,.28)}
+  background:#0B0D12;
+  border-bottom:3px solid #1F5BD8}
 header .logo{background:var(--brand-ivory);border-radius:10px;padding:4px;line-height:0;
   box-shadow:0 0 0 1px rgba(255,255,255,.12)}
 header .wm{font-family:var(--font-heading);font-weight:600;font-size:18px;letter-spacing:-.3px}
@@ -45,56 +43,56 @@ main{max-width:560px;margin:0 auto;padding:16px 14px 40px}
   margin-bottom:14px;box-shadow:var(--shadow-sm)}
 h3{font-family:var(--font-heading);margin:0 0 4px;font-size:17px;display:flex;align-items:center;gap:9px}
 h3 .pin{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;flex:none;
-  background:rgba(46,139,94,.12);color:var(--brand-pine)}
-label{display:block;font-size:13px;color:#5b5f58;margin:12px 0 5px;font-weight:500}
-input,select{width:100%;padding:13px;font-size:16px;border:1.5px solid #d3cebf;border-radius:var(--radius-md);
+  background:rgba(31,91,216,.12);color:var(--brand-pine)}
+label{display:block;font-size:13px;color:#4A5260;margin:12px 0 5px;font-weight:500}
+input,select{width:100%;padding:13px;font-size:16px;border:1.5px solid #C3CAD5;border-radius:var(--radius-md);
   background:#fff;color:var(--brand-ink);transition:border-color .15s,box-shadow .15s;font-family:var(--font-body)}
-input:focus,select:focus{outline:none;border-color:var(--brand-leaf);box-shadow:0 0 0 3px rgba(46,139,94,.16)}
+input:focus,select:focus{outline:none;border-color:var(--brand-leaf);box-shadow:0 0 0 3px rgba(31,91,216,.16)}
 select{appearance:none;-webkit-appearance:none;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%230B3D2E' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 12px center;padding-right:40px}
 button{width:100%;padding:14px;font-size:16px;font-weight:600;border:0;border-radius:var(--radius-md);
-  background:linear-gradient(180deg,var(--brand-pine-2),var(--brand-pine));color:#fff;margin-top:14px;
+  background:var(--brand-pine);color:#fff;margin-top:14px;
   font-family:var(--font-heading);cursor:pointer;transition:transform .14s,box-shadow .14s,opacity .14s;
-  box-shadow:0 8px 22px rgba(11,61,46,.22);display:inline-flex;align-items:center;justify-content:center;gap:9px}
-button:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(11,61,46,.30)}
+  display:inline-flex;align-items:center;justify-content:center;gap:9px}
+button:hover{background:#0B0D12}
 button:active{transform:translateY(0)}
 button.sec{background:#fff;color:var(--brand-pine);border:1.5px solid var(--brand-pine);box-shadow:none}
-button.sec:hover{background:#f3f6f3}
-.gps{font-size:14px;background:#eaf3ee;border:1px solid #cfe4d8;border-radius:var(--radius-md);
-  padding:11px 13px;margin-top:10px;color:#0a5236;font-weight:500;display:flex;align-items:center;gap:8px}
+button.sec:hover{background:#F3F5F9}
+.gps{font-size:14px;background:#E8EFFC;border:1px solid #D5E1F7;border-radius:var(--radius-md);
+  padding:11px 13px;margin-top:10px;color:#1E6B3A;font-weight:500;display:flex;align-items:center;gap:8px}
 .row{display:flex;gap:10px}.row>div{flex:1}
 .qhead{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .qhead b{font-family:var(--font-heading);font-size:15px}
 .qhead button{width:auto;margin:0;padding:10px 15px;font-size:14px}
 .item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;
-  border-top:1px solid #efece2;font-size:14.5px}
+  border-top:1px solid #E9EDF3;font-size:14.5px}
 .item:first-child{border-top:0}
 .b{font-size:12px;padding:5px 11px;border-radius:var(--radius-pill);white-space:nowrap;font-weight:600}
-.pend{background:#f7efd8;color:#856312}.ok{background:#e4f4ea;color:#0a5236}
-.hi{background:#fbe8e4;color:#a8341f}.rev{background:#f7efd8;color:#856312}
+.pend{background:#FBF0DA;color:#8F5C05}.ok{background:#E3F3E8;color:#1E6B3A}
+.hi{background:#fbe8e4;color:#B02D25}.rev{background:#FBF0DA;color:#8F5C05}
 img.prev{width:100%;border-radius:var(--radius-md);margin-top:10px;border:1px solid var(--brand-line)}
-.muted{color:#8a8d85;font-size:13px}
+.muted{color:#7A8290;font-size:13px}
 .dl{display:flex;gap:16px;margin-top:7px}
 .dl a{font-size:13px;color:var(--brand-pine);font-weight:600;text-decoration:none}
 .dl a:hover{text-decoration:underline}
 .filerow{margin-top:6px}
-input[type=file]{padding:11px;font-size:14px;background:#fafaf7}
+input[type=file]{padding:11px;font-size:14px;background:#FAFBFD}
 input[type=file]::file-selector-button{font-family:var(--font-heading);font-weight:600;border:0;
-  background:rgba(46,139,94,.12);color:var(--brand-pine);padding:8px 12px;border-radius:9px;margin-right:12px;cursor:pointer}
+  background:rgba(31,91,216,.12);color:var(--brand-pine);padding:8px 12px;border-radius:9px;margin-right:12px;cursor:pointer}
 .seg{display:flex;gap:8px;margin-top:14px}
 .segb{flex:1;width:auto;margin:0;padding:11px;font-size:14px;background:#fff;color:var(--brand-pine);
-  border:1.5px solid #d3cebf;box-shadow:none;font-family:var(--font-heading)}
+  border:1.5px solid #C3CAD5;box-shadow:none;font-family:var(--font-heading)}
 .segb.on{background:var(--brand-pine);color:#fff;border-color:var(--brand-pine)}
 #gate{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:22px;
-  background:radial-gradient(70% 50% at 50% 0,rgba(46,139,94,.30),transparent 60%),linear-gradient(180deg,#0E4A38,#04140E)}
-.gatecard{width:100%;max-width:380px;background:#fff;border-radius:20px;padding:28px 24px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+  background:#F3F5F9}
+.gatecard{width:100%;max-width:380px;background:#fff;border-radius:6px;padding:28px 24px;text-align:center;border:1px solid #DCE1E8;border-top:4px solid #1344B0}
 .gatecard .glogo{background:var(--brand-ivory);border-radius:14px;padding:8px;display:inline-block;line-height:0;margin-bottom:12px}
 .gatecard h2{font-family:var(--font-heading);font-size:21px;margin:0;color:var(--brand-ink)}
-.gatecard p{color:#5b5f58;font-size:14.5px;margin:8px 0 18px}
+.gatecard p{color:#4A5260;font-size:14.5px;margin:8px 0 18px}
 #gbtn{display:flex;justify-content:center;min-height:44px}
 #coopBox2{display:none}
-.gnote{color:#8a8d85;font-size:12px;margin-top:14px}
+.gnote{color:#7A8290;font-size:12px;margin-top:14px}
 .uchip{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:#fff;background:rgba(255,255,255,.16);
   padding:5px 10px;border-radius:var(--radius-pill);white-space:nowrap;max-width:42vw;overflow:hidden;text-overflow:ellipsis}
 .uchip img{width:20px;height:20px;border-radius:50%;flex:none}
@@ -102,18 +100,34 @@ input[type=file]::file-selector-button{font-family:var(--font-heading);font-weig
 .lout:hover{background:rgba(255,255,255,.26)}
 #dmodal{position:fixed;inset:0;z-index:60;display:none;place-items:center;background:rgba(4,20,14,.55);padding:22px}
 .dmcard{background:#fff;border-radius:16px;padding:26px 28px;max-width:330px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.4)}
-.dmspin{width:34px;height:34px;border:3px solid #e3decf;border-top-color:#0B3D2E;border-radius:50%;margin:0 auto 14px;animation:dmspin 1s linear infinite}
+.dmspin{width:34px;height:34px;border:3px solid #DCE1E8;border-top-color:#1344B0;border-radius:50%;margin:0 auto 14px;animation:dmspin 1s linear infinite}
 @keyframes dmspin{to{transform:rotate(360deg)}}
-#dmodal #mtext{font-size:14.5px;color:#3a3f39}
+#dmodal #mtext{font-size:14.5px;color:#343A44}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Morpho */
+:root{--font-mono:'Martian Mono',ui-monospace,monospace}
+header .logo,.gatecard .glogo{background:transparent;border-radius:0}
+
+/* === Morpho a color (v2) === */
+:root{--wing:linear-gradient(128deg,#050B24 0%,#0B2470 28%,#1344B0 52%,#1F5BD8 72%,#4FB0F5 100%);
+ --ocelo:linear-gradient(135deg,#F6C35A 0%,#E0A43A 55%,#B8761A 100%);
+ --btn-blue:linear-gradient(180deg,#2E6DF0 0%,#1344B0 100%)}
+body{background:linear-gradient(180deg,#DCE8FF 0%,#EEF4FF 280px,#FFFFFF 640px) fixed!important}
+header{background:var(--wing)!important;border-bottom:4px solid transparent!important;border-image:var(--ocelo) 1!important}
+header svg path[stroke]{stroke:#fff}
+button{background:var(--btn-blue)}
+button:hover{background:#0B0D12}
+#gate{background:var(--wing)!important}
+.gatecard{border-top:4px solid #E0A43A!important}
 </style></head><body>
 <div id="gate">
   <div class="gatecard">
     <span class="glogo"><svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true">
-      <path d="M32 6C20.4 6 11 15 11 26.2 11 40 32 58 32 58s21-18 21-31.8C53 15 43.6 6 32 6z" fill="#0B3D2E"/>
-      <path d="M32 41V27" stroke="#EAF3EC" stroke-width="3" stroke-linecap="round"/>
-      <path d="M32 31c-5 0-9-3-9.5-8 5.5 0 9 2.5 9.5 8z" fill="#C2A04C"/>
-      <path d="M32 28c5 0 9-3 9.5-8-5.5 0-9 2.5-9.5 8z" fill="#2E8B5E"/></svg></span>
+      <path d="M32 6C20.4 6 11 15 11 26.2 11 40 32 58 32 58s21-18 21-31.8C53 15 43.6 6 32 6z" fill="#1344B0"/>
+      <path d="M32 41V27" stroke="#E8EFFC" stroke-width="3" stroke-linecap="round"/>
+      <path d="M32 31c-5 0-9-3-9.5-8 5.5 0 9 2.5 9.5 8z" fill="#E0A43A"/>
+      <path d="M32 28c5 0 9-3 9.5-8-5.5 0-9 2.5-9.5 8z" fill="#2F8F4E"/></svg></span>
     <div id="loginBox2">
       <h2>Captura de Origen</h2>
       <p>Inicia sesión con Google para capturar las parcelas de tu cooperativa.</p>
@@ -132,10 +146,10 @@ input[type=file]::file-selector-button{font-family:var(--font-heading);font-weig
   <button class="sec" id="mclose" style="display:none;width:auto;margin:10px auto 0;padding:8px 14px">Cerrar</button></div></div>
 <header>
   <span class="logo"><svg viewBox="0 0 64 64" width="26" height="26" aria-hidden="true">
-    <path d="M32 6C20.4 6 11 15 11 26.2 11 40 32 58 32 58s21-18 21-31.8C53 15 43.6 6 32 6z" fill="#0B3D2E"/>
-    <path d="M32 41V27" stroke="#EAF3EC" stroke-width="3" stroke-linecap="round"/>
-    <path d="M32 31c-5 0-9-3-9.5-8 5.5 0 9 2.5 9.5 8z" fill="#C2A04C"/>
-    <path d="M32 28c5 0 9-3 9.5-8-5.5 0-9 2.5-9.5 8z" fill="#2E8B5E"/></svg></span>
+    <path d="M32 6C20.4 6 11 15 11 26.2 11 40 32 58 32 58s21-18 21-31.8C53 15 43.6 6 32 6z" fill="#1344B0"/>
+    <path d="M32 41V27" stroke="#E8EFFC" stroke-width="3" stroke-linecap="round"/>
+    <path d="M32 31c-5 0-9-3-9.5-8 5.5 0 9 2.5 9.5 8z" fill="#E0A43A"/>
+    <path d="M32 28c5 0 9-3 9.5-8-5.5 0-9 2.5-9.5 8z" fill="#2F8F4E"/></svg></span>
   <a class="wm" href="/" style="text-decoration:none;color:inherit">Origen</a><span class="sub">captura</span>
   <span class="dot" id="net" role="status" aria-live="polite">●</span>
   <span class="uchip" id="uchip" style="display:none"></span>
@@ -185,7 +199,7 @@ input[type=file]::file-selector-button{font-family:var(--font-heading);font-weig
       </div>
       <button type="button" id="pmapToggle" style="background:none;border:0;padding:6px 0;margin-top:2px;color:var(--brand-pine);font-size:13.5px;font-weight:600;cursor:pointer;text-decoration:underline">Elegir el punto en el mapa</button>
       <div id="pmapBox" style="display:none;margin-top:6px">
-        <div id="pmap" style="height:300px;border-radius:12px;overflow:hidden;background:#e8ece9"></div>
+        <div id="pmap" style="height:300px;border-radius:12px;overflow:hidden;background:#E6EAF0"></div>
         <p class="muted" style="margin-top:6px">Vista satelital: toca el centro del predio para marcarlo. Arrastra el marcador para afinarlo. Necesita conexión.</p>
       </div>
     </div>
@@ -194,7 +208,7 @@ input[type=file]::file-selector-button{font-family:var(--font-heading);font-weig
       <div class="gps" id="vtxout" style="display:none" aria-live="polite"></div>
       <button type="button" id="mapToggle" style="background:none;border:0;padding:6px 0;margin-top:6px;color:var(--brand-pine);font-size:13.5px;font-weight:600;cursor:pointer;text-decoration:underline">Marcar esquinas en el mapa</button>
       <div id="mapBox" style="display:none;margin-top:6px">
-        <div id="map" style="height:320px;border-radius:12px;overflow:hidden;background:#e8ece9"></div>
+        <div id="map" style="height:320px;border-radius:12px;overflow:hidden;background:#E6EAF0"></div>
         <p class="muted" style="margin-top:6px">Vista satelital: toca cada esquina del predio para marcarla. Arrastra un marcador para afinarlo. Necesita conexión.</p>
       </div>
       <button type="button" id="vmanToggle" style="background:none;border:0;padding:6px 0;margin-top:2px;color:var(--brand-pine);font-size:13.5px;font-weight:600;cursor:pointer;text-decoration:underline">Escribir coordenadas de una esquina</button>
@@ -238,6 +252,11 @@ input[type=file]::file-selector-button{font-family:var(--font-heading);font-weig
     </div>
     <div id="list"></div>
     <p class="muted" id="hint">Las parcelas se guardan en tu teléfono y se envían solas cuando hay señal.</p>
+    <div id="migrate" style="display:none;background:#FBF0DA;color:#8F5C05;border-radius:4px;border-left:4px solid #E0A43A;padding:12px 14px;margin-top:10px;font-size:14px;line-height:1.45">
+      📍 <b>Origen se mudó a <a href="https://eudrperu.com/capturar" style="color:#8F5C05">eudrperu.com</a>.</b>
+      Esta dirección antigua seguirá funcionando un tiempo para que termines de sincronizar.
+      Cuando tu lista no tenga pendientes, continúa en la nueva dirección (tendrás que iniciar sesión de nuevo).
+    </div>
   </div>
   <div class="card" id="sustCard" style="display:none">
     <h3>Sustentar hallazgo — <span id="sustLot"></span></h3>
@@ -272,14 +291,14 @@ input[type=file]::file-selector-button{font-family:var(--font-heading);font-weig
     <label for="edNote">Observaciones / sustentación (aparece en el dossier)</label>
     <input id="edNote" placeholder="ej. cultivo agroforestal establecido, sin cambio de uso">
     <div id="emapBox" style="margin-top:8px">
-      <div id="emap" style="height:320px;border-radius:12px;overflow:hidden;background:#e8ece9"></div>
+      <div id="emap" style="height:320px;border-radius:12px;overflow:hidden;background:#E6EAF0"></div>
       <p class="muted" style="margin-top:6px">Arrastra los marcadores para corregir la geometría. Al guardar, el lote se reverifica contra satélite y el dossier se regenera.</p>
     </div>
     <button class="sec" id="edSave" style="margin-top:8px">Guardar y reverificar</button>
     <button type="button" id="edClose" style="background:none;border:0;padding:8px 0;color:var(--brand-pine);font-size:13.5px;font-weight:600;cursor:pointer;text-decoration:underline">Cerrar</button>
     <p class="muted" id="edOut" aria-live="polite"></p>
   </div>
-  <div id="bgstat" role="status" style="position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:60;display:none;background:#0B3D2E;color:#fff;padding:9px 18px;border-radius:999px;font-size:13px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:88vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+  <div id="bgstat" role="status" style="position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:60;display:none;background:#1344B0;color:#fff;padding:9px 18px;border-radius:999px;font-size:13px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:88vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
   <div class="card">
     <div class="qhead"><b>¿Ya tienes la georreferencia?</b></div>
     <p class="muted" style="margin-top:2px">Si tus parcelas ya están en un Excel o CSV, súbelo y las registramos todas de una vez (necesitas señal).</p>
@@ -319,15 +338,15 @@ $('gps').onclick=()=>{
   gpsStop(); coords=null;
   $('gps').textContent='Afinando GPS…';
   $('gpsout').style.display='flex';
-  $('gpsout').style.background='#eaf3ee'; $('gpsout').style.color='#0a5236';
+  $('gpsout').style.background='#E8EFFC'; $('gpsout').style.color='#1E6B3A';
   $('gpsout').textContent='Buscando señal… mantente quieto, a cielo abierto.';
   const t0=Date.now();
   gpsWatch=navigator.geolocation.watchPosition(p=>{
     const acc=Math.round(p.coords.accuracy);
     if(!coords || acc<coords.acc) coords={lat:p.coords.latitude,lon:p.coords.longitude,acc:acc};
     const a=coords.acc, ok=a<=10, mid=a<=25;
-    $('gpsout').style.background = ok?'#eaf3ee':(mid?'#f7efd8':'#fbe8e4');
-    $('gpsout').style.color = ok?'#0a5236':(mid?'#856312':'#a8341f');
+    $('gpsout').style.background = ok?'#E8EFFC':(mid?'#FBF0DA':'#fbe8e4');
+    $('gpsout').style.color = ok?'#1E6B3A':(mid?'#8F5C05':'#B02D25');
     $('gpsout').textContent=(ok?'✓ ':'… ')+coords.lat.toFixed(5)+', '+coords.lon.toFixed(5)+'  (±'+a+' m)'+(ok?'':' afinando…');
     if(a<=10 || Date.now()-t0>20000){ gpsStop(); $('gps').textContent='Volver a capturar ubicación'; }
   },e=>{ gpsStop(); $('gps').textContent='Capturar ubicación GPS'; $('gpsout').textContent='No se pudo obtener GPS: '+e.message; },
@@ -350,7 +369,7 @@ $('manUse').onclick=()=>{
     if(!confirm('Tienes menos de 4 decimales: la precisión será de cientos de metros y el sistema de la UE exige al menos 6. ¿Usar de todos modos?'))return;
   }
   gpsStop(); coords={lat:lat,lon:lon,acc:null,manual:true};
-  $('gpsout').style.display='flex'; $('gpsout').style.background='#eaf3ee'; $('gpsout').style.color='#0a5236';
+  $('gpsout').style.display='flex'; $('gpsout').style.background='#E8EFFC'; $('gpsout').style.color='#1E6B3A';
   $('gpsout').textContent='✓ '+lat.toFixed(6)+', '+lon.toFixed(6)+'  (ingresada manualmente)';
   $('gps').textContent='Capturar ubicación GPS';
   if(pmapReady){pmapSet(lat,lon,true);pmap.setView([lat,lon],16);}
@@ -388,14 +407,14 @@ function surveyStart(){
   if(vWatch!=null)return;
   if(!navigator.geolocation){alert('Tu teléfono no permite GPS en el navegador');return;}
   keepAwake();
-  $('vtxout').style.display='flex'; $('vtxout').style.background='#eaf3ee'; $('vtxout').style.color='#0a5236';
+  $('vtxout').style.display='flex'; $('vtxout').style.background='#E8EFFC'; $('vtxout').style.color='#1E6B3A';
   $('vtxout').textContent='Encendiendo GPS… sal a cielo abierto.';
   vWatch=navigator.geolocation.watchPosition(p=>{
     const f={lat:p.coords.latitude,lon:p.coords.longitude,acc:Math.round(p.coords.accuracy),t:Date.now()};
     fixes.push(f); const cut=Date.now()-15000; while(fixes.length&&fixes[0].t<cut)fixes.shift();
     const ok=f.acc<=10, mid=f.acc<=25;
-    $('vtxout').style.background=ok?'#eaf3ee':(mid?'#f7efd8':'#fbe8e4');
-    $('vtxout').style.color=ok?'#0a5236':(mid?'#856312':'#a8341f');
+    $('vtxout').style.background=ok?'#E8EFFC':(mid?'#FBF0DA':'#fbe8e4');
+    $('vtxout').style.color=ok?'#1E6B3A':(mid?'#8F5C05':'#B02D25');
     let s=(ok?'✓':'…')+' GPS vivo ±'+f.acc+' m';
     if(verts.length)s+=' · a '+Math.round(distM(verts[verts.length-1],f))+' m de la esquina '+verts.length;
     $('vtxout').textContent=s;
@@ -428,12 +447,12 @@ function renderV(){
     let row='<div class="item"><div>Esquina '+(i+1)+'<div class="muted">'+v.lat.toFixed(6)+', '+v.lon.toFixed(6)+'  '+meta+'</div></div>'
       +'<button type="button" class="sec vedit" data-ei="'+i+'" style="width:auto;margin:0;padding:6px 12px;font-size:13px">'+(editIdx===i?'Cerrar':'Editar')+'</button></div>';
     if(editIdx===i){
-      row+='<div class="item" style="display:block;background:#f4f7f4;border-radius:10px;padding:10px">'
+      row+='<div class="item" style="display:block;background:#F3F5F9;border-radius:10px;padding:10px">'
         +'<div class="row"><div><label for="velat">Latitud</label><input id="velat" inputmode="decimal" value="'+v.lat.toFixed(6)+'"></div>'
         +'<div><label for="velon">Longitud</label><input id="velon" inputmode="decimal" value="'+v.lon.toFixed(6)+'"></div></div>'
         +'<div style="display:flex;gap:8px;margin-top:8px">'
         +'<button type="button" class="sec" id="vesave" style="margin:0">Guardar esquina</button>'
-        +'<button type="button" class="sec" id="vedel2" style="margin:0;color:#a8341f;border-color:#a8341f">Eliminar</button></div></div>';
+        +'<button type="button" class="sec" id="vedel2" style="margin:0;color:#B02D25;border-color:#B02D25">Eliminar</button></div></div>';
     }
     return row;
   }).join('');
@@ -516,15 +535,15 @@ function mapSync(){
     m.on('dragend',()=>{const ll=m.getLatLng();verts[i]={lat:ll.lat,lon:ll.lng,acc:null,src:v.src||'mapa'};renderV();});
     m.on('click',()=>{editIdx=i;renderV();const el=document.querySelector('.vedit[data-ei="'+i+'"]');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});});
   });
-  if(verts.length>=3)L.polygon(verts.map(v=>[v.lat,v.lon]),{color:'#0a5236',weight:2,fillOpacity:0.15}).addTo(mapLayer);
-  else if(verts.length===2)L.polyline(verts.map(v=>[v.lat,v.lon]),{color:'#0a5236',weight:2,dashArray:'4'}).addTo(mapLayer);
+  if(verts.length>=3)L.polygon(verts.map(v=>[v.lat,v.lon]),{color:'#1E6B3A',weight:2,fillOpacity:0.15}).addTo(mapLayer);
+  else if(verts.length===2)L.polyline(verts.map(v=>[v.lat,v.lon]),{color:'#1E6B3A',weight:2,dashArray:'4'}).addTo(mapLayer);
 }
 // ---- Mapa para el modo Punto (≤4 ha): un solo marcador arrastrable ----
 let pmap=null, pmapReady=false, pMarker=null;
 function pmapSet(lat,lon,quiet){
   if(!quiet){
     gpsStop(); coords={lat:lat,lon:lon,acc:null,src:'mapa'};
-    $('gpsout').style.display='flex'; $('gpsout').style.background='#eaf3ee'; $('gpsout').style.color='#0a5236';
+    $('gpsout').style.display='flex'; $('gpsout').style.background='#E8EFFC'; $('gpsout').style.color='#1E6B3A';
     $('gpsout').textContent='✓ '+lat.toFixed(6)+', '+lon.toFixed(6)+'  (elegida en el mapa)';
     $('gps').textContent='Capturar ubicación GPS';
   }
@@ -624,7 +643,7 @@ function stampPhoto(file,fix,cb){
 function renderPhotos(){
   $('phgrid').innerHTML=photos.map((p,i)=>'<div style="position:relative">'
     +'<img src="'+p.data+'" style="width:88px;height:88px;object-fit:cover;border-radius:10px" alt="Foto '+(i+1)+'">'
-    +'<button type="button" data-px="'+i+'" aria-label="Quitar foto" style="position:absolute;top:-7px;right:-7px;width:24px;height:24px;border-radius:50%;border:0;background:#a8341f;color:#fff;font-size:13px;line-height:1;cursor:pointer">×</button></div>').join('');
+    +'<button type="button" data-px="'+i+'" aria-label="Quitar foto" style="position:absolute;top:-7px;right:-7px;width:24px;height:24px;border-radius:50%;border:0;background:#B02D25;color:#fff;font-size:13px;line-height:1;cursor:pointer">×</button></div>').join('');
   document.querySelectorAll('[data-px]').forEach(b=>b.onclick=()=>{photos.splice(+b.dataset.px,1);renderPhotos();});
 }
 $('photo').onchange=e=>{
@@ -665,7 +684,7 @@ async function sustPost(itm){
 function renderSust(){
   $('sustGrid').innerHTML=sphotos.map((p,i)=>'<div style="position:relative">'
     +'<img src="'+p.data+'" style="width:88px;height:88px;object-fit:cover;border-radius:10px" alt="Foto '+(i+1)+'">'
-    +'<button type="button" data-spx="'+i+'" aria-label="Quitar foto" style="position:absolute;top:-7px;right:-7px;width:24px;height:24px;border-radius:50%;border:0;background:#a8341f;color:#fff;font-size:13px;line-height:1;cursor:pointer">×</button></div>').join('');
+    +'<button type="button" data-spx="'+i+'" aria-label="Quitar foto" style="position:absolute;top:-7px;right:-7px;width:24px;height:24px;border-radius:50%;border:0;background:#B02D25;color:#fff;font-size:13px;line-height:1;cursor:pointer">×</button></div>').join('');
   document.querySelectorAll('[data-spx]').forEach(b=>b.onclick=()=>{sphotos.splice(+b.dataset.spx,1);renderSust();});
   sustDraftSave();
 }
@@ -700,7 +719,7 @@ async function loadCoopLots(){
       const al=l.alert;
       const links='<div class="dl"><a href="#" data-dl="dossier" data-id="'+l.lot_id+'">Dossier PDF</a>'
         +'<a href="#" data-dl="geojson" data-id="'+l.lot_id+'">Datos (GeoJSON)</a>'
-        +(al?('<a href="https://www.google.com/maps?q='+al.lat+','+al.lon+'" target="_blank" rel="noopener" style="color:#a8341f">⚑ Ir al punto</a>'):'')
+        +(al?('<a href="https://www.google.com/maps?q='+al.lat+','+al.lon+'" target="_blank" rel="noopener" style="color:#B02D25">⚑ Ir al punto</a>'):'')
         +((l.overall_risk==='review'||l.overall_risk==='high')?('<a href="#" data-sust="'+l.lot_id+'"'+(al?(' data-alat="'+al.lat+'" data-alon="'+al.lon+'" data-adate="'+(al.date||'')+'"'):'')+'>Sustentar</a>'):'')
         +'<a href="#" data-edit="'+l.lot_id+'">Editar</a></div>';
       return '<div class="item"><div>'+(l.producer||l.lot_id)+'<div class="muted">'+l.lot_id+' · '+(l.n_plots||1)+' parcela(s)</div>'+links+'</div>'+b+'</div>';
@@ -720,7 +739,7 @@ function emapSync(){
     m.bindTooltip(String(i+1),{permanent:true,direction:'top',offset:[-15,-12]});
     m.on('dragend',()=>{const ll=m.getLatLng();edPts[i]={lat:ll.lat,lon:ll.lng};emapSync();});
   });
-  if(edPts.length>=3)L.polygon(edPts.map(p=>[p.lat,p.lon]),{color:'#0a5236',weight:2,fillOpacity:0.15}).addTo(emapLayer);
+  if(edPts.length>=3)L.polygon(edPts.map(p=>[p.lat,p.lon]),{color:'#1E6B3A',weight:2,fillOpacity:0.15}).addTo(emapLayer);
 }
 window.editOpen=async lot_id=>{
   if(!navigator.onLine){alert('Editar necesita conexión.');return;}
@@ -862,10 +881,10 @@ function render(){
       dl='<div class="dl"><a href="#" data-dl="dossier" data-id="'+i.lot_id+'">Dossier PDF</a>'+
          '<a href="#" data-dl="geojson" data-id="'+i.lot_id+'">Datos (GeoJSON)</a>'+
          '<a href="#" data-wa="'+i.lot_id+'">WhatsApp</a>'+
-         (i.alert?('<a href="https://www.google.com/maps?q='+i.alert.lat+','+i.alert.lon+'" target="_blank" rel="noopener" style="color:#a8341f">⚑ Ir al punto</a>'):'')+
+         (i.alert?('<a href="https://www.google.com/maps?q='+i.alert.lat+','+i.alert.lon+'" target="_blank" rel="noopener" style="color:#B02D25">⚑ Ir al punto</a>'):'')+
          ((i.risk==='review'||i.risk==='high')?('<a href="#" data-sust="'+i.lot_id+'">Sustentar</a>'):'')+'</div>';
     }
-    const reason=(i.status==='rechazado'&&i.reason)?('<div class="muted" style="color:#a8341f">'+i.reason+'</div>'):'';
+    const reason=(i.status==='rechazado'&&i.reason)?('<div class="muted" style="color:#B02D25">'+i.reason+'</div>'):'';
     return '<div class="item"><div>'+i.producer+'<div class="muted">'+(i.geom==='poly'?('polígono · '+(i.points?i.points.length:0)+' vért.'):(i.lat.toFixed(6)+', '+i.lon.toFixed(6)))+'</div>'+reason+dl+'</div>'+b+'</div>';
   }).join('');
   if(window.i18nSync)i18nSync();
@@ -976,6 +995,8 @@ async function _syncBody(){
 }
 render();
 loadCoopLots();
+// aviso de migración: solo visible en la URL antigua de Cloud Run
+if(location.hostname.endsWith('.run.app')){const mg=$('migrate');if(mg)mg.style.display='block';}
 // recuperar borradores de sustentación si la app se cerró a medio llenar
 try{
   const leg=JSON.parse(localStorage.getItem('origen_sustd')||'null');   // migrar formato antiguo

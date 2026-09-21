@@ -6,7 +6,7 @@
 verificación contra fuentes satelitales y un **dossier + GeoJSON listo para TRACES** — más
 inteligencia comercial del lote. Un solo flujo de datos, varias salidas.
 
-🌐 **En producción:** https://origen-711831043664.us-central1.run.app
+🌐 **En producción:** https://eudrperu.com
 
 ---
 

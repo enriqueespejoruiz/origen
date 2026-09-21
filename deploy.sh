@@ -25,10 +25,10 @@ gcloud run deploy "$SERVICE" \
   --memory 1Gi \
   --timeout 300 \
   --min-instances 1 \
-  --update-env-vars "GOOGLE_GENAI_USE_VERTEXAI=1,GOOGLE_CLOUD_PROJECT=${PROJECT},GOOGLE_CLOUD_LOCATION=${REGION},GEMINI_MODEL=gemini-2.5-flash,DATA_DIR=/tmp" \
+  --update-env-vars "GOOGLE_GENAI_USE_VERTEXAI=1,GOOGLE_CLOUD_PROJECT=${PROJECT},GOOGLE_CLOUD_LOCATION=${REGION},GEMINI_MODEL=gemini-2.5-flash,DATA_DIR=/tmp,PUBLIC_BASE_URL=https://eudrperu.com" \
   --update-secrets "GFW_API_KEY=gfw-api-key:latest"
 # --update-env-vars / --update-secrets (no --set-*): añaden/actualizan solo estas claves y
 # CONSERVAN el resto (GOOGLE_OAUTH_CLIENT_ID, SESSION_SECRET, GCS_BUCKET, etc.).
 
 echo "▸ Listo. URL pública (la única que compartimos):"
-echo "https://origen-711831043664.us-central1.run.app"
+echo "https://eudrperu.com"

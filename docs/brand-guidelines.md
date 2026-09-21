@@ -17,23 +17,28 @@ Principios: claro > ingenioso · concreto > abstracto · humano > corporativo ·
 ### Logo
 Pin de ubicación + brote = **origen + crecimiento + geolocalización**. Siempre sobre fondo claro (Arena/blanco) o en su tile; versión monocroma blanca para fondos pino. No deformar, no recolorear fuera de la paleta; área de respeto = altura del brote.
 
-### Color
+### Color — sistema "Morpho" (desde sep-2026)
+Paleta tomada de la **mariposa morpho azul** (*Morpho menelaus*), especie del bosque amazónico peruano que desaparece cuando el bosque se tala: justo lo que Origen ayuda a probar. *Si la naturaleza dice que combina, combina.*
+
 | Token | Hex | Uso |
 |---|---|---|
-| Pine | `#0B3D2E` | Primario: barras, encabezados, marca |
-| Pine-2 | `#0E4A38` | Bloques oscuros, CTA band |
-| Leaf | `#2E8B5E` | Acción/positivo ("limpio") |
-| Gold | `#C2A04C` | Acento premium, CTAs, "revisar" |
-| Ivory | `#F5F2EB` | Fondo claro, tarjetas |
-| Ink | `#16211B` | Texto |
-| Line | `#E3DECF` | Bordes |
+| Morpho | `#1F5BD8` | Acento de marca: palabras clave, íconos, enlaces |
+| Morpho profundo | `#1344B0` | CTAs, barras, texto de acento sobre blanco (AA) |
+| Noche | `#0B0D12` | Texto, tira de credibilidad, footer, números de paso |
+| Ocre | `#E0A43A` | Detalle: reglas de sección, ocelos, paso 3 (nunca texto sobre blanco) |
+| Ocre profundo | `#8F5C05` | Texto ocre legible sobre blanco |
+| Papel | `#FFFFFF` / `#F3F5F9` | Fondos y bandas |
+| Línea | `#DCE1E8` | Bordes |
 
-Semáforo de riesgo: **limpio = Leaf** · **revisar = Gold** · **deforestación = `#C0392B`**.
+Semáforo de riesgo (semántico, no es color de marca): **limpio = `#2F8F4E`** · **revisar = `#D9951E`** · **deforestación = `#C4332B`**.
+
+Reglas: fondos claros; sin glassmorphism, sin halos, sin texto en degradado, sin animaciones flotantes. Radios chicos (4–8 px). El logo mantiene su forma; semillas en ocre y azul morpho, trazo en noche.
 
 ### Tipografía
-- **Títulos:** Sora (500–700).
-- **Texto:** system-ui / Inter.
-- Escala web: H1 44 · H2 30 · H3 17 · cuerpo 16–18.
+- **Títulos:** Familjen Grotesk (600–700), interletrado negativo.
+- **Texto:** Atkinson Hyperlegible Next — diseñada para máxima legibilidad (técnicos en campo, pantallas al sol).
+- **Datos / coordenadas / etiquetas:** Martian Mono.
+- Evitar: Sora, Inter, Space Grotesk y demás fuentes "por defecto" de la IA.
 
 ## 4. Mensajería
 - **Audiencias:** exportadores y cooperativas (deciden) · técnicos de campo (usan) · compradores europeos (reciben).
@@ -44,8 +49,8 @@ Semáforo de riesgo: **limpio = Leaf** · **revisar = Gold** · **deforestación
 
 ## 5. Checklist de consistencia (validar cualquier pieza)
 - [ ] Usa los colores de la paleta (tokens), no hex sueltos.
-- [ ] Títulos en Sora; cuerpo legible.
+- [ ] Títulos en Familjen Grotesk; cuerpo en Atkinson Hyperlegible Next.
 - [ ] Logo sobre fondo claro o tile; sin deformar ni recolorear.
 - [ ] Voz clara, sin jerga técnica.
 - [ ] Tagline y mensajes clave alineados.
-- [ ] Semáforo de riesgo correcto (verde / dorado / rojo).
+- [ ] Semáforo de riesgo correcto (verde / ocre / rojo), separado del color de marca.

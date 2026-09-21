@@ -130,11 +130,11 @@ def plot_map_png(plot, out_path, size=(1000, 460), alerts=None):
         poly = len(pts) >= 3
         if poly:
             ring = [(p.lon, p.lat) for p in pts]; ring.append(ring[0])
-            m.add_line(Line(ring, "#E0C277", 4))
+            m.add_line(Line(ring, "#F0B94A", 4))
         else:
             p = pts[0]
-            m.add_marker(CircleMarker((p.lon, p.lat), "#0B3D2E", 24))
-            m.add_marker(CircleMarker((p.lon, p.lat), "#E0C277", 13))
+            m.add_marker(CircleMarker((p.lon, p.lat), "#1344B0", 24))
+            m.add_marker(CircleMarker((p.lon, p.lat), "#F0B94A", 13))
         for a in (alerts or [])[:25]:
             try:
                 m.add_marker(CircleMarker((float(a["lon"]), float(a["lat"])), "#C0392B", 18))
@@ -183,10 +183,10 @@ def build_pdf(lot, findings, narrative, profile, out_dir, lang=None, photo_path=
     from reportlab.lib.styles import ParagraphStyle
     from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 
-    PINE = colors.HexColor("#0B3D2E"); GOLD = colors.HexColor("#C2A04C")
-    IVORY = colors.HexColor("#FBFAF6"); LINE = colors.HexColor("#E3DECF")
-    INK = colors.HexColor("#16211B"); MUT = colors.HexColor("#6F726B")
-    RC = {"negligible": colors.HexColor("#2E8B5E"), "review": GOLD, "high": colors.HexColor("#C0392B")}
+    PINE = colors.HexColor("#1344B0"); GOLD = colors.HexColor("#E0A43A")
+    IVORY = colors.HexColor("#FAFBFD"); LINE = colors.HexColor("#DCE1E8")
+    INK = colors.HexColor("#0B0D12"); MUT = colors.HexColor("#5F6775")
+    RC = {"negligible": colors.HexColor("#2F8F4E"), "review": GOLD, "high": colors.HexColor("#C0392B")}
 
     risk = overall_risk(findings)
     hs = _HS.get((lot.commodity or "").lower(), ("—", "—", lot.commodity or "—"))
@@ -217,10 +217,10 @@ def build_pdf(lot, findings, narrative, profile, out_dir, lang=None, photo_path=
         if fill: st.append(("BACKGROUND",(1,0),(1,-1),IVORY))
         tb.setStyle(TableStyle(st)); return tb
 
-    head = Table([[Paragraph('<b>ORIGEN</b>  <font color="#C2A04C">·  ' + t["subtitle"] + '</font>',
+    head = Table([[Paragraph('<b>ORIGEN</b>  <font color="#E0A43A">·  ' + t["subtitle"] + '</font>',
                              ParagraphStyle("ht", textColor=colors.white, fontSize=13, leading=16))],
                   [Paragraph(f'{t["lot"]} {_esc(lot.lot_id)}  ·  {today}',
-                             ParagraphStyle("hm", textColor=colors.HexColor("#CFE0D6"), fontSize=8))]], colWidths=[W])
+                             ParagraphStyle("hm", textColor=colors.HexColor("#D5E1F7"), fontSize=8))]], colWidths=[W])
     head.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,-1),PINE),("LEFTPADDING",(0,0),(-1,-1),12),
                               ("RIGHTPADDING",(0,0),(-1,-1),12),("TOPPADDING",(0,0),(0,0),12),
                               ("BOTTOMPADDING",(0,0),(0,0),2),("TOPPADDING",(0,1),(0,1),0),("BOTTOMPADDING",(0,1),(0,1),12)]))
@@ -251,7 +251,7 @@ def build_pdf(lot, findings, narrative, profile, out_dir, lang=None, photo_path=
             clon = sum(p.lon for p in pl.points) / len(pl.points)
         else:
             clat = clon = None
-        label = _esc(f.plot_id) + (f'<br/><font size="7" color="#6F726B">{t["poly"]} · {len(pl.points)} {t["verts"]}</font>' if poly else "")
+        label = _esc(f.plot_id) + (f'<br/><font size="7" color="#5F6775">{t["poly"]} · {len(pl.points)} {t["verts"]}</font>' if poly else "")
         rows.append([Paragraph(label, TD),
                      Paragraph(f"{clat:.5f}" if clat is not None else "—", TD),
                      Paragraph(f"{clon:.5f}" if clon is not None else "—", TD),
@@ -336,7 +336,7 @@ def build_pdf(lot, findings, narrative, profile, out_dir, lang=None, photo_path=
     if _sub and _sub.get("note"):
         E += [Paragraph((("<b>Sustentación registrada:</b> " if lang == "es" else "<b>Substantiation on record:</b> ")
                          + _esc(_sub.get("note", ""))
-                         + f'<br/><font size="7" color="#6F726B">{_esc(_sub.get("by", ""))} · {_esc(str(_sub.get("at", ""))[:16])}</font>'), P)]
+                         + f'<br/><font size="7" color="#5F6775">{_esc(_sub.get("by", ""))} · {_esc(str(_sub.get("at", ""))[:16])}</font>'), P)]
 
     E += [Paragraph(t["h_eval"], H), Paragraph(_esc(narrative), P)]
     _lg = (lot.extra or {}).get("legality", {}) if isinstance(lot.extra, dict) else {}
@@ -506,10 +506,10 @@ def build_consignment_pdf(cons, items, out_dir, lang=None):
     from reportlab.lib.styles import ParagraphStyle
     from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 
-    PINE = colors.HexColor("#0B3D2E"); GOLD = colors.HexColor("#C2A04C")
-    IVORY = colors.HexColor("#FBFAF6"); LINE = colors.HexColor("#E3DECF")
-    INK = colors.HexColor("#16211B"); MUT = colors.HexColor("#6F726B")
-    RC = {"negligible": colors.HexColor("#2E8B5E"), "review": GOLD, "high": colors.HexColor("#C0392B")}
+    PINE = colors.HexColor("#1344B0"); GOLD = colors.HexColor("#E0A43A")
+    IVORY = colors.HexColor("#FAFBFD"); LINE = colors.HexColor("#DCE1E8")
+    INK = colors.HexColor("#0B0D12"); MUT = colors.HexColor("#5F6775")
+    RC = {"negligible": colors.HexColor("#2F8F4E"), "review": GOLD, "high": colors.HexColor("#C0392B")}
 
     verdict = consignment_verdict(items)
     commodity = cons.get("commodity") or (items[0][0].commodity if items else "")
@@ -550,10 +550,10 @@ def build_consignment_pdf(cons, items, out_dir, lang=None):
         if fill: st.append(("BACKGROUND",(1,0),(1,-1),IVORY))
         tb.setStyle(TableStyle(st)); return tb
 
-    head = Table([[Paragraph('<b>ORIGEN</b>  <font color="#C2A04C">·  ' + t["subtitle"] + '</font>',
+    head = Table([[Paragraph('<b>ORIGEN</b>  <font color="#E0A43A">·  ' + t["subtitle"] + '</font>',
                              ParagraphStyle("ht", textColor=colors.white, fontSize=13, leading=16))],
                   [Paragraph(f'{t["cons"]} {_esc(cid)}  ·  {_esc(cons.get("name",""))}  ·  {today}',
-                             ParagraphStyle("hm", textColor=colors.HexColor("#CFE0D6"), fontSize=8))]], colWidths=[W])
+                             ParagraphStyle("hm", textColor=colors.HexColor("#D5E1F7"), fontSize=8))]], colWidths=[W])
     head.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,-1),PINE),("LEFTPADDING",(0,0),(-1,-1),12),
                               ("RIGHTPADDING",(0,0),(-1,-1),12),("TOPPADDING",(0,0),(0,0),12),
                               ("BOTTOMPADDING",(0,0),(0,0),2),("TOPPADDING",(0,1),(0,1),0),("BOTTOMPADDING",(0,1),(0,1),12)]))
@@ -621,7 +621,7 @@ def build_consignment_pdf(cons, items, out_dir, lang=None):
         for pl in lot.plots:
             clat, clon = _plot_centroid(pl)
             poly = len(pl.points) >= 3
-            label = _esc(pl.plot_id) + (f'<br/><font size="7" color="#6F726B">pol · {len(pl.points)}v</font>' if poly else "")
+            label = _esc(pl.plot_id) + (f'<br/><font size="7" color="#5F6775">pol · {len(pl.points)}v</font>' if poly else "")
             prows.append([Paragraph(_esc(lot.lot_id), TD), Paragraph(label, TD),
                           Paragraph(f"{clat:.5f}" if clat is not None else "—", TD),
                           Paragraph(f"{clon:.5f}" if clon is not None else "—", TD),

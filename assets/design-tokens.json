@@ -1,23 +1,46 @@
 {
-  "$comment": "Origen design tokens — derivados de docs/brand-guidelines.md (source of truth).",
+  "$comment": "Origen design tokens — sistema Morpho (sep-2026), derivados de docs/brand-guidelines.md.",
   "color": {
-    "pine": "#0B3D2E",
-    "pine-2": "#0E4A38",
-    "leaf": "#2E8B5E",
-    "gold": "#C2A04C",
-    "ivory": "#F5F2EB",
-    "ink": "#16211B",
-    "line": "#E3DECF",
-    "muted": "#6F726B",
-    "risk-clean": "#2E8B5E",
-    "risk-review": "#C2A04C",
-    "risk-high": "#C0392B"
+    "morpho-blue": "#1F5BD8",
+    "morpho-blue-deep": "#1344B0",
+    "morpho-blue-tint": "#E8EFFC",
+    "night": "#0B0D12",
+    "ochre": "#E0A43A",
+    "ochre-deep": "#8F5C05",
+    "ochre-tint": "#FBF0DA",
+    "bark": "#5A4632",
+    "paper": "#FFFFFF",
+    "paper-2": "#F3F5F9",
+    "line": "#DCE1E8",
+    "ink": "#0B0D12",
+    "ink-2": "#434B58",
+    "muted": "#5F6775",
+    "risk-clean": "#2F8F4E",
+    "risk-review": "#D9951E",
+    "risk-high": "#C4332B"
   },
   "font": {
-    "heading": "Sora, system-ui, -apple-system, sans-serif",
-    "body": "system-ui, -apple-system, sans-serif"
+    "heading": "Familjen Grotesk, Arial Narrow, system-ui, sans-serif",
+    "body": "Atkinson Hyperlegible Next, system-ui, -apple-system, sans-serif",
+    "mono": "Martian Mono, ui-monospace, monospace"
   },
-  "radius": { "sm": "9px", "md": "12px", "lg": "16px", "pill": "20px" },
-  "space": { "xs": "8px", "sm": "12px", "md": "16px", "lg": "24px", "xl": "40px" },
-  "type-scale": { "h1": "44px", "h2": "30px", "h3": "17px", "body": "16px" }
+  "radius": {
+    "sm": "4px",
+    "md": "6px",
+    "lg": "8px",
+    "pill": "999px"
+  },
+  "space": {
+    "xs": "8px",
+    "sm": "12px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "40px"
+  },
+  "type-scale": {
+    "h1": "44px",
+    "h2": "30px",
+    "h3": "17px",
+    "body": "16px"
+  }
 }

@@ -126,6 +126,7 @@ _NOINDEX = "noindex, nofollow"
 _SEO_ARTICLES = {          # páginas de contenido -> (publicada, modificada) para el schema Article
     "normativa.html": ("2026-06-09", "2026-09-21"),
     "eudr-cafe-peru.html": ("2026-09-21", "2026-09-21"),
+    "eudr-aplazamiento.html": ("2026-09-23", "2026-09-23"),   # se revisa cada mes: actualizar la fecha al editar
 }
 
 def _seo_base():
@@ -199,10 +200,14 @@ def llms_txt():
 ## Fechas del EUDR
 - 30 de diciembre de 2026: operadores grandes y medianos.
 - 30 de junio de 2027: micro y pequeñas empresas.
+- 30 de diciembre de 2027: productos que se suman (café soluble, algunos derivados de la palma).
+- Estado al día y cronología de los aplazamientos: {base}/eudr-aplazamiento
 
 ## Páginas
 - [Inicio]({base}/): qué es Origen y cómo funciona.
 - [Normativa EUDR]({base}/normativa): resumen del reglamento, productos, fechas y quién presenta la declaración.
+- [Aplazamiento del EUDR]({base}/eudr-aplazamiento): fechas vigentes, cronología y últimas novedades (se revisa cada mes).
+- [EUDR para el café peruano]({base}/eudr-cafe-peru): qué exige al café del Perú y qué le toca a la cooperativa.
 - [Verificar dossier]({base}/verificar): comprobar la autenticidad de un dossier.
 - [Empezar]({base}/empezar): solicitar acceso.
 - [Artículo](https://selvagencia.com/blog/eudr-cafe-cacao-peru-origen/): EUDR para el café y cacao peruano y por qué construimos Origen.
@@ -233,6 +238,10 @@ def normativa():
 @app.get("/eudr-cafe-peru")
 def eudr_cafe_peru():
     return _page("eudr-cafe-peru.html")
+
+@app.get("/eudr-aplazamiento")
+def eudr_aplazamiento():
+    return _page("eudr-aplazamiento.html")
 
 @app.get("/empezar")
 def empezar():

@@ -28,6 +28,7 @@ PAGES = {
     "landing": ("landing.html", "/"),
     "normativa": ("normativa.html", "/normativa"),
     "eudr-cafe-peru": ("eudr-cafe-peru.html", "/eudr-cafe-peru"),
+    "eudr-aplazamiento": ("eudr-aplazamiento.html", "/eudr-aplazamiento"),
     "empezar": ("empezar.html", "/empezar"),
     "verificar": ("verificar.html", "/verificar"),
 }
@@ -43,6 +44,7 @@ NATIVE = {"es": "Español", "en": "English", "de": "Deutsch", "fr": "Français",
           "lv": "Latviešu", "lt": "Lietuvių"}
 ES_LABELS = {"language": "Idioma"}
 ES_CRUMB = {"landing": "Origen", "normativa": "Normativa EUDR", "eudr-cafe-peru": "EUDR para el café peruano",
+            "eudr-aplazamiento": "Aplazamiento del EUDR",
             "empezar": "Empezar", "verificar": "Verificar dossier"}
 
 # Etiquetas: respeta atributos entre comillas (un ">" dentro de un atributo no corta la etiqueta).

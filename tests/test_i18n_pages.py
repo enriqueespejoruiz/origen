@@ -132,3 +132,17 @@ def test_lead_accepts_lang(monkeypatch):
     monkeypatch.setattr(main.config, "GCP_PROJECT", "")
     r = client.post("/lead", json={"name": "Test", "org": "Roaster GmbH", "email": "t@example.com", "lang": "de", "page": "/de/starten"})
     assert r.status_code == 200 and r.json()["ok"]
+
+
+def test_delay_page_links_and_dates():
+    """La página de aplazamientos existe en todos los idiomas, está enlazada desde portada, normativa
+    y la guía del café, y lleva fecha de actualización en el Article (se revisa cada mes)."""
+    for lang in LANGS:
+        target = I.path_for("eudr-aplazamiento", lang)
+        for key in ("landing", "normativa", "eudr-cafe-peru"):
+            assert 'href="%s"' % target in client.get(I.path_for(key, lang)).text, (lang, key)
+    t = client.get("/eudr-aplazamiento").text
+    art = [g for g in json.loads(re.findall(r'<script type="application/ld\+json">(.*?)</script>', t, re.S)[0].replace("<\\/", "</"))["@graph"]
+           if g["@type"] == "Article"][0]
+    assert art["dateModified"] >= art["datePublished"] == "2026-09-23"
+    assert "Actualizado el 23 de septiembre de 2026" in t

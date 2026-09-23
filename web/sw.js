@@ -38,6 +38,9 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;                         // nunca interceptar acciones (POST)
   const url = new URL(req.url);
+  // Solo http(s): lo que piden las extensiones del navegador (chrome-extension://…) no se toca ni se guarda
+  // (Cache.put lo rechaza y dejaba errores «Request scheme 'chrome-extension' is unsupported» en la consola).
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') return;
   const sameOrigin = url.origin === location.origin;
 
   // Datos y acciones: siempre red, sin cache.
@@ -46,7 +49,7 @@ self.addEventListener('fetch', e => {
   // Páginas y estáticos propios: RED PRIMERO, cache de respaldo (deploys instantáneos + offline).
   if (sameOrigin) {
     e.respondWith(
-      fetch(req).then(r => { if (r.ok) { const cp = r.clone(); caches.open(CACHE).then(c => c.put(req, cp)); } return r; })
+      fetch(req).then(r => { if (r.ok) { const cp = r.clone(); caches.open(CACHE).then(c => c.put(req, cp)).catch(() => {}); } return r; })
                 .catch(() => caches.match(req).then(c => c || (req.mode === 'navigate' ? caches.match('/capturar') : undefined)))
     );
     return;
@@ -55,7 +58,7 @@ self.addEventListener('fetch', e => {
   // Terceros (fuentes): cache primero.
   e.respondWith(
     caches.match(req).then(cached => cached || fetch(req).then(r => {
-      if (r.ok) { const cp = r.clone(); caches.open(CACHE).then(c => c.put(req, cp)); }
+      if (r.ok) { const cp = r.clone(); caches.open(CACHE).then(c => c.put(req, cp)).catch(() => {}); }
       return r;
     }))
   );

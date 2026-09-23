@@ -3,6 +3,7 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import FileResponse, Response, RedirectResponse
 from pydantic import BaseModel
 from . import gemini, deforestation, dossier, storage, config, auth, geo, notarize, copilot, scoring, portability, whatsapp, monitor, importer
+from . import i18n_pages
 from .models import Lot, Plot, GeoPoint, Consignment, DeforestationFinding
 
 app = FastAPI(title="Origen - EUDR + Export Copilot")
@@ -115,16 +116,8 @@ def _field_photo_files(lot, out_dir):
     return out
 
 # ── SEO ──────────────────────────────────────────────────────────────────────
-# Las etiquetas SEO se inyectan al servir cada HTML (no se editan los .html):
-# canónica, og:url, og:image absoluta, JSON-LD y noindex para las pantallas de la app.
-import re as _re, html as _html
-_SEO_PUBLIC = {            # archivo -> ruta pública indexable
-    "landing.html": "/",
-    "normativa.html": "/normativa",
-    "empezar.html": "/empezar",
-    "verificar.html": "/verificar",
-    "eudr-cafe-peru.html": "/eudr-cafe-peru",
-}
+# Páginas públicas: las arma app/i18n_pages.py (español + otros idiomas, canonical, hreflang,
+# Open Graph, JSON-LD). Pantallas de la app: noindex. No se editan los .html para esto.
 _SEO_DESC = {              # solo se usa si el HTML no trae meta description
     "empezar.html": "Empieza con Origen: cuéntanos de tu cooperativa o empresa exportadora y te ayudamos a preparar la geolocalización y el dossier EUDR de tus parcelas.",
     "verificar.html": "Verifica si un dossier EUDR de Origen es auténtico: sube el PDF y comprueba su huella SHA-256 y su sello en Bitcoin, sin que el archivo salga de tu equipo.",
@@ -134,93 +127,28 @@ _SEO_ARTICLES = {          # páginas de contenido -> (publicada, modificada) pa
     "normativa.html": ("2026-06-09", "2026-09-21"),
     "eudr-cafe-peru.html": ("2026-09-21", "2026-09-21"),
 }
-_SEO_CRUMB = {             # nombre corto de la página en las migas de pan
-    "normativa.html": "Normativa EUDR",
-    "eudr-cafe-peru.html": "EUDR para el café peruano",
-}
 
 def _seo_base():
     return config.PUBLIC_BASE_URL.rstrip("/")
 
-def _faq_jsonld(html_text):
-    items = []
-    for q, a in _re.findall(r"<details[^>]*>\s*<summary[^>]*>(.*?)</summary>\s*<p[^>]*>(.*?)</p>", html_text, _re.S):
-        q = _html.unescape(_re.sub(r"<[^>]+>", "", q)).strip()
-        a = _html.unescape(_re.sub(r"<[^>]+>", "", a)).strip()
-        if q and a:
-            items.append({"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}})
-    return {"@type": "FAQPage", "mainEntity": items} if items else None
+_APP_DESC_ES = ("Geolocalización de parcelas, verificación contra 4 fuentes satelitales abiertas y dossier con GeoJSON "
+                "listo para TRACES para cumplir el Reglamento (UE) 2023/1115 (EUDR).")
 
-def _seo_text(pattern, html_text):
-    m = _re.search(pattern, html_text, _re.S | _re.I)
-    return _html.unescape(_re.sub(r"\s+", " ", _re.sub(r"<[^>]+>", " ", m.group(1)))).strip() if m else ""
-
-def _seo_jsonld(name, html_text):
-    base = _seo_base()
-    org = {"@type": "Organization", "@id": base + "/#org", "name": "Origen", "url": base + "/",
-           "logo": base + "/static/icon-512.png",
-           "parentOrganization": {"@type": "Organization", "name": "Selva Ecomarketing S.A.C.", "url": "https://selvagencia.com/"}}
-    graph = [org]
-    if name in _SEO_ARTICLES:
-        url = base + _SEO_PUBLIC[name]
-        pub, mod = _SEO_ARTICLES[name]
-        graph.append({"@type": "Article", "@id": url + "#article", "mainEntityOfPage": url,
-                      "headline": _seo_text(r"<h1[^>]*>(.*?)</h1>", html_text),
-                      "description": _seo_text(r'<meta name="description" content="([^"]*)"', html_text),
-                      "inLanguage": "es", "image": base + "/static/og.png",
-                      "datePublished": pub, "dateModified": mod,
-                      "author": {"@id": base + "/#org"}, "publisher": {"@id": base + "/#org"}})
-        graph.append({"@type": "BreadcrumbList", "itemListElement": [
-            {"@type": "ListItem", "position": 1, "name": "Origen", "item": base + "/"},
-            {"@type": "ListItem", "position": 2, "name": _SEO_CRUMB.get(name, name), "item": url}]})
-    if name == "landing.html":
-        graph.append({"@type": "WebSite", "@id": base + "/#website", "url": base + "/", "name": "Origen",
-                      "inLanguage": "es", "publisher": {"@id": base + "/#org"}})
-        graph.append({"@type": "SoftwareApplication", "name": "Origen", "url": base + "/",
-                      "applicationCategory": "BusinessApplication", "operatingSystem": "Web, Android, iOS",
-                      "inLanguage": ["es", "en"], "publisher": {"@id": base + "/#org"},
-                      "description": "Geolocalización de parcelas, verificación contra 4 fuentes satelitales abiertas y dossier con GeoJSON listo para TRACES para cumplir el Reglamento (UE) 2023/1115 (EUDR)."})
-        faq = _faq_jsonld(html_text)
-        if faq:
-            graph.append(faq)
-    return {"@context": "https://schema.org", "@graph": graph}
+def _public_page(key, lang):
+    """Página pública (indexable) en `lang`: plantilla en español + diccionario (app/i18n_pages.py)."""
+    articles = {i18n_pages.FILE_TO_KEY[f]: v for f, v in _SEO_ARTICLES.items()}
+    text = i18n_pages.render(key, lang, _seo_base(), _SEO_DESC, articles, _APP_DESC_ES)
+    return Response(text, media_type="text/html; charset=utf-8")
 
 def _page(name):
+    if name in i18n_pages.FILE_TO_KEY:
+        return _public_page(i18n_pages.FILE_TO_KEY[name], "es")
+    # Pantallas de la app: fuera de Google (meta + cabecera) y og:image absoluta.
     with open(os.path.join(WEB_DIR, name), encoding="utf-8") as f:
         text = f.read()
-    base = _seo_base()
-    path = _SEO_PUBLIC.get(name)
-    text = text.replace('content="/static/', 'content="' + base + '/static/')
-    tags = []
-    if path is None:
-        tags.append('<meta name="robots" content="' + _NOINDEX + '">')
-    else:
-        url = base + path
-        # Páginas públicas: siempre en español al cargar (i18n.js no autodetecta el idioma).
-        tags.append('<meta name="i18n-auto" content="off">')
-        tags.append('<link rel="canonical" href="' + url + '">')
-        if 'property="og:url"' not in text:
-            tags.append('<meta property="og:url" content="' + url + '">')
-        if 'name="description"' not in text and name in _SEO_DESC:
-            tags.append('<meta name="description" content="' + _SEO_DESC[name] + '">')
-        # Vista previa al compartir (WhatsApp, LinkedIn…): título, descripción e imagen.
-        esc = lambda v: _html.escape(v, quote=True)
-        if 'property="og:title"' not in text:
-            tags.append('<meta property="og:title" content="' + esc(_seo_text(r"<title[^>]*>(.*?)</title>", text)) + '">')
-        if 'property="og:description"' not in text:
-            desc = _seo_text(r'<meta name="description" content="([^"]*)"', text) or _SEO_DESC.get(name, "")
-            if desc:
-                tags.append('<meta property="og:description" content="' + esc(desc) + '">')
-        if 'property="og:type"' not in text:
-            tags.append('<meta property="og:type" content="' + ("article" if name in _SEO_ARTICLES else "website") + '">')
-        if 'property="og:image"' not in text:
-            tags.append('<meta property="og:image" content="' + base + '/static/og.png">')
-        tags.append('<meta property="og:site_name" content="Origen">')
-        tags.append('<meta name="twitter:card" content="summary_large_image">')
-        tags.append('<script type="application/ld+json">' + json.dumps(_seo_jsonld(name, text), ensure_ascii=False) + '</script>')
-    text = text.replace("</head>", "\n".join(tags) + "\n</head>", 1)
-    headers = {"X-Robots-Tag": _NOINDEX} if path is None else {}
-    return Response(text, media_type="text/html; charset=utf-8", headers=headers)
+    text = text.replace('content="/static/', 'content="' + _seo_base() + '/static/')
+    text = text.replace("</head>", '<meta name="robots" content="' + _NOINDEX + '">\n</head>', 1)
+    return Response(text, media_type="text/html; charset=utf-8", headers={"X-Robots-Tag": _NOINDEX})
 
 @app.get("/robots.txt")
 def robots_txt():
@@ -242,10 +170,17 @@ def robots_txt():
 
 @app.get("/sitemap.xml")
 def sitemap_xml():
-    base = _seo_base()
-    urls = "".join("<url><loc>" + base + p + "</loc></url>" for p in _SEO_PUBLIC.values())
-    body = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + urls + "</urlset>\n"
-    return Response(body, media_type="application/xml")
+    return Response(i18n_pages.sitemap(_seo_base()), media_type="application/xml")
+
+def _llms_langs(base):
+    others = [c for c in i18n_pages.active() if c != "es"]
+    if not others:
+        return ""
+    lines = ["", "## Otros idiomas (para compradores e importadores europeos)"]
+    for c in others:
+        lines.append("- [%s](%s%s): %s" % (i18n_pages.NATIVE[c], base, i18n_pages.path_for("normativa", c),
+                                          i18n_pages.LANGS[c]["pages"]["normativa"]["title"]))
+    return "\n".join(lines) + "\n"
 
 @app.get("/llms.txt")
 def llms_txt():
@@ -271,7 +206,7 @@ def llms_txt():
 - [Verificar dossier]({base}/verificar): comprobar la autenticidad de un dossier.
 - [Empezar]({base}/empezar): solicitar acceso.
 - [Artículo](https://selvagencia.com/blog/eudr-cafe-cacao-peru-origen/): EUDR para el café y cacao peruano y por qué construimos Origen.
-"""
+""" + _llms_langs(base)
     return Response(body, media_type="text/plain; charset=utf-8")
 
 @app.get("/manifest.webmanifest")
@@ -1286,6 +1221,8 @@ class LeadIn(BaseModel):
     commodity: str = ""
     plots: str = ""
     message: str = ""
+    lang: str = ""          # idioma de la página desde la que llegó el contacto
+    page: str = ""
 
 @app.post("/lead")
 def lead(l: LeadIn, request: Request):
@@ -1459,3 +1396,26 @@ def _load_owned(lot_id: str, ctx: dict) -> Lot:
     if lot.coop_id and lot.coop_id != ctx["coop"]["id"]:
         raise HTTPException(403, "Este lote pertenece a otra cooperativa")
     return lot
+
+
+
+# ── Páginas públicas en otros idiomas: /<idioma>/ y /<idioma>/<slug> ─────────
+# Van al final para no tapar ninguna ruta de la app o de la API.
+@app.get("/{lang}/")
+def public_lang_home(lang: str):
+    if lang not in i18n_pages.LANGS:
+        raise HTTPException(404)
+    return _public_page("landing", lang)
+
+@app.get("/{lang}/{slug}")
+def public_lang_page(lang: str, slug: str):
+    key = i18n_pages.resolve(lang, slug)
+    if not key or key == "landing":
+        raise HTTPException(404)
+    return _public_page(key, lang)
+
+@app.get("/{lang}")
+def public_lang_redirect(lang: str):
+    if lang not in i18n_pages.LANGS:
+        raise HTTPException(404)
+    return RedirectResponse("/" + lang + "/", status_code=301)

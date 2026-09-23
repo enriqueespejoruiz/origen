@@ -1,5 +1,48 @@
 /* Origen — i18n ES/EN compartido. Traduce nodos de texto por su contenido en español. */
 (function () {
+  // Páginas públicas: el servidor ya las entrega en su idioma (/de/, /fr/…) con
+  // <meta name="i18n-server">. Aquí solo se traducen los textos que el JS inserta después
+  // (window.ORIGEN_T) y se cierra el selector de idioma al hacer clic fuera.
+  var SRV = document.querySelector('meta[name="i18n-server"]');
+  if (SRV) {
+    var L = SRV.getAttribute('content') || 'es', D = window.ORIGEN_T || {};
+    var nk = function (s) { return (s || '').replace(/\s+/g, ' ').trim(); };
+    var trNode = function (n) {
+      var k = nk(n.nodeValue); if (!k || D[k] == null) return;
+      n.nodeValue = n.nodeValue.replace(n.nodeValue.trim(), D[k]);
+    };
+    var tr = function (root) {
+      if (!root) return;
+      if (root.nodeType === 3) { trNode(root); return; }
+      if (root.nodeType !== 1 || /^(SCRIPT|STYLE)$/i.test(root.nodeName)) return;
+      var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), n;
+      while ((n = w.nextNode())) { if (!/^(SCRIPT|STYLE)$/i.test(n.parentNode.nodeName)) trNode(n); }
+      [].forEach.call(root.querySelectorAll ? root.querySelectorAll('[placeholder]') : [], function (e) {
+        var k = nk(e.getAttribute('placeholder')); if (D[k] != null) e.setAttribute('placeholder', D[k]);
+      });
+    };
+    window.origenLang = function () { return L; };
+    window.toggleLang = function () {};
+    window.i18nSync = function () { if (L !== 'es') tr(document.body); };
+    var start = function () {
+      if (L !== 'es' && Object.keys(D).length) {
+        tr(document.body);
+        new MutationObserver(function (ms) {
+          ms.forEach(function (m) { [].forEach.call(m.addedNodes, tr); });
+        }).observe(document.body, { childList: true, subtree: true });
+      }
+      document.addEventListener('click', function (e) {
+        [].forEach.call(document.querySelectorAll('details.og-lang[open]'), function (d) {
+          if (!d.contains(e.target)) d.removeAttribute('open');
+        });
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') [].forEach.call(document.querySelectorAll('details.og-lang[open]'), function (d) { d.removeAttribute('open'); });
+      });
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+    return;
+  }
   // Diccionario: clave = texto en español (recortado) -> valor en inglés.
   var T = {
     // -- nav / común --

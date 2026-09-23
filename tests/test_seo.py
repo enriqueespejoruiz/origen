@@ -33,8 +33,8 @@ def test_public_page_seo_basics(path):
     assert t.count('name="description"') == 1
     assert len(re.findall(r"<h1[\s>]", t)) == 1
     assert re.findall(r'<link rel="canonical" href="([^"]+)"', t) == [BASE + path]
-    # español por defecto: i18n.js no autodetecta el idioma en páginas indexables
-    assert '<meta name="i18n-auto" content="off">' in t
+    # el servidor entrega el idioma: i18n.js no traduce ni autodetecta en páginas indexables
+    assert '<meta name="i18n-server" content="es">' in t
     for prop in ("og:title", "og:description", "og:image", "og:url", "og:type"):
         assert t.count('property="%s"' % prop) == 1, prop
     assert 'content="' + BASE + '/static/og.png"' in t
@@ -59,7 +59,7 @@ def test_app_screens_stay_noindex(path):
     r = client.get(path)
     assert r.status_code == 200
     assert r.headers.get("X-Robots-Tag") == main._NOINDEX
-    assert 'i18n-auto' not in r.text          # la app conserva la autodetección ES/EN
+    assert 'i18n-auto' not in r.text and 'i18n-server' not in r.text   # la app conserva la autodetección ES/EN
     assert 'rel="canonical"' not in r.text
 
 
@@ -79,9 +79,11 @@ def test_gzip_and_head():
 def test_robots_and_sitemap():
     assert "Sitemap: " + BASE + "/sitemap.xml" in client.get("/robots.txt").text
     locs = re.findall(r"<loc>([^<]+)</loc>", client.get("/sitemap.xml").text)
-    assert sorted(locs) == sorted(BASE + p for p in PUBLIC)
+    assert {BASE + p for p in PUBLIC} <= set(locs)
+    assert len(locs) == len(set(locs)) == len(PUBLIC) * len(main.i18n_pages.active())
 
 
 def test_i18n_js_respects_public_pages():
     js = open(os.path.join(main.WEB_DIR, "i18n.js"), encoding="utf-8").read()
     assert 'meta[name="i18n-auto"][content="off"]' in js
+    assert 'meta[name="i18n-server"]' in js

@@ -123,7 +123,8 @@ $('f').addEventListener('submit', async e=>{
   }
   const b=$('sb'); b.disabled=true; b.textContent='Enviando…';
   const data={name:$('name').value,org:$('org').value,email:$('email').value,phone:$('phone').value,
-    role:$('role').value,commodity:$('commodity').value,plots:$('plots').value,message:$('message').value};
+    role:$('role').value,commodity:$('commodity').value,plots:$('plots').value,message:$('message').value,
+    lang:document.documentElement.lang,page:location.pathname};
   try{ await fetch('/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); }catch(e){}
   $('f').style.display='none'; $('ok').style.display='block';
 });

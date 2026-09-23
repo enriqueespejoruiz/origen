@@ -39,6 +39,7 @@ button{width:100%;margin-top:18px;padding:14px;font-size:16px;font-weight:600;bo
 button:hover{transform:translateY(-2px)} button:disabled{opacity:.7}
 .note{color:var(--text-3);font-size:12.5px;margin-top:14px;text-align:center}
 .ok{display:none;text-align:center;padding:12px 4px}
+.cf-frame iframe{display:block;border-radius:0!important}
 .ok .ic{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;margin:4px auto 14px;
  background:rgba(31,91,216,.16);color:var(--brand-leaf-2)}
 .ok a.cta{display:inline-block;margin-top:10px;background:var(--m-blue-deep,#1344B0);
@@ -86,6 +87,12 @@ button:not([data-langbtn]),.ok a.cta{background:var(--btn-blue)!important}
     <p>Déjanos tus datos y te ayudamos a dejar tus parcelas listas para el EUDR. Te contactamos en menos de 24 horas.</p>
   </div>
   <div class="card">
+    <!--only:es-->
+    <!-- Formulario «Form Origen» de Selva Boost: los datos entran al CRM de Boost -->
+    <div id="selva-form-form-selva-boost-copy-f80942" class="cf-frame"></div>
+    <script src="https://api-saas.selvagencia.com/api/v1/public/forms/form-selva-boost-copy-f80942/embed.js" async></script>
+    <!--/only:es-->
+    <!--except:es-->
     <form id="f" novalidate>
       <div class="row">
         <div><label for="name">Tu nombre</label><input id="name" required autocomplete="name"></div>
@@ -112,8 +119,10 @@ button:not([data-langbtn]),.ok a.cta{background:var(--btn-blue)!important}
       <p style="color:var(--text-2);max-width:42ch;margin:10px auto 0">Mientras, puedes probar la captura de parcelas ahora mismo — sin instalar nada.</p>
       <a class="cta" href="/capturar">Probar la captura</a>
     </div>
+    <!--/except:es-->
   </div>
 </div>
+<!--except:es-->
 <script>
 const $=id=>document.getElementById(id);
 $('f').addEventListener('submit', async e=>{
@@ -129,5 +138,6 @@ $('f').addEventListener('submit', async e=>{
   $('f').style.display='none'; $('ok').style.display='block';
 });
 </script>
+<!--/except:es-->
 <script src="/static/i18n.js" defer></script>
 </body></html>

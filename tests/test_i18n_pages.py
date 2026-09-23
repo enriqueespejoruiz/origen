@@ -21,7 +21,7 @@ CASES = [(l, k) for l in LANGS for k in I.PAGES]
 def _spanish_keys(key):
     with open(os.path.join(I.WEB_DIR, I.PAGES[key][0]), encoding="utf-8") as f:
         t = f.read()
-    body = t[t.lower().index("<body"):]
+    body = I.variant(t[t.lower().index("<body"):], "en")    # lo que ven los demás idiomas (sin bloques only:es)
     keys = set(I.text_chunks(body)) | set(I.attr_values(body))
     return {k for k in keys if re.search(r"[A-Za-zÁÉÍÓÚáéíóúñ]", k)}
 
@@ -105,7 +105,27 @@ def test_dynamic_strings_and_js_literals():
     assert "window.ORIGEN_T=" in t and "Buscando…" in t        # clave española dentro del diccionario inyectado
     e = client.get(I.path_for("empezar", "de")).text
     assert "Completa nombre, cooperativa y email" not in e     # el alert() va traducido
-    assert "Completa nombre, cooperativa y email" in client.get("/empezar").text
+    assert "Completa nombre, cooperativa y email" in I.variant(open(os.path.join(I.WEB_DIR, "empezar.html"), encoding="utf-8").read(), "de")
+
+
+BOOST = "api-saas.selvagencia.com/api/v1/public/forms/form-selva-boost-copy-f80942/embed.js"
+
+
+def test_boost_form_only_in_spanish():
+    """El formulario de Selva Boost (en español) va en la portada y en /empezar en español;
+    los demás idiomas conservan su formulario traducido y el botón a su /empezar."""
+    for path in ("/", "/empezar"):
+        t = client.get(path).text
+        assert t.count(BOOST) == 1 and 'id="selva-form-form-selva-boost-copy-f80942"' in t, path
+        assert "<!--only:" not in t and "<!--except:" not in t
+    e = client.get("/empezar").text
+    assert '<form id="f"' not in e and "$('f')" not in e      # sin el formulario propio (ni su script)
+    assert 'href="/empezar">Agenda una demo' not in client.get("/").text
+    for lang in OTHER:
+        home, start = client.get(I.path_for("landing", lang)).text, client.get(I.path_for("empezar", lang)).text
+        assert BOOST not in home and BOOST not in start, lang
+        assert '<form id="f"' in start and "<!--only:" not in home + start and "<!--except:" not in home + start
+        assert 'href="%s"' % I.path_for("empezar", lang) in home, lang
 
 
 def test_lead_accepts_lang(monkeypatch):

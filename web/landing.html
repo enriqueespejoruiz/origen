@@ -191,6 +191,14 @@ details a{color:var(--wing-2)}
 .cierre .box{background:var(--wing-grad);color:#fff;padding:64px 48px;position:relative;box-shadow:14px 14px 0 var(--ochre)}
 .cierre h2{max-width:18ch;margin-top:0}
 .cierre p{font-size:20px;color:#DCE6FB;max-width:56ch;margin:18px 0 30px}
+.cierre .box{display:flex;flex-wrap:wrap;align-items:flex-start;gap:44px 56px}
+.cierre-txt{flex:1 1 360px;min-width:0}
+/* ficha de contacto (solo en español): el formulario de Selva Boost dentro de una ficha de papel */
+.cierre-form{flex:1 1 380px;max-width:500px;position:relative;background:var(--paper-3);color:var(--ink);border:2px solid var(--ink);padding:30px 24px 16px;box-shadow:9px 9px 0 var(--ink)}
+.cierre-form::before{content:'';position:absolute;top:-11px;left:50%;width:74px;height:22px;transform:translateX(-50%) rotate(2deg);background:rgba(224,164,58,.85)}
+.cierre-form .cf-t{font-size:32px;margin:0 0 8px}
+.cierre-form .cf-s{display:block;font:500 11px/1.4 var(--m);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:20px}
+.cierre-form iframe{display:block;border-radius:0!important}
 
 /* pie */
 footer{background:var(--ink);color:#9AA3B6;padding-block:56px 40px}
@@ -222,7 +230,8 @@ footer nav a:hover{color:var(--ochre-2)}
   .coords{display:none}
   .brand small{display:none}
   .nl .lang{display:none}
-  .cierre .box{padding:44px 24px}
+  .cierre .box{padding:44px 18px}
+  .cierre-form{padding:26px 14px 12px;box-shadow:6px 6px 0 var(--ink)}
   .cifras .wrap{grid-template-columns:1fr}
   .cifra,.cifra+.cifra{padding-left:0;border-left:0}
   .plazo .date{font-size:clamp(64px,19vw,96px)}
@@ -425,14 +434,25 @@ footer nav a:hover{color:var(--ochre-2)}
   </div>
 </section>
 
-<section class="cierre" aria-labelledby="h-cta">
+<section class="cierre" id="contacto" aria-labelledby="h-cta">
   <div class="wrap"><div class="box">
-    <h2 id="h-cta">Tus compradores europeos ya están preguntando.</h2>
-    <p>Pon tu cooperativa en regla antes que tu competencia. Sin instalar nada, sin consultoras: captura tu primera parcela hoy y ten el dossier listo en minutos.</p>
-    <div class="cta-row">
-      <a class="btn btn-ochre" href="/capturar">Capturar parcelas <span aria-hidden="true">→</span></a>
-      <a class="btn btn-line" href="/empezar">Agenda una demo</a>
+    <div class="cierre-txt">
+      <h2 id="h-cta">Tus compradores europeos ya están preguntando.</h2>
+      <p>Pon tu cooperativa en regla antes que tu competencia. Sin instalar nada, sin consultoras: captura tu primera parcela hoy y ten el dossier listo en minutos.</p>
+      <div class="cta-row">
+        <a class="btn btn-ochre" href="/capturar">Capturar parcelas <span aria-hidden="true">→</span></a>
+        <!--except:es--><a class="btn btn-line" href="/empezar">Agenda una demo</a><!--/except:es-->
+      </div>
     </div>
+    <!--only:es-->
+    <div class="cierre-form">
+      <h3 class="cf-t">Agenda una demo</h3>
+      <span class="cf-s">Te contactamos en menos de 24 horas.</span>
+      <!-- Formulario «Form Origen» de Selva Boost: los datos entran al CRM de Boost -->
+      <div id="selva-form-form-selva-boost-copy-f80942" class="cf-frame"></div>
+    </div>
+    <script src="https://api-saas.selvagencia.com/api/v1/public/forms/form-selva-boost-copy-f80942/embed.js" async></script>
+    <!--/only:es-->
   </div></div>
 </section>
 

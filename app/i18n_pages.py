@@ -49,6 +49,15 @@ ES_CRUMB = {"landing": "Origen", "normativa": "Normativa EUDR", "eudr-cafe-peru"
 _TAG = re.compile(r"""(<(?:"[^"]*"|'[^']*'|[^'">])*>)""")
 _PROTECT = re.compile(r"(<script\b.*?</script>|<style\b.*?</style>|<!--.*?-->|<svg\b.*?</svg>)", re.S | re.I)
 _ATTR = re.compile(r'(\s(?:placeholder|aria-label|alt|title)=")([^"]*)(")')
+# Bloques por idioma en las plantillas: <!--only:es-->…<!--/only:es--> solo existe en esos idiomas;
+# <!--except:es-->…<!--/except:es--> existe en todos menos en esos (p. ej. el formulario de Boost, que está en español).
+_ONLY = re.compile(r"<!--only:([a-z,]+)-->(.*?)<!--/only:\1-->", re.S)
+_EXCEPT = re.compile(r"<!--except:([a-z,]+)-->(.*?)<!--/except:\1-->", re.S)
+
+
+def variant(html_text, lang):
+    html_text = _ONLY.sub(lambda m: m.group(2) if lang in m.group(1).split(",") else "", html_text)
+    return _EXCEPT.sub(lambda m: "" if lang in m.group(1).split(",") else m.group(2), html_text)
 
 
 def norm(s):
@@ -299,7 +308,7 @@ def render(key, lang, base, seo_desc=None, articles=None, app_desc_es=""):
         return _CACHE[ck]
     fname = PAGES[key][0]
     with open(os.path.join(WEB_DIR, fname), encoding="utf-8") as f:
-        text = f.read()
+        text = variant(f.read(), lang)
     articles = articles or {}
     es_meta = _meta_of(text, key, (seo_desc or {}).get(fname, ""))
     if lang == "es":

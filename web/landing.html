@@ -444,18 +444,22 @@ footer nav a:hover{color:var(--ochre-2)}
       <p>Pon tu cooperativa en regla antes que tu competencia. Sin instalar nada, sin consultoras: captura tu primera parcela hoy y ten el dossier listo en minutos.</p>
       <div class="cta-row">
         <a class="btn btn-ochre" href="/capturar">Capturar parcelas <span aria-hidden="true">→</span></a>
-        <!--except:es--><a class="btn btn-line" href="/empezar">Agenda una demo</a><!--/except:es-->
       </div>
     </div>
-    <!--only:es-->
     <div class="cierre-form">
       <h3 class="cf-t">Agenda una demo</h3>
       <span class="cf-s">Te contactamos en menos de 24 horas.</span>
-      <!-- Formulario «Form Origen» de Selva Boost: los datos entran al CRM de Boost -->
+      <!-- Formularios de Selva Boost: los datos entran al CRM de Boost (etiqueta «origen»).
+           Español: «Form Origen». Demás idiomas: «Form Origen EU (English)», con consentimiento RGPD y etiqueta «europa». -->
+      <!--only:es-->
       <div id="selva-form-form-selva-boost-copy-f80942" class="cf-frame"></div>
+      <script src="https://api-saas.selvagencia.com/api/v1/public/forms/form-selva-boost-copy-f80942/embed.js" async></script>
+      <!--/only:es-->
+      <!--except:es-->
+      <div id="selva-form-form-origen-europe" class="cf-frame"></div>
+      <script src="https://api-saas.selvagencia.com/api/v1/public/forms/form-origen-europe/embed.js" async></script>
+      <!--/except:es-->
     </div>
-    <script src="https://api-saas.selvagencia.com/api/v1/public/forms/form-selva-boost-copy-f80942/embed.js" async></script>
-    <!--/only:es-->
   </div></div>
 </section>
 

@@ -93,51 +93,11 @@ button:not([data-langbtn]),.ok a.cta{background:var(--btn-blue)!important}
     <script src="https://api-saas.selvagencia.com/api/v1/public/forms/form-selva-boost-copy-f80942/embed.js" async></script>
     <!--/only:es-->
     <!--except:es-->
-    <form id="f" novalidate>
-      <div class="row">
-        <div><label for="name">Tu nombre</label><input id="name" required autocomplete="name"></div>
-        <div><label for="org">Cooperativa / empresa</label><input id="org" required autocomplete="organization"></div>
-      </div>
-      <div class="row">
-        <div><label for="email">Email</label><input id="email" type="email" required autocomplete="email"></div>
-        <div><label for="phone">WhatsApp / teléfono</label><input id="phone" autocomplete="tel" inputmode="tel"></div>
-      </div>
-      <div class="row">
-        <div><label for="role">Eres…</label><select id="role"><option>Cooperativa / asociación</option><option>Exportador</option><option>Comprador / importador</option><option>Otro</option></select></div>
-        <div><label for="commodity">Producto</label><select id="commodity"><option>Café</option><option>Cacao</option><option>Ambos</option><option>Otro</option></select></div>
-      </div>
-      <label for="plots">¿Cuántos productores o parcelas, aprox.?</label>
-      <input id="plots" placeholder="ej. 1 cooperativa, ~120 productores">
-      <label for="message">Mensaje (opcional)</label>
-      <textarea id="message" rows="3" placeholder="Cuéntanos tu situación con el EUDR"></textarea>
-      <button type="submit" id="sb">Enviar y agendar</button>
-      <p class="note">Solo usamos tus datos para contactarte sobre Origen.</p>
-    </form>
-    <div class="ok" id="ok">
-      <div class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M5 12l4.5 4.5L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <h2 style="color:#0B0D12">¡Recibido! Te contactamos pronto.</h2>
-      <p style="color:var(--text-2);max-width:42ch;margin:10px auto 0">Mientras, puedes probar la captura de parcelas ahora mismo — sin instalar nada.</p>
-      <a class="cta" href="/capturar">Probar la captura</a>
-    </div>
+    <!-- Formulario «Form Origen EU (English)» de Selva Boost, con consentimiento RGPD -->
+    <div id="selva-form-form-origen-europe" class="cf-frame"></div>
+    <script src="https://api-saas.selvagencia.com/api/v1/public/forms/form-origen-europe/embed.js" async></script>
     <!--/except:es-->
   </div>
 </div>
-<!--except:es-->
-<script>
-const $=id=>document.getElementById(id);
-$('f').addEventListener('submit', async e=>{
-  e.preventDefault();
-  if(!$('name').value.trim()||!$('org').value.trim()||!$('email').value.trim()){
-    alert('Completa nombre, cooperativa y email'); return;
-  }
-  const b=$('sb'); b.disabled=true; b.textContent='Enviando…';
-  const data={name:$('name').value,org:$('org').value,email:$('email').value,phone:$('phone').value,
-    role:$('role').value,commodity:$('commodity').value,plots:$('plots').value,message:$('message').value,
-    lang:document.documentElement.lang,page:location.pathname};
-  try{ await fetch('/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); }catch(e){}
-  $('f').style.display='none'; $('ok').style.display='block';
-});
-</script>
-<!--/except:es-->
 <script src="/static/i18n.js" defer></script>
 </body></html>

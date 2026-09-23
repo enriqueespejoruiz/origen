@@ -100,32 +100,27 @@ def test_redirects_and_404():
     assert client.get("/zz").status_code == 404
 
 
-def test_dynamic_strings_and_js_literals():
+def test_dynamic_strings_are_injected():
     t = client.get(I.path_for("verificar", "de")).text
     assert "window.ORIGEN_T=" in t and "Buscando…" in t        # clave española dentro del diccionario inyectado
-    e = client.get(I.path_for("empezar", "de")).text
-    assert "Completa nombre, cooperativa y email" not in e     # el alert() va traducido
-    assert "Completa nombre, cooperativa y email" in I.variant(open(os.path.join(I.WEB_DIR, "empezar.html"), encoding="utf-8").read(), "de")
 
 
-BOOST = "api-saas.selvagencia.com/api/v1/public/forms/form-selva-boost-copy-f80942/embed.js"
+BOOST_ES = "api-saas.selvagencia.com/api/v1/public/forms/form-selva-boost-copy-f80942/embed.js"
+BOOST_EU = "api-saas.selvagencia.com/api/v1/public/forms/form-origen-europe/embed.js"
 
 
-def test_boost_form_only_in_spanish():
-    """El formulario de Selva Boost (en español) va en la portada y en /empezar en español;
-    los demás idiomas conservan su formulario traducido y el botón a su /empezar."""
-    for path in ("/", "/empezar"):
-        t = client.get(path).text
-        assert t.count(BOOST) == 1 and 'id="selva-form-form-selva-boost-copy-f80942"' in t, path
-        assert "<!--only:" not in t and "<!--except:" not in t
-    e = client.get("/empezar").text
-    assert '<form id="f"' not in e and "$('f')" not in e      # sin el formulario propio (ni su script)
-    assert 'href="/empezar">Agenda una demo' not in client.get("/").text
-    for lang in OTHER:
-        home, start = client.get(I.path_for("landing", lang)).text, client.get(I.path_for("empezar", lang)).text
-        assert BOOST not in home and BOOST not in start, lang
-        assert '<form id="f"' in start and "<!--only:" not in home + start and "<!--except:" not in home + start
-        assert 'href="%s"' % I.path_for("empezar", lang) in home, lang
+def test_boost_forms_by_language():
+    """Portada y /empezar llevan el formulario de Selva Boost: «Form Origen» en español y
+    «Form Origen EU (English)» (consentimiento RGPD) en los demás idiomas. Ya no queda el
+    formulario propio que guardaba en Firestore sin avisar a nadie."""
+    for lang in LANGS:
+        want, other = (BOOST_ES, BOOST_EU) if lang == "es" else (BOOST_EU, BOOST_ES)
+        for key in ("landing", "empezar"):
+            t = client.get(I.path_for(key, lang)).text
+            assert t.count(want) == 1 and other not in t, (lang, key)
+            assert '<form id="f"' not in t and "<!--only:" not in t and "<!--except:" not in t, (lang, key)
+        home = client.get(I.path_for("landing", lang)).text
+        assert 'class="cierre-form"' in home and 'href="%s"' % I.path_for("empezar", lang) in home, lang
 
 
 def test_lead_accepts_lang(monkeypatch):

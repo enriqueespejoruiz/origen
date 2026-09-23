@@ -10,537 +10,452 @@
 <link rel="icon" href="/static/favicon-32.png">
 <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Atkinson+Hyperlegible+Next:wght@400;500;700&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Martian+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 /* ============================================================================
-   Origen — sistema "Morpho" (sep-2026).
-   Paleta tomada de la mariposa morpho azul (Morpho menelaus), especie del bosque
-   amazónico peruano que desaparece cuando se tala: azul iridiscente del ala,
-   negro del borde, ocre de los ocelos del reverso y corteza. "Si la naturaleza
-   dice que combina, combina." Sin vidrio, sin brillos, sin degradados.
+   Origen — dirección "Expedición" (opción B de Google Stitch, sep-2026).
+   Lámina de historia natural + cartel de campo. Paleta de la morpho azul:
+   ala iridiscente (noche → azul profundo → morpho → celeste), borde negro,
+   ocelo ocre, papel de herbario. Sin vidrio, sin brillos, sin íconos en cajitas.
    ========================================================================= */
 :root{
-  --m-blue:#1F5BD8; --m-blue-deep:#1344B0; --m-blue-tint:#E8EFFC;
-  --m-night:#0B0D12; --m-ochre:#E0A43A; --m-ochre-deep:#8F5C05; --m-ochre-tint:#FBF0DA;
-  --m-bark:#5A4632;
-  --paper:#FFFFFF; --paper-2:#F3F5F9; --line:#DCE1E8; --line-2:#C3CAD5;
-  --ink:#0B0D12; --ink-2:#434B58; --ink-3:#5F6775;
-  /* semáforo (semántico, independiente de la marca) */
-  --risk-clean:#2F8F4E; --risk-review:#D9951E; --risk-high:#C4332B;
-  /* compatibilidad con estilos en línea antiguos */
-  --brand-pine:var(--m-blue-deep); --brand-gold:var(--m-ochre); --brand-gold-2:var(--m-ochre);
-  --brand-leaf:var(--risk-clean); --brand-leaf-2:var(--m-blue); --brand-ivory:var(--paper-2);
-  --brand-ink:var(--ink); --brand-line:var(--line); --brand-muted:var(--ink-3);
-  --glass:var(--paper); --glass-2:var(--paper-2); --hair:var(--line); --hair-2:var(--line-2);
-  --text-1:var(--ink); --text-2:var(--ink-2); --text-3:var(--ink-3);
-  --font-heading:'Familjen Grotesk','Arial Narrow',system-ui,sans-serif;
-  --font-body:'Atkinson Hyperlegible Next','Atkinson Hyperlegible',system-ui,-apple-system,'Segoe UI',sans-serif;
-  --font-mono:'Martian Mono',ui-monospace,'SFMono-Regular',monospace;
-  --radius-sm:4px; --radius-md:6px; --radius-lg:8px; --radius-xl:10px; --radius-pill:999px;
-  --maxw:1160px;
+  --wing-0:#06103A; --wing-1:#0B2470; --wing-2:#1344B0; --wing:#1F5BD8; --sky:#4FB0F5;
+  --ink:#0B0D12; --ink-2:#2B2F38; --ink-3:#5A5F6B;
+  --paper:#F4EFE4; --paper-2:#EAE2D0; --paper-3:#FBF8F1; --rule:#CFC5AF;
+  --ochre:#E0A43A; --ochre-2:#F6C35A; --ochre-d:#8F5C05;
+  --clean:#2F7D46; --review:#B97708; --high:#B3261E;
+  --wing-grad:linear-gradient(158deg,#06103A 0%,#0B2470 32%,#1344B0 62%,#1F5BD8 84%,#4FB0F5 118%);
+  --h:'Barlow Condensed','Arial Narrow',Impact,sans-serif;
+  --b:'Newsreader',Georgia,'Times New Roman',serif;
+  --m:'Martian Mono',ui-monospace,'SFMono-Regular',monospace;
+  --maxw:1180px;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{font-family:var(--font-body);margin:0;color:var(--ink);background:var(--paper);line-height:1.65;
-  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden}
-h1,h2,h3{font-family:var(--font-heading);font-weight:700;line-height:1.05;margin:0;letter-spacing:-.025em;text-wrap:balance}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 18px/1.6 var(--b);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+h1,h2,h3{font-family:var(--h);font-weight:800;text-transform:uppercase;letter-spacing:-.005em;line-height:.95;margin:0;text-wrap:balance}
 a{color:inherit}
 img,svg{max-width:100%}
-:focus-visible{outline:3px solid var(--m-ochre);outline-offset:3px;border-radius:2px}
-.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
-.skip{position:absolute;left:-999px;top:8px;z-index:60;background:var(--m-night);color:#fff;padding:10px 16px;font-weight:700}
+:focus-visible{outline:3px solid var(--ochre);outline-offset:3px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding-inline:24px}
+.skip{position:absolute;left:-999px;top:8px;z-index:60;background:var(--ochre);color:var(--ink);padding:10px 16px;font:600 13px var(--m)}
 .skip:focus{left:16px}
-.bg-base,.bg-grid{display:none}
+.mono{font-family:var(--m)}
 
-/* ---- nav ---- */
-.nav{position:sticky;top:0;z-index:30;background:var(--paper);border-bottom:1px solid var(--line)}
-.nav .wrap{display:flex;align-items:center;gap:14px;padding:12px 24px}
+/* ---------- barra superior ---------- */
+.nav{position:sticky;top:0;z-index:30;background:var(--ink);color:#fff}
+.nav .wrap{display:flex;align-items:center;gap:18px;padding-block:12px}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none}
-.logo{line-height:0}
-.wm{font-family:var(--font-heading);font-weight:700;font-size:21px;color:var(--ink);letter-spacing:-.03em}
-.nl{margin-left:auto;display:flex;gap:4px;align-items:center;font-size:15px}
-.nl a{text-decoration:none;color:var(--ink-2);padding:9px 12px;border-bottom:2px solid transparent}
-.nl a:hover{color:var(--ink);border-bottom-color:var(--m-blue)}
-.nl .live{display:inline-flex;align-items:center;gap:7px;color:var(--ink-3);font:500 11px/1 var(--font-mono);
-  letter-spacing:.04em;text-transform:uppercase;padding:7px 10px;border:1px solid var(--line)}
-.nl .live i{width:7px;height:7px;border-radius:50%;background:var(--risk-clean)}
-.nl [data-langbtn]{background:var(--paper)!important;border:1px solid var(--line-2)!important;color:var(--ink)!important;border-radius:0!important;font-family:var(--font-mono)!important;font-size:12px!important}
-.btn{display:inline-flex;align-items:center;gap:9px;text-decoration:none;font-weight:700;font-family:var(--font-heading);
-  border-radius:var(--radius-sm);transition:background .16s,color .16s,border-color .16s;letter-spacing:-.01em}
-.btn-gold{background:var(--m-blue-deep);color:#fff!important;padding:10px 18px;border:2px solid var(--m-blue-deep)}
-.btn-gold:hover{background:var(--m-night);border-color:var(--m-night)}
-.btn-ghost{border:2px solid var(--ink);color:var(--ink);padding:10px 18px;background:transparent}
-.btn-ghost:hover{background:var(--ink);color:#fff}
+.brand .wm{font:800 26px/1 var(--h);text-transform:uppercase;letter-spacing:.01em}
+.brand small{display:block;font:500 9.5px/1.2 var(--m);letter-spacing:.08em;color:#9FB3E0;text-transform:uppercase;margin-top:2px}
+.nl{margin-left:auto;display:flex;align-items:center;gap:4px}
+.nl a{font:500 12px var(--m);letter-spacing:.04em;text-transform:uppercase;text-decoration:none;color:#C9D4EE;padding:9px 10px}
+.nl a:hover{color:#fff;text-decoration:underline;text-decoration-color:var(--ochre);text-underline-offset:5px}
+.lang{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;font:600 11px var(--m);padding:7px 9px;cursor:pointer;margin-right:6px}
+.btn{display:inline-flex;align-items:center;gap:10px;font:600 13px/1 var(--m);letter-spacing:.06em;text-transform:uppercase;text-decoration:none;padding:15px 22px;border:2px solid var(--ink);transition:transform .12s,box-shadow .12s}
+.btn-ochre{background:var(--ochre);color:var(--ink)!important;box-shadow:5px 5px 0 var(--ink)}
+.btn-ochre:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--ink)}
+.btn-ochre:active{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--ink)}
+.nav .btn-ochre{padding:10px 14px;font-size:11.5px;border-color:var(--ochre);box-shadow:3px 3px 0 #000}
+.btn-line{background:transparent;color:#fff;border-color:rgba(255,255,255,.8)}
+.btn-line:hover{background:#fff;color:var(--wing-1)}
 
-/* ---- hero ---- */
-.hero{position:relative;border-bottom:1px solid var(--line)}
-.hero .wrap{display:grid;grid-template-columns:1.08fr .92fr;gap:56px;align-items:center;padding:72px 24px 80px}
-.eyebrow{display:inline-flex;align-items:center;gap:10px;color:var(--m-blue-deep);
-  font:500 12px/1.2 var(--font-mono);letter-spacing:.06em;text-transform:uppercase}
-.eyebrow::before{content:'';width:22px;height:3px;background:var(--m-ochre)}
-.hero h1{font-size:clamp(38px,5.8vw,68px);max-width:15ch;margin-top:20px;line-height:1}
-.grad{color:var(--m-blue);box-shadow:inset 0 -.14em 0 var(--m-ochre-tint)}
-.hero .sub{font-size:clamp(16px,1.5vw,19px);color:var(--ink-2);max-width:54ch;margin:24px 0 30px}
-.cta-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
-.btn-lg{padding:14px 24px;font-size:16px}
-.trust{display:flex;gap:14px 32px;flex-wrap:wrap;margin-top:36px;padding-top:24px;border-top:1px solid var(--line)}
-.trust .t{display:flex;align-items:flex-start;gap:10px;max-width:210px}
-.trust .ic{flex:none;width:34px;height:34px;display:grid;place-items:center;background:var(--m-blue-tint);color:var(--m-blue-deep)}
-.trust b{display:block;color:var(--ink);font-size:14px;font-weight:700;font-family:var(--font-heading)}
-.trust span{color:var(--ink-3);font-size:13px}
+/* ---------- hero: el ala ---------- */
+.hero{position:relative;background:var(--wing-grad);color:#fff;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.22;
+  background-image:linear-gradient(rgba(255,255,255,.35) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.35) 1px,transparent 1px);
+  background-size:120px 120px;-webkit-mask-image:linear-gradient(120deg,transparent 10%,#000 70%);mask-image:linear-gradient(120deg,transparent 10%,#000 70%)}
+.hero .wrap{position:relative;display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:center;padding-block:64px 88px}
+.coords{position:absolute;right:24px;top:18px;font:500 10.5px var(--m);letter-spacing:.08em;color:#AFC4F2}
+.tag{display:inline-flex;align-items:center;gap:9px;font:500 11px/1.3 var(--m);letter-spacing:.08em;text-transform:uppercase;border:1px solid rgba(255,255,255,.45);padding:7px 11px;color:#DCE6FB}
+.tag::before{content:'';width:8px;height:8px;background:var(--ochre)}
+.hero h1{font-size:clamp(46px,7.2vw,108px);line-height:.9;margin:22px 0 22px;max-width:13ch}
+.hero h1 .hl{color:var(--ochre-2)}
+.hero .sub{font-size:clamp(17px,1.5vw,20px);line-height:1.55;color:#E3EAFB;max-width:54ch;margin:0 0 32px}
+.cta-row{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.facts{display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:40px;padding-top:20px;border-top:1px solid rgba(255,255,255,.28)}
+.facts div{font:500 11px/1.45 var(--m);letter-spacing:.04em;text-transform:uppercase;color:#AFC4F2}
+.facts b{display:block;font:700 22px/1 var(--h);letter-spacing:.01em;color:#fff;margin-bottom:4px}
 
-/* teléfono: dispositivo real, sin halo ni flotación */
-.stage{position:relative;justify-self:center;width:100%;max-width:360px;display:grid;place-items:center;padding:28px 0}
-.stage::before{content:'';position:absolute;inset:0 8% 0 8%;background:var(--paper-2);border:1px solid var(--line);z-index:0}
-.phone{position:relative;z-index:1;width:262px;background:var(--m-night);border-radius:34px;padding:10px;
-  box-shadow:0 1px 0 var(--line-2),0 24px 48px -28px rgba(11,13,18,.55)}
-.phone::after{content:'';position:absolute;top:12px;left:50%;transform:translateX(-50%);width:80px;height:6px;border-radius:6px;background:rgba(255,255,255,.18)}
-.screen{background:var(--paper-2);border-radius:26px;overflow:hidden;color:var(--ink)}
-.ph-h{background:var(--m-blue-deep);color:#fff;padding:13px 14px 12px;display:flex;align-items:center;gap:8px;
-  font-family:var(--font-heading);font-weight:700;font-size:13px}
-.ph-dot{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font:500 9.5px var(--font-mono);text-transform:uppercase;
-  background:rgba(255,255,255,.14);padding:3px 8px}
-.ph-dot i{width:6px;height:6px;border-radius:50%;background:#7BD89A}
-.ph-b{padding:12px}
-.ph-card{background:#fff;border:1px solid var(--line);padding:12px;margin-bottom:10px}
-.ph-card .t{font-family:var(--font-heading);font-weight:700;font-size:12.5px;margin-bottom:6px}
-.ph-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 0}
-.ph-row+.ph-row{border-top:1px solid var(--line)}
-.ph-row .c{color:var(--ink-3);font:400 10px var(--font-mono)}
-.badge{font:500 9.5px var(--font-mono);text-transform:uppercase;padding:3px 7px;white-space:nowrap}
-.badge.ok{background:#E3F3E8;color:#1E6B3A}.badge.gd{background:var(--m-ochre-tint);color:var(--m-ochre-deep)}
-.ph-sync{text-align:center;font-size:12px;color:#1E6B3A;font-weight:700;display:flex;align-items:center;justify-content:center;gap:7px}
-.float-chip{position:absolute;z-index:2;right:-4px;bottom:40px;background:#fff;border:1px solid var(--line-2);
-  border-left:4px solid var(--m-ochre);padding:10px 14px;display:flex;align-items:center;gap:11px;box-shadow:0 12px 24px -18px rgba(11,13,18,.5)}
-.float-chip .fi{width:32px;height:32px;display:grid;place-items:center;background:var(--m-night);color:#fff}
-.float-chip b{display:block;font-family:var(--font-heading);font-size:13px;color:var(--ink)}
-.float-chip span{font:400 10.5px var(--font-mono);color:var(--ink-3)}
+/* ficha de campo (ejemplo) */
+.ficha{position:relative;background:var(--paper-3);color:var(--ink);padding:26px 22px 20px;transform:rotate(-1.6deg);
+  box-shadow:0 1px 0 var(--rule),14px 18px 0 -2px rgba(6,16,58,.55);max-width:420px;justify-self:center;width:100%}
+.ficha::before{content:'';position:absolute;top:-11px;left:50%;width:74px;height:22px;transform:translateX(-50%) rotate(2deg);background:rgba(224,164,58,.85)}
+.f-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:10px}
+.f-head b{font:800 24px/1 var(--h);text-transform:uppercase}
+.f-head span{font:500 10px var(--m);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);border:1px solid var(--rule);padding:3px 6px}
+.f-coop{font:500 11px var(--m);letter-spacing:.06em;text-transform:uppercase;color:var(--wing-2);margin:10px 0 4px}
+.f-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px dashed var(--rule)}
+.f-row .n{font:600 17px/1.2 var(--b)}
+.f-row .c{font:400 11px var(--m);color:var(--ink-3);margin-top:3px}
+.stamp{font:700 15px/1 var(--h);letter-spacing:.08em;text-transform:uppercase;padding:5px 8px;border:2px solid currentColor;outline:1px solid currentColor;outline-offset:2px;transform:rotate(-4deg);white-space:nowrap}
+.stamp.ok{color:var(--clean)}.stamp.rv{color:var(--review);transform:rotate(3deg)}.stamp.hi{color:var(--high)}
+.f-foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font:500 10.5px var(--m);letter-spacing:.06em;text-transform:uppercase}
+.f-foot b{font:700 18px/1 var(--h);letter-spacing:.02em}
+.f-foot span{color:var(--wing-2)}
 
-/* ---- tira de credibilidad ---- */
-.strip{background:var(--m-night);color:#C9CFDA}
-.strip .wrap{padding:18px 24px;display:flex;align-items:center;gap:14px 30px;flex-wrap:wrap;justify-content:center}
-.strip .lbl{color:var(--m-ochre);font:500 11px var(--font-mono);letter-spacing:.08em;text-transform:uppercase}
-.strip .item{display:inline-flex;align-items:center;gap:9px;font-size:14px;font-weight:500}
-.strip .item svg{color:#8FB0F2}
+/* ---------- tira ---------- */
+.strip{background:var(--ink);color:#C9D4EE;border-top:6px solid var(--ochre)}
+.strip .wrap{display:flex;flex-wrap:wrap;gap:10px 28px;align-items:center;justify-content:center;padding-block:16px}
+.strip span{font:500 11px var(--m);letter-spacing:.06em;text-transform:uppercase}
+.strip .lbl{color:var(--ochre)}
 
-/* ---- secciones ---- */
-section{padding:88px 0}
-.hero{padding:0}
-.shead{max-width:64ch}
-.s-eyebrow{display:inline-flex;align-items:center;gap:10px;color:var(--m-blue-deep);font:500 12px var(--font-mono);letter-spacing:.06em;text-transform:uppercase}
-.s-eyebrow::before{content:'';width:22px;height:3px;background:var(--m-ochre)}
-h2{font-size:clamp(28px,3.6vw,44px);margin:14px 0 0}
-.lead{max-width:60ch;color:var(--ink-2);font-size:17px;margin-top:14px}
+/* ---------- secciones ---------- */
+section{padding-block:96px}
+.eye{display:inline-flex;align-items:center;gap:10px;font:500 11.5px var(--m);letter-spacing:.1em;text-transform:uppercase;color:var(--wing-2)}
+.eye::before{content:'';width:10px;height:10px;background:var(--ochre)}
+h2{font-size:clamp(40px,5.4vw,76px);margin:14px 0 0;max-width:20ch}
+.lead{font-size:clamp(18px,1.5vw,21px);color:var(--ink-2);max-width:62ch;margin:20px 0 0}
+.shead{margin-bottom:48px}
 
-/* stats */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:8px;border-top:2px solid var(--ink)}
-.stat{padding:24px 22px 8px 0;border-right:1px solid var(--line)}
-.stat+.stat{padding-left:22px}.stat:last-child{border-right:0}
-.stat .num{font-family:var(--font-heading);font-weight:700;font-size:clamp(34px,3.8vw,48px);color:var(--ink);letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
-.stat .num span{color:var(--m-blue)}
-.stat .lab{color:var(--ink-2);font-size:14px;margin-top:10px;line-height:1.45}
+/* problema: columnas con filete, no tarjetas */
+.cols{display:grid;grid-template-columns:repeat(2,1fr);gap:0;border-top:3px solid var(--ink)}
+.col{padding:26px 34px 8px 0}
+.col+.col{padding-left:34px;border-left:1px solid var(--rule)}
+.col b{display:block;font:800 30px/1 var(--h);text-transform:uppercase;margin-bottom:10px}
+.col p{margin:0;color:var(--ink-2)}
 
-/* steps */
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:40px;border-top:1px solid var(--line)}
-.step{padding:28px 28px 28px 0;position:relative}
-.step+.step{padding-left:28px;border-left:1px solid var(--line)}
-.step .n{width:44px;height:44px;display:grid;place-items:center;font:700 20px var(--font-heading);color:#fff;background:var(--m-night)}
-.step:nth-child(2) .n{background:var(--m-blue-deep)}
-.step:nth-child(3) .n{background:var(--m-ochre);color:var(--m-night)}
-.step h3{font-size:21px;margin:18px 0 8px;color:var(--ink)}
-.step p{font-size:15px;color:var(--ink-2);margin:0}
-.step .line{display:none}
+/* plazo */
+.plazo{background:var(--paper-2);border-block:1px solid var(--rule)}
+.plazo .wrap{display:grid;grid-template-columns:auto 1fr;gap:56px;align-items:center}
+.plazo .tagred{display:inline-block;background:var(--high);color:#fff;font:600 11px var(--m);letter-spacing:.1em;text-transform:uppercase;padding:6px 10px}
+.plazo .date{font:800 clamp(72px,12vw,176px)/.85 var(--h);color:var(--wing-1);letter-spacing:-.01em;margin-top:12px;white-space:nowrap}
+.plazo .date span{color:var(--ochre)}
+.plazo b{display:block;font:800 34px/1 var(--h);text-transform:uppercase;margin-bottom:12px}
+.plazo p{margin:0;font-size:20px;color:var(--ink-2);max-width:48ch}
 
-/* semáforo */
-.semaforo{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:30px}
-.sf{background:var(--paper);border:1px solid var(--line);padding:18px 20px;border-top:4px solid var(--c)}
-.sf .dot{display:inline-flex;align-items:center;gap:9px;font:700 16px var(--font-heading);color:var(--ink)}
-.sf .dot i{width:11px;height:11px;border-radius:50%;background:var(--c)}
-.sf p{margin:8px 0 0;color:var(--ink-2);font-size:14px}
+/* ruta en tres pasos */
+.ruta{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;position:relative;counter-reset:s}
+.ruta::before{content:'';position:absolute;top:27px;left:28px;right:28px;border-top:3px dotted var(--wing)}
+.paso{position:relative}
+.paso .n{position:relative;z-index:1;width:56px;height:56px;display:grid;place-items:center;background:var(--ink);color:#fff;font:800 28px/1 var(--h)}
+.paso:nth-child(2) .n{background:var(--wing)}
+.paso:nth-child(3) .n{background:var(--ochre);color:var(--ink)}
+.paso .k{display:inline-block;margin:20px 0 8px;font:500 10.5px var(--m);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);border:1px solid var(--rule);padding:4px 7px}
+.paso h3{font-size:34px;margin-bottom:10px}
+.paso p{margin:0;color:var(--ink-2)}
 
-/* bandas */
-.band{background:var(--paper-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.why{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:40px}
-.why:has(> .card:nth-child(4)){grid-template-columns:repeat(2,1fr)}
-.why .card{background:var(--paper);border:1px solid var(--line);padding:24px;display:flex;gap:16px;align-items:flex-start}
-.why .ic{flex:none;width:44px;height:44px;display:grid;place-items:center;background:var(--m-blue-tint);color:var(--m-blue-deep)}
-.why b{color:var(--ink);font-family:var(--font-heading);font-size:17px;display:block;margin-bottom:5px;letter-spacing:-.01em}
-.why p{margin:0;color:var(--ink-2);font-size:15px}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:30px}
-.chips span{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--ink);background:var(--paper);
-  border:1px solid var(--line-2);padding:7px 13px;font-weight:500}
-.chips span::before{content:'';width:7px;height:7px;background:var(--m-ochre);flex:none}
+/* semáforo en sellos */
+.sellos{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:64px}
+.sello{background:var(--paper-3);border:2px solid var(--ink);padding:26px 24px;position:relative}
+.sello .lab{font:500 10.5px var(--m);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.sello .big{display:inline-block;margin:16px 0 16px;font:800 38px/1 var(--h);letter-spacing:.06em;text-transform:uppercase;padding:8px 14px;border:3px dashed currentColor;transform:rotate(-2.5deg)}
+.sello.ok{border-color:var(--clean)} .sello.ok .big{color:var(--clean)}
+.sello.rv{border-color:var(--review)} .sello.rv .big{color:var(--review);transform:rotate(2deg)}
+.sello.hi{border-color:var(--high)} .sello.hi .big{color:var(--high)}
+.sello p{margin:0;color:var(--ink-2)}
+
+/* envío: libro de registro */
+.envio{background:var(--wing-grad);color:#fff}
+.envio .eye{color:var(--ochre-2)}
+.envio .lead{color:#DCE6FB}
+.envio .wrap{display:grid;grid-template-columns:.95fr 1.05fr;gap:64px;align-items:start}
+.libro{background:var(--paper-3);color:var(--ink);padding:10px 26px 22px;box-shadow:12px 12px 0 var(--ink)}
+.libro .l{padding:20px 0;border-bottom:1px solid var(--rule);display:grid;grid-template-columns:40px 1fr;gap:14px}
+.libro .l:last-of-type{border-bottom:0}
+.libro .l i{font:600 13px var(--m);color:var(--wing-2);font-style:normal;padding-top:4px}
+.libro b{display:block;font:800 24px/1.05 var(--h);text-transform:uppercase;margin-bottom:6px}
+.libro p{margin:0;font-size:17px;color:var(--ink-2)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:30px}
+.chips span{font:500 11px var(--m);letter-spacing:.05em;text-transform:uppercase;padding:8px 11px;border:1px solid rgba(255,255,255,.5);color:#fff}
+
+/* cifras */
+.cifras{background:var(--ink);color:#fff;padding-block:80px}
+.cifras .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.cifra{padding:4px 26px 0 0}
+.cifra+.cifra{padding-left:26px;border-left:1px solid #2C3140}
+.cifra .num{font:800 clamp(56px,6vw,88px)/.9 var(--h);color:var(--ochre-2)}
+.cifra:nth-child(even) .num{color:#8FB6FF}
+.cifra .lab{margin-top:12px;font-size:16px;line-height:1.45;color:#BFC7D8}
+
+/* por qué / tecnología: índice de lámina */
+.indice{display:grid;grid-template-columns:repeat(2,1fr);gap:0 56px}
+.item{padding:26px 0;border-top:1px solid var(--rule);display:grid;grid-template-columns:64px 1fr;gap:18px}
+.item i{font:800 34px/1 var(--h);font-style:normal;color:var(--wing)}
+.item b{display:block;font:800 26px/1.05 var(--h);text-transform:uppercase;margin-bottom:8px}
+.item p{margin:0;color:var(--ink-2)}
+.tech{background:var(--paper-2);border-top:1px solid var(--rule)}
 
 /* faq */
-.faq{max-width:780px;margin-top:34px;border-top:2px solid var(--ink)}
-details{border-bottom:1px solid var(--line);padding:0 4px}
-summary{font-family:var(--font-heading);font-weight:700;font-size:17px;padding:18px 0;cursor:pointer;
-  list-style:none;display:flex;justify-content:space-between;gap:14px;align-items:center;color:var(--ink)}
+.faq{display:grid;grid-template-columns:repeat(2,1fr);gap:0 56px;border-top:3px solid var(--ink)}
+details{border-bottom:1px solid var(--rule)}
+summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:16px;align-items:center;padding:20px 0;font:700 24px/1.1 var(--h);text-transform:uppercase}
 summary::-webkit-details-marker{display:none}
-summary::after{content:'+';flex:none;font:500 20px var(--font-mono);color:var(--m-blue-deep);transition:transform .2s}
+summary::after{content:'+';font:500 22px var(--m);color:var(--wing-2);transition:transform .2s;flex:none}
 details[open] summary::after{transform:rotate(45deg)}
-details p{margin:0 0 18px;color:var(--ink-2);font-size:15.5px}
-details a{color:var(--m-blue-deep)!important}
+details p{margin:0 0 20px;color:var(--ink-2)}
+details a{color:var(--wing-2)}
 
-/* cta final */
-.cta-final{padding:60px 32px;text-align:center;margin:0 0 64px;background:var(--m-blue-deep);color:#fff;border-bottom:6px solid var(--m-ochre)}
-.cta-final h2{color:#fff;max-width:18ch;margin:0 auto}
-.cta-final p{color:#D8E2F7;max-width:52ch;margin:16px auto 26px;font-size:17px}
-.cta-final .btn-gold{background:#fff;color:var(--m-blue-deep)!important;border-color:#fff}
-.cta-final .btn-gold:hover{background:var(--m-night);color:#fff!important;border-color:var(--m-night)}
-.cta-final .btn-ghost{color:#fff;border-color:rgba(255,255,255,.7)}
-.cta-final .btn-ghost:hover{background:#fff;color:var(--m-blue-deep)}
+/* cierre */
+.cierre{padding-block:0 96px}
+.cierre .box{background:var(--wing-grad);color:#fff;padding:64px 48px;position:relative;box-shadow:14px 14px 0 var(--ochre)}
+.cierre h2{max-width:18ch;margin-top:0}
+.cierre p{font-size:20px;color:#DCE6FB;max-width:56ch;margin:18px 0 30px}
 
-/* footer */
-footer{background:var(--m-night);padding:34px 0;color:#9AA3B2;font-size:14px}
-footer .wrap{display:flex;gap:18px 28px;flex-wrap:wrap;align-items:center}
-footer .fb{display:flex;align-items:center;gap:9px;color:#fff}
-footer a{color:#C9CFDA;text-decoration:none}
-footer a:hover{color:#fff;text-decoration:underline}
-footer .sp{margin-left:auto}
+/* pie */
+footer{background:var(--ink);color:#9AA3B6;padding-block:56px 40px}
+footer .wrap{display:grid;grid-template-columns:auto 1fr auto;gap:28px 48px;align-items:center}
+footer .wing{width:120px;height:auto;color:var(--wing)}
+footer .fb b{display:block;font:800 30px/1 var(--h);text-transform:uppercase;color:#fff}
+footer .fb span{font-style:italic;font-size:17px;color:#C9D4EE}
+footer nav{display:flex;flex-wrap:wrap;gap:6px 20px}
+footer nav a{font:500 11.5px var(--m);letter-spacing:.06em;text-transform:uppercase;text-decoration:none;color:#C9D4EE}
+footer nav a:hover{color:var(--ochre-2)}
 
-/* aparición: visible por defecto, solo un leve desplazamiento */
-.reveal{opacity:1;transform:translateY(10px);transition:transform .5s ease}
-.reveal.in{transform:none}
-
-@media(max-width:880px){
-  .hero .wrap{grid-template-columns:1fr;gap:40px;padding:48px 24px 64px}
-  .stats{grid-template-columns:repeat(2,1fr)}
-  .stat{border-bottom:1px solid var(--line)} .stat:nth-child(2){border-right:0} .stat:nth-child(3){padding-left:0}
-  .steps,.why,.semaforo{grid-template-columns:1fr}
-  .step+.step{padding-left:0;border-left:0;border-top:1px solid var(--line)}
-  .nl a.hide-sm,.nl .hide-sm,.nl .live{display:none}
-  .nav .wrap{padding:10px 16px} .btn-gold{padding:9px 14px}
+/* ---------- responsive ---------- */
+@media(max-width:960px){
+  .hero .wrap,.envio .wrap,.plazo .wrap{grid-template-columns:1fr;gap:44px}
+  .ruta{grid-template-columns:1fr;gap:34px;padding-left:0}
+  .ruta::before{top:28px;bottom:28px;left:27px;right:auto;border-top:0;border-left:3px dotted var(--wing)}
+  .paso{padding-left:80px}.paso .n{position:absolute;left:0;top:0}.paso .k{margin-top:4px}
+  .sellos,.cols,.indice,.faq{grid-template-columns:1fr}
+  .col+.col{padding-left:0;border-left:0;border-top:1px solid var(--rule)}
+  .cifras .wrap{grid-template-columns:repeat(2,1fr);gap:32px 0}
+  .cifra:nth-child(3){padding-left:0;border-left:0}
+  footer .wrap{grid-template-columns:1fr}
+  .nl .hide-sm{display:none}
 }
-@media(max-width:480px){ .stats{grid-template-columns:1fr} .stat{border-right:0;padding-left:0!important} .float-chip{right:0} }
-@media(prefers-reduced-motion:reduce){ *{animation:none!important;scroll-behavior:auto!important} .reveal{transform:none;transition:none} }
-
-/* ============================================================================
-   Morpho a color (v2, 21-sep-2026): el ala entera, no solo el borde.
-   Degradados tomados de la iridiscencia del ala (noche -> azul profundo ->
-   azul morpho -> brillo celeste) y del ocelo ocre del reverso.
-   ========================================================================= */
-:root{
-  --wing:linear-gradient(128deg,#050B24 0%,#0B2470 28%,#1344B0 52%,#1F5BD8 72%,#4FB0F5 100%);
-  --wing-soft:linear-gradient(180deg,#E3ECFF 0%,#F2F6FF 60%,#FFFFFF 100%);
-  --ocelo:linear-gradient(135deg,#F6C35A 0%,#E0A43A 55%,#B8761A 100%);
-  --night-grad:linear-gradient(160deg,#0B0D12 0%,#0A1840 70%,#0F2F8F 100%);
+@media(max-width:520px){
+  .wrap{padding-inline:18px}
+  section{padding-block:72px}
+  .hero .wrap{padding-block:52px 64px}
+  .coords{display:none}
+  .brand small{display:none}
+  .nl .lang{display:none}
+  .cierre .box{padding:44px 24px}
+  .cifras .wrap{grid-template-columns:1fr}
+  .cifra,.cifra+.cifra{padding-left:0;border-left:0}
+  .plazo .date{font-size:clamp(64px,19vw,96px)}
+  .ficha{transform:rotate(-1deg)}
 }
-/* nav sobre noche */
-.nav{background:#0B0D12;border-bottom:0}
-.wm{color:#fff}
-.nl a{color:#C9D6F2}.nl a:hover{color:#fff;border-bottom-color:var(--m-ochre)}
-.nl .live{color:#C9D6F2;border-color:rgba(255,255,255,.22)}
-.nl [data-langbtn]{background:transparent!important;border-color:rgba(255,255,255,.35)!important;color:#fff!important}
-.btn-gold{background:var(--ocelo);border:0;color:#0B0D12!important;padding:12px 20px}
-.btn-gold:hover{background:#fff;color:#0B0D12!important}
-.nav .logo svg path[stroke]{stroke:#fff}
-.nav .logo svg path[fill="#0B0D12"]{fill:#fff}
-
-/* hero: el ala */
-.hero{background:var(--wing);color:#fff;border-bottom:0;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;right:-12%;top:-30%;width:62%;aspect-ratio:1;border-radius:50%;
-  background:radial-gradient(circle,rgba(111,196,255,.55) 0%,rgba(79,176,245,.18) 38%,transparent 66%);pointer-events:none}
-.hero::after{content:'';position:absolute;left:0;right:0;bottom:0;height:10px;background:linear-gradient(90deg,#0B0D12 0 70%,#E0A43A 70% 76%,#0B0D12 76%)}
-.hero .wrap{position:relative;z-index:1}
-.hero h1{color:#fff}
-.grad{background:var(--ocelo);-webkit-background-clip:text;background-clip:text;color:transparent;box-shadow:none}
-.hero .sub{color:#DCE6FB}
-.eyebrow{color:#F6C35A}.eyebrow::before{background:#F6C35A}
-.hero .btn-ghost{border-color:rgba(255,255,255,.75);color:#fff}
-.hero .btn-ghost:hover{background:#fff;color:var(--m-blue-deep)}
-.trust{border-top-color:rgba(255,255,255,.22)}
-.trust .ic{background:rgba(255,255,255,.14);color:#F6C35A}
-.trust b{color:#fff}.trust span{color:#BFD0F2}
-.stage::before{background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.25)}
-.phone{box-shadow:0 30px 60px -24px rgba(3,8,30,.8)}
-.ph-h{background:var(--wing)}
-.float-chip{border-left:4px solid transparent;border-image:var(--ocelo) 1}
-
-/* tira: ocre */
-.strip{background:var(--ocelo);color:#1B1304}
-.strip .lbl{color:#0B0D12}
-.strip .item svg{color:#0B2470}
-
-/* bandas en azul suave */
-.band{background:var(--wing-soft);border-color:#D2DEF7}
-.why .card{border:1px solid #D2DEF7;border-top:4px solid transparent;border-image:linear-gradient(90deg,#1344B0,#4FB0F5) 1;background:#fff}
-.why .ic{background:var(--wing);color:#fff}
-.chips span{border-color:#C6D5F3}
-.chips span::before{background:var(--ocelo)}
-.s-eyebrow::before{background:var(--ocelo)}
-
-/* pasos con color */
-.step .n{background:var(--night-grad)}
-.step:nth-child(2) .n{background:var(--wing)}
-.step:nth-child(3) .n{background:var(--ocelo);color:#0B0D12}
-.sf{border-top-width:6px}
-
-/* cifras en noche */
-section[aria-label="Cifras EUDR"]{background:var(--night-grad);padding:72px 0!important;margin-top:0}
-.stats{border-top-color:#F6C35A}
-.stat{border-right-color:rgba(255,255,255,.14)}
-.stat .num{color:#fff}.stat .num span{color:#F6C35A}
-.stat .lab{color:#BFD0F2}
-
-/* faq */
-.faq{border-top-color:var(--m-blue-deep)}
-
-/* cierre: otra vez el ala */
-.cta-final{background:var(--wing);border-bottom:0;position:relative;overflow:hidden}
-.cta-final::after{content:'';position:absolute;left:0;right:0;bottom:0;height:8px;background:var(--ocelo)}
-.cta-final .btn-gold{background:var(--ocelo);color:#0B0D12!important}
-.cta-final .btn-gold:hover{background:#fff}
-footer{background:var(--night-grad)}
-@media(max-width:880px){ .hero::before{width:120%;right:-50%;top:-20%} }
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style></head>
 <body>
 <a class="skip" href="#main">Saltar al contenido</a>
-<div class="bg-base" aria-hidden="true"></div>
-<div class="bg-grid" aria-hidden="true"></div>
 
 <header class="nav"><div class="wrap">
   <a class="brand" href="/" aria-label="Origen — inicio">
-    <span class="logo"><svg viewBox="0 0 64 64" width="28" height="28" aria-hidden="true">
-      <path d="M32 6C20.4 6 11 15 11 26.2c0 9.2 8.5 18.6 21 31.8 12.5-13.2 21-22.6 21-31.8C53 15 43.6 6 32 6Z" fill="none" stroke="#0B0D12" stroke-width="3.2"/>
+    <svg viewBox="0 0 64 64" width="32" height="32" aria-hidden="true">
+      <path d="M32 6C20.4 6 11 15 11 26.2c0 9.2 8.5 18.6 21 31.8 12.5-13.2 21-22.6 21-31.8C53 15 43.6 6 32 6Z" fill="none" stroke="#FFFFFF" stroke-width="3.4"/>
       <ellipse cx="26.5" cy="25" rx="7.4" ry="8.6" fill="#E0A43A"/>
-      <ellipse cx="37.5" cy="26" rx="7.4" ry="8.6" fill="#1F5BD8"/>
-      <path d="M32 33v13" stroke="#0B0D12" stroke-width="2.6" stroke-linecap="round"/>
-      <path d="M32 40c3.5-.4 6-2.6 6.5-6-3.8.3-6 1.8-6.5 6z" fill="#0B0D12"/></svg></span>
-    <span class="wm">Origen</span>
+      <ellipse cx="37.5" cy="26" rx="7.4" ry="8.6" fill="#4F8BFF"/>
+      <path d="M32 33v13" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M32 40c3.5-.4 6-2.6 6.5-6-3.8.3-6 1.8-6.5 6z" fill="#FFFFFF"/></svg>
+    <span><span class="wm">Origen</span><small>EUDR · Perú</small></span>
   </a>
   <nav class="nl" aria-label="Principal">
-    <span class="live"><i aria-hidden="true"></i>MVP en vivo</span>
-    <button data-langbtn onclick="toggleLang()" class="hide-sm" aria-label="Switch language" style="background:var(--glass);border:1px solid var(--hair-2);color:var(--text-2);padding:7px 12px;border-radius:10px;cursor:pointer;font-family:var(--font-heading);font-size:13.5px;font-weight:600">EN</button>
+    <button class="lang" data-langbtn onclick="toggleLang()" aria-label="Switch language">EN</button>
     <a class="hide-sm" href="#como">Cómo funciona</a>
     <a class="hide-sm" href="/normativa">Normativa EUDR</a>
     <a class="hide-sm" href="/verificar">Verificar</a>
     <a href="/panel">Entrar</a>
-    <a class="btn btn-gold" href="/capturar">Capturar parcelas</a>
+    <a class="btn btn-ochre" href="/capturar">Capturar parcelas</a>
   </nav>
 </div></header>
 
 <main id="main">
 
-<section class="hero" aria-labelledby="h1">
+<section class="hero" aria-labelledby="h1" style="padding:0">
+  <span class="coords" aria-hidden="true">13°31′S · 71°57′W</span>
   <div class="wrap">
     <div>
-      <span class="eyebrow reveal d1">Cumplimiento EUDR · café y cacao</span>
-      <h1 id="h1" class="reveal d2">Cumple el EUDR, o tu café se queda <span class="grad">fuera de Europa.</span></h1>
-      <p class="sub reveal d3">Tu comprador europeo ya está pidiendo la prueba. Origen la genera: geolocalización parcela por parcela, verificación contra 4 fuentes satelitales y el dossier + GeoJSON listo para TRACES. Y consolida decenas de parcelas, de muchos productores y regiones, en un solo dossier por envío — capturado desde el celular, en minutos.</p>
-      <div class="cta-row reveal d4">
-        <a class="btn btn-gold btn-lg" href="/capturar">Empezar a capturar
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-        <a class="btn btn-ghost btn-lg" href="/empezar">Conversemos</a>
+      <span class="tag">Cumplimiento EUDR · café y cacao</span>
+      <h1 id="h1">Cumple el EUDR, o tu café se queda <span class="hl">fuera de Europa.</span></h1>
+      <p class="sub">Tu comprador europeo ya está pidiendo la prueba. Origen la genera: geolocalización parcela por parcela, verificación contra 4 fuentes satelitales y el dossier + GeoJSON listo para TRACES. Y consolida decenas de parcelas, de muchos productores y regiones, en un solo dossier por envío — capturado desde el celular, en minutos.</p>
+      <div class="cta-row">
+        <a class="btn btn-ochre" href="/capturar">Empezar a capturar <span aria-hidden="true">→</span></a>
+        <a class="btn btn-line" href="/empezar">Conversemos</a>
       </div>
-      <div class="trust reveal d4">
-        <div class="t"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 22s8-5.6 8-12a8 8 0 1 0-16 0c0 6.4 8 12 8 12Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.6" stroke="currentColor" stroke-width="1.8"/></svg></span><div><b>4 fuentes oficiales</b><span>Hansen · WDPA · JRC</span></div></div>
-        <div class="t"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/></svg></span><div><b>Listo para TRACES</b><span>GeoJSON + dossier</span></div></div>
-        <div class="t"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19a4 4 0 0 1-.6-7.95 5.5 5.5 0 0 1 10.8-1.3A4.2 4.2 0 0 1 19 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9 14l3-3 3 3M12 11v8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>Sin señal</b><span>funciona en campo</span></div></div>
+      <div class="facts">
+        <div><b>4 fuentes oficiales</b>Hansen · WDPA · JRC</div>
+        <div><b>Listo para TRACES</b>GeoJSON + dossier</div>
+        <div><b>Sin señal</b>funciona en campo</div>
       </div>
     </div>
 
-    <div class="stage reveal d3">
-      <div class="phone">
-        <div class="screen">
-          <div class="ph-h">Origen · captura <span class="ph-dot"><i aria-hidden="true"></i>en línea</span></div>
-          <div class="ph-b">
-            <div class="ph-card"><div class="t">Coop. Aurora · Cusco</div>
-              <div class="ph-row"><div>María Quispe<div class="c">−13.520, −71.950</div></div><span class="badge ok">limpio</span></div>
-              <div class="ph-row"><div>José Mamani<div class="c">−13.531, −71.962</div></div><span class="badge ok">limpio</span></div>
-              <div class="ph-row"><div>Rosa Huamán<div class="c">−13.498, −71.944</div></div><span class="badge gd">revisar</span></div>
-            </div>
-            <div class="ph-sync"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12l4.5 4.5L19 7" stroke="#1E6B3A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>3 parcelas · sincronizadas</div>
-          </div>
-        </div>
-      </div>
-      <div class="float-chip" aria-hidden="true">
-        <span class="fi"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M14 3v6h6" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span>
-        <div><b>Dossier EUDR</b><span>listo para TRACES</span></div>
-      </div>
+    <div class="ficha" role="img" aria-label="Ejemplo de ficha de campo con tres parcelas verificadas">
+      <div class="f-head"><b>Ficha de campo</b><span>Ejemplo</span></div>
+      <div class="f-coop">Coop. Aurora · Cusco</div>
+      <div class="f-row"><div><div class="n">María Quispe</div><div class="c">−13.520, −71.950</div></div><span class="stamp ok">limpio</span></div>
+      <div class="f-row"><div><div class="n">José Mamani</div><div class="c">−13.531, −71.962</div></div><span class="stamp ok">limpio</span></div>
+      <div class="f-row"><div><div class="n">Rosa Huamán</div><div class="c">−13.498, −71.944</div></div><span class="stamp rv">revisar</span></div>
+      <div class="f-foot"><b>Dossier EUDR</b><span>listo para TRACES</span></div>
     </div>
   </div>
 </section>
 
-<div class="strip" aria-label="Tecnología y fuentes">
-  <div class="wrap">
-    <span class="lbl">Construido con</span>
-    <span class="item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l2.2 6.3L21 11l-6.8 1.7L12 19l-2.2-6.3L3 11l6.8-1.7L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Gemini · Vertex AI</span>
-    <span class="item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s8-5.6 8-12a8 8 0 1 0-16 0c0 6.4 8 12 8 12Z" stroke="currentColor" stroke-width="1.6"/><path d="M9 11c0-3 6-3 6 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>GFW · Hansen · WDPA · JRC 2020 (UE)</span>
-    <span class="item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 16a4 4 0 0 1-.5-7.97 6 6 0 0 1 11.6-1.2A4.5 4.5 0 0 1 18 16H6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Google Cloud Run</span>
-    <span class="item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M8 10h8M8 14h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>UE TRACES-ready</span>
-    <span class="item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Verificable · SHA-256</span>
-  </div>
-</div>
+<div class="strip" aria-label="Tecnología y fuentes"><div class="wrap">
+  <span class="lbl">Construido con</span>
+  <span>Gemini · Vertex AI</span>
+  <span>GFW · Hansen · WDPA · JRC 2020 (UE)</span>
+  <span>Google Cloud Run</span>
+  <span>UE TRACES-ready</span>
+  <span>Verificable · SHA-256</span>
+</div></div>
 
-<section class="band" aria-labelledby="h-prob">
+<section aria-labelledby="h-prob">
   <div class="wrap">
-    <div class="shead reveal">
-      <span class="s-eyebrow">El problema</span>
+    <div class="shead">
+      <span class="eye">El problema</span>
       <h2 id="h-prob">Sin la prueba, pierdes Europa.</h2>
       <p class="lead">Desde el 30 de diciembre de 2026, toda cooperativa que venda café o cacao a la UE debe demostrar —parcela por parcela— que no se cultivó en bosque talado después de 2020. Si no lo pruebas, no hay multa: simplemente tu comprador firma con otro y te quedas fuera de tu principal mercado.</p>
     </div>
-    <div class="why">
-      <div class="card reveal d1"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>El reloj ya corre</b><p>30 dic 2026 para operadores grandes y medianos; 30 jun 2027 para pequeños. Europa toma cerca de la mitad del cacao y casi la mitad del café del Perú.</p></div></div>
-      <div class="card reveal d2"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>Las soluciones son carísimas</b><p>Hechas para grandes importadores. Y, como denuncia Fairtrade, el costo del cumplimiento termina cayendo sobre el pequeño productor, que ya vive al límite.</p></div></div>
-      <div class="card reveal d3"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 22s8-5.6 8-12a8 8 0 1 0-16 0c0 6.4 8 12 8 12Z" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="10" r="2.6" stroke="currentColor" stroke-width="1.7"/></svg></span><div><b>Geolocalizar ya no basta</b><p>Mapear parcelas se está volviendo gratis. Lo que tu comprador europeo paga es la evidencia verificada que de verdad puede presentar.</p></div></div>
+    <div class="cols">
+      <div class="col"><b>Las soluciones son carísimas</b><p>Hechas para grandes importadores. Y, como denuncia Fairtrade, el costo del cumplimiento termina cayendo sobre el pequeño productor, que ya vive al límite.</p></div>
+      <div class="col"><b>Geolocalizar ya no basta</b><p>Mapear parcelas se está volviendo gratis. Lo que tu comprador europeo paga es la evidencia verificada que de verdad puede presentar.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="plazo" aria-label="Plazo">
+  <div class="wrap">
+    <div>
+      <span class="tagred">Plazo</span>
+      <div class="date">30<span>.</span>12<span>.</span>2026</div>
+    </div>
+    <div>
+      <b>El reloj ya corre</b>
+      <p>30 dic 2026 para operadores grandes y medianos; 30 jun 2027 para pequeños. Europa toma cerca de la mitad del cacao y casi la mitad del café del Perú.</p>
     </div>
   </div>
 </section>
 
 <section id="como" aria-labelledby="h-como">
   <div class="wrap">
-    <div class="shead reveal">
-      <span class="s-eyebrow">Cómo funciona</span>
+    <div class="shead">
+      <span class="eye">Cómo funciona</span>
       <h2 id="h-como">De la parcela al dossier, en tres pasos.</h2>
       <p class="lead">Sin planillas, sin consultoras caras. El técnico captura en campo y la IA arma el paquete que tu comprador europeo necesita.</p>
     </div>
-    <div class="steps">
-      <div class="step reveal d1"><span class="line" aria-hidden="true"></span><div class="n">1</div><h3>Captura en campo</h3><p>El técnico registra cada parcela con el GPS del celular y una foto; en predios de más de 4 ha camina el perímetro para el polígono que exige el EUDR. Funciona sin señal.</p></div>
-      <div class="step reveal d2"><span class="line" aria-hidden="true"></span><div class="n">2</div><h3>Verificación</h3><p>Cruzamos cada parcela con cuatro fuentes oficiales —Hansen, alertas recientes, áreas protegidas (WDPA) y el mapa de referencia JRC 2020 de la UE— y marcamos limpio, revisar o deforestación.</p></div>
-      <div class="step reveal d3"><div class="n">3</div><h3>Dossier listo</h3><p>Generamos el dossier y el GeoJSON listos para TRACES — por lote, o consolidando decenas de parcelas en un solo dossier por envío.</p></div>
+    <div class="ruta">
+      <div class="paso"><div class="n">1</div><span class="k">Funciona sin señal</span><h3>Captura en campo</h3><p>El técnico registra cada parcela con el GPS del celular y una foto; en predios de más de 4 ha camina el perímetro para el polígono que exige el EUDR. Funciona sin señal.</p></div>
+      <div class="paso"><div class="n">2</div><span class="k">Hansen · WDPA · JRC</span><h3>Verificación</h3><p>Cruzamos cada parcela con cuatro fuentes oficiales —Hansen, alertas recientes, áreas protegidas (WDPA) y el mapa de referencia JRC 2020 de la UE— y marcamos limpio, revisar o deforestación.</p></div>
+      <div class="paso"><div class="n">3</div><span class="k">GeoJSON + dossier</span><h3>Dossier listo</h3><p>Generamos el dossier y el GeoJSON listos para TRACES — por lote, o consolidando decenas de parcelas en un solo dossier por envío.</p></div>
     </div>
-    <div class="semaforo">
-      <div class="sf reveal d1" style="--c:var(--risk-clean)"><span class="dot"><i></i>Limpio</span><p>Sin pérdida de bosque tras el 31-dic-2020. Lista para el dossier.</p></div>
-      <div class="sf reveal d2" style="--c:var(--risk-review)"><span class="dot"><i></i>Revisar</span><p>Señal dudosa cerca del límite. La verificas antes de enviar a tu comprador.</p></div>
-      <div class="sf reveal d3" style="--c:var(--risk-high)"><span class="dot"><i></i>Deforestación</span><p>Pérdida de bosque detectada. Se marca para excluir o sustentar.</p></div>
+    <div class="sellos">
+      <div class="sello ok"><div class="lab">Veredicto</div><div class="big">Limpio</div><p>Sin pérdida de bosque tras el 31-dic-2020. Lista para el dossier.</p></div>
+      <div class="sello rv"><div class="lab">Veredicto</div><div class="big">Revisar</div><p>Señal dudosa cerca del límite. La verificas antes de enviar a tu comprador.</p></div>
+      <div class="sello hi"><div class="lab">Veredicto</div><div class="big">Deforestación</div><p>Pérdida de bosque detectada. Se marca para excluir o sustentar.</p></div>
     </div>
   </div>
 </section>
 
-<section class="band" aria-labelledby="h-envio">
+<section class="envio" aria-labelledby="h-envio">
   <div class="wrap">
-    <div class="shead reveal">
-      <span class="s-eyebrow">Envíos · consolidación</span>
+    <div>
+      <span class="eye">Envíos · consolidación</span>
       <h2 id="h-envio">Una operación, un solo dossier.</h2>
       <p class="lead">Tu comprador no acopia de una sola parcela: junta café de decenas de productores y varias regiones en un contenedor. El EUDR exige un dossier consolidado por envío, con la geolocalización de todas las parcelas. Lo que las consultoras cobran miles por armar, Origen lo genera en un clic.</p>
+      <div class="chips">
+        <span>Dossier consolidado</span>
+        <span>GeoJSON listo para TRACES</span>
+        <span>Notarización SHA-256 + QR</span>
+        <span>Equipo multi-técnico</span>
+        <span>Funciona sin señal</span>
+        <span>Español e inglés</span>
+      </div>
     </div>
-    <div class="why">
-      <div class="card reveal d1"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4-9-4Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M3 7v10l9 4 9-4V7M12 11v10" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span><div><b>Consolida decenas de parcelas</b><p>Marca los lotes de un contenedor —de muchos productores y regiones— y genera un único dossier + GeoJSON listo para TRACES.</p></div></div>
-      <div class="card reveal d2"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9.5 12.5l1.8 1.8 3.5-3.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>Veredicto global, sin mezclar</b><p>Si una sola parcela está observada, el envío se marca y te dice exactamente cuál excluir o sustentar. La norma prohíbe compensar: Origen te lo resuelve.</p></div></div>
-      <div class="card reveal d3"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 18V8m6 10V5m6 13v-7m6 7V9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><div><b>Anti-fraude de volumen</b><p>Cruzamos los kilos declarados con el rendimiento real del área. Si no cuadra, lo marcamos antes que lo haga la aduana europea.</p></div></div>
-    </div>
-    <div class="chips reveal">
-      <span>Dossier consolidado</span>
-      <span>GeoJSON listo para TRACES</span>
-      <span>Notarización SHA-256 + QR</span>
-      <span>Equipo multi-técnico</span>
-      <span>Funciona sin señal</span>
-      <span>Español e inglés</span>
-    </div>
-  </div>
-</section>
-
-<section aria-label="Cifras EUDR" style="padding-top:0">
-  <div class="wrap">
-    <div class="stats">
-      <div class="stat reveal d1"><div class="num" data-count="7">0</div><div class="lab">Commodities que regula el EUDR (café, cacao, soya, palma, madera, ganado, caucho)</div></div>
-      <div class="stat reveal d2"><div class="num"><span data-count="100">0</span>%</div><div class="lab">Datos de deforestación de licencia abierta — sin candados ni costos ocultos</div></div>
-      <div class="stat reveal d3"><div class="num">2020</div><div class="lab">Deforestación permitida solo hasta el 31 de diciembre de ese año</div></div>
-      <div class="stat reveal d4"><div class="num">2026</div><div class="lab">Cumplimiento obligatorio para operadores grandes y medianos (30 dic)</div></div>
+    <div class="libro">
+      <div class="l"><i>01</i><div><b>Consolida decenas de parcelas</b><p>Marca los lotes de un contenedor —de muchos productores y regiones— y genera un único dossier + GeoJSON listo para TRACES.</p></div></div>
+      <div class="l"><i>02</i><div><b>Veredicto global, sin mezclar</b><p>Si una sola parcela está observada, el envío se marca y te dice exactamente cuál excluir o sustentar. La norma prohíbe compensar: Origen te lo resuelve.</p></div></div>
+      <div class="l"><i>03</i><div><b>Anti-fraude de volumen</b><p>Cruzamos los kilos declarados con el rendimiento real del área. Si no cuadra, lo marcamos antes que lo haga la aduana europea.</p></div></div>
     </div>
   </div>
 </section>
 
-<section class="band" aria-labelledby="h-why">
+<section class="cifras" aria-label="Cifras EUDR">
   <div class="wrap">
-    <div class="shead reveal">
-      <span class="s-eyebrow">Por qué Origen</span>
+    <div class="cifra"><div class="num">7</div><div class="lab">Commodities que regula el EUDR (café, cacao, soya, palma, madera, ganado, caucho)</div></div>
+    <div class="cifra"><div class="num">100%</div><div class="lab">Datos de deforestación de licencia abierta — sin candados ni costos ocultos</div></div>
+    <div class="cifra"><div class="num">2020</div><div class="lab">Deforestación permitida solo hasta el 31 de diciembre de ese año</div></div>
+    <div class="cifra"><div class="num">2026</div><div class="lab">Cumplimiento obligatorio para operadores grandes y medianos (30 dic)</div></div>
+  </div>
+</section>
+
+<section aria-labelledby="h-why">
+  <div class="wrap">
+    <div class="shead">
+      <span class="eye">Por qué Origen</span>
       <h2 id="h-why">Hecho para cooperativas, no para ingenieros.</h2>
     </div>
-    <div class="why">
-      <div class="card reveal d1"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" stroke="currentColor" stroke-width="1.7"/></svg></span><div><b>Abierto, auditable y verificable</b><p>Datos satelitales de licencia abierta y un dossier con huella digital verificable por cualquiera — sin cajas negras ni candados.</p></div></div>
-      <div class="card reveal d2"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13 2L3 14h7l-1 8 11-13h-7l0-7Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span><div><b>En minutos, en español</b><p>Sin planillas ni consultoras caras: el técnico captura y el dossier se arma solo.</p></div></div>
-      <div class="card reveal d3"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19a4 4 0 0 1-.6-7.95 5.5 5.5 0 0 1 10.8-1.3A4.2 4.2 0 0 1 19 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M12 8v8m-3-3 3 3 3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>Pensado para el campo</b><p>Captura sin internet y sincroniza sola cuando vuelve la señal.</p></div></div>
-      <div class="card reveal d4"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span><div><b>Mantiene tu mercado</b><p>Le entregas a tu comprador europeo justo lo que la ley le exige, a tiempo.</p></div></div>
+    <div class="indice">
+      <div class="item"><i>A</i><div><b>Abierto, auditable y verificable</b><p>Datos satelitales de licencia abierta y un dossier con huella digital verificable por cualquiera — sin cajas negras ni candados.</p></div></div>
+      <div class="item"><i>B</i><div><b>En minutos, en español</b><p>Sin planillas ni consultoras caras: el técnico captura y el dossier se arma solo.</p></div></div>
+      <div class="item"><i>C</i><div><b>Pensado para el campo</b><p>Captura sin internet y sincroniza sola cuando vuelve la señal.</p></div></div>
+      <div class="item"><i>D</i><div><b>Mantiene tu mercado</b><p>Le entregas a tu comprador europeo justo lo que la ley le exige, a tiempo.</p></div></div>
     </div>
   </div>
 </section>
 
-<section aria-labelledby="h-tech">
+<section class="tech" aria-labelledby="h-tech">
   <div class="wrap">
-    <div class="shead reveal">
-      <span class="s-eyebrow">Tecnología transparente</span>
+    <div class="shead">
+      <span class="eye">Tecnología transparente</span>
       <h2 id="h-tech">Potente por dentro, sin cajas negras.</h2>
       <p class="lead">Todo lo que afirmamos se puede comprobar: datos abiertos, IA de Google y una huella digital que cualquiera verifica.</p>
     </div>
-    <div class="why">
-      <div class="card reveal d1"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" stroke="currentColor" stroke-width="1.7"/></svg></span><div><b>4 fuentes satelitales abiertas</b><p>Hansen, alertas GFW, áreas protegidas (WDPA) y el mapa de referencia JRC 2020 de la UE. De licencia abierta, sin candados.</p></div></div>
-      <div class="card reveal d2"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l2.2 6.3L21 11l-6.8 1.7L12 19l-2.2-6.3L3 11l6.8-1.7L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span><div><b>IA de Google (Gemini)</b><p>Gemini, sobre Vertex AI, redacta el dictamen legible para tu comprador. El veredicto sale de los satélites, no del modelo: explicable y defendible.</p></div></div>
-      <div class="card reveal d3"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M9 9h2v2H9zM13 13h2v2h-2zM9 13h2v2H9zM13 9h2v2h-2z" fill="currentColor"/></svg></span><div><b>Notarización en cadena (blockchain)</b><p>Cada dossier lleva una huella SHA-256 y un QR. Cualquiera escanea, sube el PDF y confirma que es auténtico y desde cuándo existe — sin que el archivo salga de su equipo.</p></div></div>
-      <div class="card reveal d4"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/></svg></span><div><b>Abierto y auditable</b><p>Sin mapas con licencia cerrada ni "confía en mí". Puedes ver y verificar cada fuente y cada dato — lo contrario de las cajas negras de los grandes.</p></div></div>
+    <div class="indice">
+      <div class="item"><i>1</i><div><b>4 fuentes satelitales abiertas</b><p>Hansen, alertas GFW, áreas protegidas (WDPA) y el mapa de referencia JRC 2020 de la UE. De licencia abierta, sin candados.</p></div></div>
+      <div class="item"><i>2</i><div><b>IA de Google (Gemini)</b><p>Gemini, sobre Vertex AI, redacta el dictamen legible para tu comprador. El veredicto sale de los satélites, no del modelo: explicable y defendible.</p></div></div>
+      <div class="item"><i>3</i><div><b>Notarización en cadena (blockchain)</b><p>Cada dossier lleva una huella SHA-256 y un QR. Cualquiera escanea, sube el PDF y confirma que es auténtico y desde cuándo existe — sin que el archivo salga de su equipo.</p></div></div>
+      <div class="item"><i>4</i><div><b>Abierto y auditable</b><p>Sin mapas con licencia cerrada ni "confía en mí". Puedes ver y verificar cada fuente y cada dato — lo contrario de las cajas negras de los grandes.</p></div></div>
     </div>
   </div>
 </section>
 
 <section aria-labelledby="h-faq">
   <div class="wrap">
-    <div class="shead reveal">
-      <span class="s-eyebrow">Preguntas frecuentes</span>
+    <div class="shead">
+      <span class="eye">Preguntas frecuentes</span>
       <h2 id="h-faq">Lo que más nos preguntan.</h2>
     </div>
-    <div class="faq reveal">
-      <details><summary>¿Necesito internet en la parcela?</summary><p>No. El técnico captura todo en el celular —GPS y foto— sin señal, y las parcelas se envían solas cuando vuelve la conexión.</p></details>
-      <details><summary>¿Qué pasa si una parcela tiene deforestación?</summary><p>Se marca como «revisar» o «deforestación» para que la verifiques antes de enviarla a tu comprador. Origen es la herramienta de detección; la decisión final es tuya y del operador europeo.</p></details>
-      <details><summary>¿Quién presenta la declaración en la UE?</summary><p>El operador europeo (tu comprador/importador) la presenta en el sistema de la UE. Origen le entrega el paquete de datos listo para que pueda hacerlo.</p></details>
-      <details><summary>¿Sirve para café y cacao?</summary><p>Sí, y para cualquier producto del EUDR cuyo origen sea una parcela. Hoy nos enfocamos en café y cacao.</p></details>
-      <details><summary>¿Y las parcelas grandes (más de 4 ha)?</summary><p>La app deja caminar el perímetro y registrar el polígono de límites con el GPS — el formato que la UE exige para predios de más de 4 hectáreas. Las parcelas chicas se registran con un punto.</p></details>
-      <details><summary>¿Origen certifica el cumplimiento?</summary><p>No. Origen entrega evidencia verificada, lista para sustentar la declaración; el responsable legal es el operador europeo que la presenta, y los sellos son complementarios. Nuestro trabajo es darte datos confiables que tu comprador acepte, no un sello.</p></details>
-      <details><summary>¿Cómo sé que un dossier es auténtico?</summary><p>Cada dossier lleva un código QR y una huella digital (SHA-256). Cualquiera puede entrar a <a href="/verificar" >la página de verificación</a>, subir el archivo y confirmar al instante que es auténtico y desde cuándo existe — sin que el archivo salga de su equipo.</p></details>
+    <div class="faq">
+      <div>
+        <details><summary>¿Necesito internet en la parcela?</summary><p>No. El técnico captura todo en el celular —GPS y foto— sin señal, y las parcelas se envían solas cuando vuelve la conexión.</p></details>
+        <details><summary>¿Qué pasa si una parcela tiene deforestación?</summary><p>Se marca como «revisar» o «deforestación» para que la verifiques antes de enviarla a tu comprador. Origen es la herramienta de detección; la decisión final es tuya y del operador europeo.</p></details>
+        <details><summary>¿Quién presenta la declaración en la UE?</summary><p>El operador europeo (tu comprador/importador) la presenta en el sistema de la UE. Origen le entrega el paquete de datos listo para que pueda hacerlo.</p></details>
+        <details><summary>¿Sirve para café y cacao?</summary><p>Sí, y para cualquier producto del EUDR cuyo origen sea una parcela. Hoy nos enfocamos en café y cacao.</p></details>
+      </div>
+      <div>
+        <details><summary>¿Y las parcelas grandes (más de 4 ha)?</summary><p>La app deja caminar el perímetro y registrar el polígono de límites con el GPS — el formato que la UE exige para predios de más de 4 hectáreas. Las parcelas chicas se registran con un punto.</p></details>
+        <details><summary>¿Origen certifica el cumplimiento?</summary><p>No. Origen entrega evidencia verificada, lista para sustentar la declaración; el responsable legal es el operador europeo que la presenta, y los sellos son complementarios. Nuestro trabajo es darte datos confiables que tu comprador acepte, no un sello.</p></details>
+        <details><summary>¿Cómo sé que un dossier es auténtico?</summary><p>Cada dossier lleva un código QR y una huella digital (SHA-256). Cualquiera puede entrar a <a href="/verificar">la página de verificación</a>, subir el archivo y confirmar al instante que es auténtico y desde cuándo existe — sin que el archivo salga de su equipo.</p></details>
+      </div>
     </div>
   </div>
 </section>
 
-<div class="wrap"><div class="cta-final reveal">
-  <h2>Tus compradores europeos ya están preguntando.</h2>
-  <p>Pon tu cooperativa en regla antes que tu competencia. Sin instalar nada, sin consultoras: captura tu primera parcela hoy y ten el dossier listo en minutos.</p>
-  <div class="cta-row" style="justify-content:center">
-    <a class="btn btn-gold btn-lg" href="/capturar">Capturar parcelas
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-    <a class="btn btn-ghost btn-lg" href="/empezar">Agenda una demo</a>
-  </div>
-</div></div>
+<section class="cierre" aria-labelledby="h-cta">
+  <div class="wrap"><div class="box">
+    <h2 id="h-cta">Tus compradores europeos ya están preguntando.</h2>
+    <p>Pon tu cooperativa en regla antes que tu competencia. Sin instalar nada, sin consultoras: captura tu primera parcela hoy y ten el dossier listo en minutos.</p>
+    <div class="cta-row">
+      <a class="btn btn-ochre" href="/capturar">Capturar parcelas <span aria-hidden="true">→</span></a>
+      <a class="btn btn-line" href="/empezar">Agenda una demo</a>
+    </div>
+  </div></div>
+</section>
 
 </main>
 
 <footer><div class="wrap">
-  <span class="fb"><svg viewBox="0 0 64 64" width="22" height="22" aria-hidden="true"><path d="M32 6C20.4 6 11 15 11 26.2 11 40 32 58 32 58s21-18 21-31.8C53 15 43.6 6 32 6z" fill="#4D7FE8"/><path d="M32 41V27" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/><path d="M32 31c-5 0-9-3-9.5-8 5.5 0 9 2.5 9.5 8z" fill="#E0A43A"/></svg>Origen · Del origen a Europa, libre de deforestación.</span>
-  <span class="sp"></span>
-  <a href="#como">Cómo funciona</a>
-  <a href="/normativa">Normativa EUDR</a>
-  <a href="/verificar">Verificar</a>
-  <a href="/capturar">Capturar</a>
+  <svg class="wing" viewBox="0 0 240 150" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true">
+    <path d="M120 44 C98 6 44 -6 14 16 C-2 30 8 70 44 78 C70 84 100 74 120 60"/>
+    <path d="M120 44 C142 6 196 -6 226 16 C242 30 232 70 196 78 C170 84 140 74 120 60"/>
+    <path d="M120 62 C100 78 66 88 58 112 C52 132 76 146 96 132 C110 122 118 100 120 82"/>
+    <path d="M120 62 C140 78 174 88 182 112 C188 132 164 146 144 132 C130 122 122 100 120 82"/>
+    <path d="M120 36 V110" stroke-width="4" stroke-linecap="round"/>
+    <path d="M118 36 C112 22 104 14 96 10 M122 36 C128 22 136 14 144 10" stroke-linecap="round"/>
+    <circle cx="80" cy="118" r="7" fill="#E0A43A" stroke="none"/><circle cx="160" cy="118" r="7" fill="#E0A43A" stroke="none"/>
+  </svg>
+  <div class="fb"><b>Origen</b><span>Del origen a Europa, libre de deforestación.</span></div>
+  <nav aria-label="Pie">
+    <a href="#como">Cómo funciona</a>
+    <a href="/normativa">Normativa EUDR</a>
+    <a href="/verificar">Verificar</a>
+    <a href="/capturar">Capturar</a>
+  </nav>
 </div></footer>
 
-<script>
-(function(){
-  var rm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var els = document.querySelectorAll('.reveal');
-  if(rm || !('IntersectionObserver' in window)){
-    els.forEach(function(e){e.classList.add('in')});
-  }else{
-    var io = new IntersectionObserver(function(en){
-      en.forEach(function(x){ if(x.isIntersecting){ x.target.classList.add('in'); io.unobserve(x.target); } });
-    },{threshold:.12,rootMargin:'0px 0px -8% 0px'});
-    els.forEach(function(e){io.observe(e)});
-  }
-  // count-up
-  function countUp(el){
-    var target = +el.getAttribute('data-count'), dur = 1100, t0 = null;
-    function tick(t){ if(!t0)t0=t; var p=Math.min((t-t0)/dur,1);
-      el.textContent = Math.round((1-Math.pow(1-p,3))*target); if(p<1)requestAnimationFrame(tick); }
-    requestAnimationFrame(tick);
-  }
-  var nums = document.querySelectorAll('[data-count]');
-  if(rm || !('IntersectionObserver' in window)){
-    nums.forEach(function(n){n.textContent=n.getAttribute('data-count')});
-  }else{
-    var io2 = new IntersectionObserver(function(en){
-      en.forEach(function(x){ if(x.isIntersecting){ countUp(x.target); io2.unobserve(x.target); } });
-    },{threshold:.6});
-    nums.forEach(function(n){io2.observe(n)});
-  }
-})();
-</script>
 <script src="/static/i18n.js" defer></script>
 </body></html>

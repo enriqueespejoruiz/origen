@@ -36,6 +36,21 @@ async def _canonical_host(request, call_next):
 from fastapi.staticfiles import StaticFiles
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
 
+class _HeadAsGet:
+    """Responde HEAD como GET sin cuerpo (FastAPI solo registra GET y devolvía 405)."""
+    def __init__(self, app):
+        self.app = app
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") == "http" and scope.get("method") == "HEAD":
+            scope = dict(scope, method="GET")
+            async def _send(msg):
+                if msg.get("type") == "http.response.body":
+                    msg = dict(msg, body=b"", more_body=False) if not msg.get("more_body") else dict(msg, body=b"")
+                await send(msg)
+            return await self.app(scope, receive, _send)
+        return await self.app(scope, receive, send)
+app.add_middleware(_HeadAsGet)
+
 def _now(): return datetime.datetime.utcnow().isoformat() + "Z"
 
 def log(event, **kw):
@@ -93,8 +108,123 @@ def _field_photo_files(lot, out_dir):
             continue
     return out
 
+# ── SEO ──────────────────────────────────────────────────────────────────────
+# Las etiquetas SEO se inyectan al servir cada HTML (no se editan los .html):
+# canónica, og:url, og:image absoluta, JSON-LD y noindex para las pantallas de la app.
+import re as _re, html as _html
+_SEO_PUBLIC = {            # archivo -> ruta pública indexable
+    "landing.html": "/",
+    "normativa.html": "/normativa",
+    "empezar.html": "/empezar",
+    "verificar.html": "/verificar",
+    "eudr-cafe-peru.html": "/eudr-cafe-peru",
+}
+_SEO_DESC = {              # solo se usa si el HTML no trae meta description
+    "empezar.html": "Empieza con Origen: cuéntanos de tu cooperativa o empresa exportadora y te ayudamos a preparar la geolocalización y el dossier EUDR de tus parcelas.",
+    "verificar.html": "Verifica si un dossier EUDR de Origen es auténtico: sube el PDF y comprueba su huella SHA-256 y su sello en Bitcoin, sin que el archivo salga de tu equipo.",
+}
+_NOINDEX = "noindex, nofollow"
+
+def _seo_base():
+    return config.PUBLIC_BASE_URL.rstrip("/")
+
+def _faq_jsonld(html_text):
+    items = []
+    for q, a in _re.findall(r"<details[^>]*>\s*<summary[^>]*>(.*?)</summary>\s*<p[^>]*>(.*?)</p>", html_text, _re.S):
+        q = _html.unescape(_re.sub(r"<[^>]+>", "", q)).strip()
+        a = _html.unescape(_re.sub(r"<[^>]+>", "", a)).strip()
+        if q and a:
+            items.append({"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}})
+    return {"@type": "FAQPage", "mainEntity": items} if items else None
+
+def _seo_jsonld(name, html_text):
+    base = _seo_base()
+    org = {"@type": "Organization", "@id": base + "/#org", "name": "Origen", "url": base + "/",
+           "logo": base + "/static/icon-512.png",
+           "parentOrganization": {"@type": "Organization", "name": "Selva Ecomarketing S.A.C.", "url": "https://selvagencia.com/"}}
+    graph = [org]
+    if name == "landing.html":
+        graph.append({"@type": "SoftwareApplication", "name": "Origen", "url": base + "/",
+                      "applicationCategory": "BusinessApplication", "operatingSystem": "Web, Android, iOS",
+                      "inLanguage": ["es", "en"], "publisher": {"@id": base + "/#org"},
+                      "description": "Geolocalización de parcelas, verificación contra 4 fuentes satelitales abiertas y dossier con GeoJSON listo para TRACES para cumplir el Reglamento (UE) 2023/1115 (EUDR)."})
+        faq = _faq_jsonld(html_text)
+        if faq:
+            graph.append(faq)
+    return {"@context": "https://schema.org", "@graph": graph}
+
 def _page(name):
-    return FileResponse(os.path.join(WEB_DIR, name), media_type="text/html")
+    with open(os.path.join(WEB_DIR, name), encoding="utf-8") as f:
+        text = f.read()
+    base = _seo_base()
+    path = _SEO_PUBLIC.get(name)
+    text = text.replace('content="/static/', 'content="' + base + '/static/')
+    tags = []
+    if path is None:
+        tags.append('<meta name="robots" content="' + _NOINDEX + '">')
+    else:
+        url = base + path
+        tags.append('<link rel="canonical" href="' + url + '">')
+        if 'property="og:url"' not in text:
+            tags.append('<meta property="og:url" content="' + url + '">')
+        if 'name="description"' not in text and name in _SEO_DESC:
+            tags.append('<meta name="description" content="' + _SEO_DESC[name] + '">')
+        tags.append('<script type="application/ld+json">' + json.dumps(_seo_jsonld(name, text), ensure_ascii=False) + '</script>')
+    text = text.replace("</head>", "\n".join(tags) + "\n</head>", 1)
+    headers = {"X-Robots-Tag": _NOINDEX} if path is None else {}
+    return Response(text, media_type="text/html; charset=utf-8", headers=headers)
+
+@app.get("/robots.txt")
+def robots_txt():
+    body = "\n".join([
+        "User-agent: *",
+        "Allow: /",
+        "Disallow: /api/",
+        "Disallow: /lots/",
+        "Disallow: /consignments/",
+        "Disallow: /share/",
+        "Disallow: /demo",
+        "Disallow: /admin",
+        "Disallow: /cron",
+        "Disallow: /webhooks",
+        "",
+        "Sitemap: " + _seo_base() + "/sitemap.xml",
+        ""])
+    return Response(body, media_type="text/plain; charset=utf-8")
+
+@app.get("/sitemap.xml")
+def sitemap_xml():
+    base = _seo_base()
+    urls = "".join("<url><loc>" + base + p + "</loc></url>" for p in _SEO_PUBLIC.values())
+    body = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + urls + "</urlset>\n"
+    return Response(body, media_type="application/xml")
+
+@app.get("/llms.txt")
+def llms_txt():
+    base = _seo_base()
+    body = f"""# Origen
+
+> Origen genera la prueba que el Reglamento (UE) 2023/1115 contra la deforestación (EUDR) exige a café, cacao y otros productos que salen de una parcela: geolocalización (punto o polígono), verificación contra cuatro fuentes satelitales abiertas y un dossier en PDF con GeoJSON listo para el sistema TRACES de la UE. Lo construyó Selva Ecomarketing S.A.C. (Lima, Perú).
+
+## Qué hace
+- Captura de parcelas desde el celular, incluso sin señal; polígono para predios de más de 4 ha.
+- Verificación contra Hansen/Global Forest Watch (pérdida de cobertura), alertas recientes de deforestación de GFW, áreas protegidas (WDPA) y el mapa de referencia JRC 2020 de la UE.
+- Un solo dossier por envío aunque junte muchas parcelas y productores.
+- Cada dossier lleva huella SHA-256, código QR y sello en Bitcoin (OpenTimestamps) verificable en {base}/verificar
+- Origen no certifica: entrega evidencia verificable; la declaración de diligencia debida la presenta el operador europeo.
+
+## Fechas del EUDR
+- 30 de diciembre de 2026: operadores grandes y medianos.
+- 30 de junio de 2027: micro y pequeñas empresas.
+
+## Páginas
+- [Inicio]({base}/): qué es Origen y cómo funciona.
+- [Normativa EUDR]({base}/normativa): resumen del reglamento, productos, fechas y quién presenta la declaración.
+- [Verificar dossier]({base}/verificar): comprobar la autenticidad de un dossier.
+- [Empezar]({base}/empezar): solicitar acceso.
+- [Artículo](https://selvagencia.com/blog/eudr-cafe-cacao-peru-origen/): EUDR para el café y cacao peruano y por qué construimos Origen.
+"""
+    return Response(body, media_type="text/plain; charset=utf-8")
 
 @app.get("/manifest.webmanifest")
 def manifest():
@@ -116,6 +246,10 @@ def capturar():
 @app.get("/normativa")
 def normativa():
     return _page("normativa.html")
+
+@app.get("/eudr-cafe-peru")
+def eudr_cafe_peru():
+    return _page("eudr-cafe-peru.html")
 
 @app.get("/empezar")
 def empezar():

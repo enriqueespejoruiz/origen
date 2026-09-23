@@ -143,6 +143,23 @@ def test_delay_page_links_and_dates():
     assert "Actualizado el 23 de septiembre de 2026" in t
 
 
+def test_new_guides_are_linked():
+    """Cacao, anexo I y preguntas frecuentes existen en todos los idiomas y están enlazados desde la normativa
+    (y el cacao también desde la guía del café y la portada; las preguntas frecuentes, desde el pie de la portada)."""
+    for lang in LANGS:
+        norm = client.get(I.path_for("normativa", lang)).text
+        for key in ("eudr-cacao-peru", "eudr-anexo-1", "eudr-preguntas-frecuentes"):
+            assert 'href="%s"' % I.path_for(key, lang) in norm, (lang, key)
+        cafe = client.get(I.path_for("eudr-cafe-peru", lang)).text
+        assert 'href="%s"' % I.path_for("eudr-cacao-peru", lang) in cafe, lang
+        home = client.get(I.path_for("landing", lang)).text
+        for key in ("eudr-cacao-peru", "eudr-preguntas-frecuentes"):
+            assert 'href="%s"' % I.path_for(key, lang) in home, (lang, key)
+        faq = client.get(I.path_for("eudr-preguntas-frecuentes", lang)).text
+        graph = json.loads(re.findall(r'<script type="application/ld\+json">(.*?)</script>', faq, re.S)[0].replace("<\\/", "</"))["@graph"]
+        assert len([g for g in graph if g["@type"] == "FAQPage"][0]["mainEntity"]) == 15, lang
+
+
 def test_traces_guide_is_linked():
     """La guía de la DDS en TRACES existe en todos los idiomas y la enlazan la normativa y la guía del café."""
     for lang in LANGS:

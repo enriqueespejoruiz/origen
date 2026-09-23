@@ -128,6 +128,9 @@ _SEO_ARTICLES = {          # páginas de contenido -> (publicada, modificada) pa
     "eudr-cafe-peru.html": ("2026-09-21", "2026-09-21"),
     "eudr-aplazamiento.html": ("2026-09-23", "2026-09-23"),   # se revisa cada mes: actualizar la fecha al editar
     "eudr-traces-dds.html": ("2026-09-23", "2026-09-23"),
+    "eudr-cacao-peru.html": ("2026-09-23", "2026-09-23"),
+    "eudr-anexo-1.html": ("2026-09-23", "2026-09-23"),               # revisar si la Comisión cambia el anexo I
+    "eudr-preguntas-frecuentes.html": ("2026-09-23", "2026-09-23"),
 }
 
 def _seo_base():
@@ -209,6 +212,9 @@ def llms_txt():
 - [Normativa EUDR]({base}/normativa): resumen del reglamento, productos, fechas y quién presenta la declaración.
 - [Aplazamiento del EUDR]({base}/eudr-aplazamiento): fechas vigentes, cronología y últimas novedades (se revisa cada mes).
 - [EUDR para el café peruano]({base}/eudr-cafe-peru): qué exige al café del Perú y qué le toca a la cooperativa.
+- [EUDR para el cacao peruano]({base}/eudr-cacao-peru): qué exige al cacao del Perú, del grano al chocolate, y el problema de los cacaotales bajo sombra en los mapas.
+- [Anexo I del EUDR]({base}/eudr-anexo-1): productos y códigos SA incluidos, lo que salió en 2025-2026 y lo que entra el 30 de diciembre de 2027.
+- [Preguntas frecuentes sobre el EUDR]({base}/eudr-preguntas-frecuentes): respuestas cortas con fuente oficial (fechas, parcelas, mezclas, certificaciones, sanciones).
 - [La declaración EUDR (DDS) en TRACES]({base}/eudr-traces-dds): cómo la presenta el importador, qué lleva, reglas del GeoJSON y qué datos necesita de la cooperativa.
 - [Verificar dossier]({base}/verificar): comprobar la autenticidad de un dossier.
 - [Empezar]({base}/empezar): solicitar acceso.
@@ -248,6 +254,18 @@ def eudr_aplazamiento():
 @app.get("/eudr-traces-dds")
 def eudr_traces_dds():
     return _page("eudr-traces-dds.html")
+
+@app.get("/eudr-cacao-peru")
+def eudr_cacao_peru():
+    return _page("eudr-cacao-peru.html")
+
+@app.get("/eudr-anexo-1")
+def eudr_anexo_1():
+    return _page("eudr-anexo-1.html")
+
+@app.get("/eudr-preguntas-frecuentes")
+def eudr_preguntas_frecuentes():
+    return _page("eudr-preguntas-frecuentes.html")
 
 @app.get("/empezar")
 def empezar():

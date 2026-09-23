@@ -14,7 +14,8 @@ from app import main  # noqa: E402
 
 client = TestClient(main.app)
 BASE = main._seo_base()
-PUBLIC = ["/", "/normativa", "/eudr-cafe-peru", "/eudr-aplazamiento", "/eudr-traces-dds", "/empezar", "/verificar"]
+PUBLIC = ["/", "/normativa", "/eudr-cafe-peru", "/eudr-cacao-peru", "/eudr-aplazamiento", "/eudr-traces-dds",
+          "/eudr-anexo-1", "/eudr-preguntas-frecuentes", "/empezar", "/verificar"]
 
 
 def _jsonld(html_text):
@@ -42,7 +43,8 @@ def test_public_page_seo_basics(path):
 
 
 def test_article_and_breadcrumb_on_guides():
-    for path in ("/normativa", "/eudr-cafe-peru", "/eudr-aplazamiento", "/eudr-traces-dds"):
+    for path in ("/normativa", "/eudr-cafe-peru", "/eudr-cacao-peru", "/eudr-aplazamiento", "/eudr-traces-dds",
+                 "/eudr-anexo-1", "/eudr-preguntas-frecuentes"):
         g = {x["@type"]: x for x in _jsonld(client.get(path).text)}
         assert g["Article"]["headline"] and g["Article"]["inLanguage"] == "es"
         assert g["Article"]["mainEntityOfPage"] == BASE + path
@@ -52,6 +54,15 @@ def test_article_and_breadcrumb_on_guides():
 def test_landing_graph():
     types = [g["@type"] for g in _jsonld(client.get("/").text)]
     assert {"Organization", "WebSite", "SoftwareApplication", "FAQPage"} <= set(types)
+
+
+def test_faq_page_graph():
+    """La página de preguntas frecuentes lleva FAQPage con todas sus preguntas (y respuestas sin HTML)."""
+    t = client.get("/eudr-preguntas-frecuentes").text
+    faq = [g for g in _jsonld(t) if g["@type"] == "FAQPage"][0]
+    assert len(faq["mainEntity"]) == t.count("<summary>") == 15
+    for q in faq["mainEntity"]:
+        assert q["name"].endswith("?") and q["acceptedAnswer"]["text"] and "<" not in q["acceptedAnswer"]["text"]
 
 
 @pytest.mark.parametrize("path", ["/capturar", "/panel"])

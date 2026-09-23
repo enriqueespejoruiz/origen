@@ -220,7 +220,8 @@ def _jsonld(key, lang, html_text, meta, base, articles, app_desc_es):
     org_id = base + "/#org"
     graph = [{"@type": "Organization", "@id": org_id, "name": "Origen", "url": base + "/",
               "logo": base + "/static/icon-512.png",
-              "parentOrganization": {"@type": "Organization", "name": "Selva Ecomarketing S.A.C.",
+              "parentOrganization": {"@type": "Organization", "name": "Selva Ecomarketing",
+                                     "legalName": "Selva Marketing Sostenible S.A.C.", "taxID": "20615597393",
                                      "url": "https://selvagencia.com/"}}]
     url = base + path_for(key, lang)
     home = base + path_for("landing", lang)

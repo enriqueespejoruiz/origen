@@ -98,3 +98,19 @@ def test_i18n_js_respects_public_pages():
     js = open(os.path.join(main.WEB_DIR, "i18n.js"), encoding="utf-8").read()
     assert 'meta[name="i18n-auto"][content="off"]' in js
     assert 'meta[name="i18n-server"]' in js
+
+
+def test_privacy_pages():
+    """Aviso de privacidad: español (Ley 29733) y inglés (RGPD), fuera de Google, con los datos reales del
+    responsable; los pies enlazan la versión en español desde /es y la inglesa desde los demás idiomas."""
+    for path, must in (("/privacidad", ("SELVA MARKETING SOSTENIBLE S.A.C.", "20615597393", "hola@selvagencia.com", "Cinco años")),
+                       ("/en/privacy", ("SELVA MARKETING SOSTENIBLE S.A.C.", "20615597393", "hola@selvagencia.com", "Article 6(1)(a)", "Five years"))):
+        r = client.get(path)
+        assert r.status_code == 200 and "noindex" in r.headers.get("X-Robots-Tag", ""), path
+        for m in must:
+            assert m in r.text, (path, m)
+    es = client.get("/").text
+    assert 'href="/privacidad"' in es and 'href="/en/privacy"' not in es
+    de = client.get(main.i18n_pages.path_for("landing", "de")).text
+    assert 'href="/en/privacy"' in de and 'href="/privacidad"' not in de
+    assert "/privacidad" not in client.get("/sitemap.xml").text

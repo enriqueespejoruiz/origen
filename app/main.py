@@ -192,7 +192,7 @@ def llms_txt():
     base = _seo_base()
     body = f"""# Origen
 
-> Origen genera la prueba que el Reglamento (UE) 2023/1115 contra la deforestación (EUDR) exige a café, cacao y otros productos que salen de una parcela: geolocalización (punto o polígono), verificación contra cuatro fuentes satelitales abiertas y un dossier en PDF con GeoJSON listo para el sistema TRACES de la UE. Lo construyó Selva Ecomarketing S.A.C. (Lima, Perú).
+> Origen genera la prueba que el Reglamento (UE) 2023/1115 contra la deforestación (EUDR) exige a café, cacao y otros productos que salen de una parcela: geolocalización (punto o polígono), verificación contra cuatro fuentes satelitales abiertas y un dossier en PDF con GeoJSON listo para el sistema TRACES de la UE. Lo construyó Selva Ecomarketing (SELVA MARKETING SOSTENIBLE S.A.C., RUC 20615597393, Lima, Perú).
 
 ## Qué hace
 - Captura de parcelas desde el celular, incluso sin señal; polígono para predios de más de 4 ha.
@@ -218,6 +218,7 @@ def llms_txt():
 - [La declaración EUDR (DDS) en TRACES]({base}/eudr-traces-dds): cómo la presenta el importador, qué lleva, reglas del GeoJSON y qué datos necesita de la cooperativa.
 - [Verificar dossier]({base}/verificar): comprobar la autenticidad de un dossier.
 - [Empezar]({base}/empezar): solicitar acceso.
+- [Política de privacidad]({base}/privacidad) · [Privacy notice]({base}/en/privacy)
 - [Artículo](https://selvagencia.com/blog/eudr-cafe-cacao-peru-origen/): EUDR para el café y cacao peruano y por qué construimos Origen.
 """ + _llms_langs(base)
     return Response(body, media_type="text/plain; charset=utf-8")
@@ -266,6 +267,16 @@ def eudr_anexo_1():
 @app.get("/eudr-preguntas-frecuentes")
 def eudr_preguntas_frecuentes():
     return _page("eudr-preguntas-frecuentes.html")
+
+# Aviso legal: fuera del sistema de idiomas (noindex). En español para el Perú y en inglés para Europa (RGPD);
+# los pies de las páginas en otros idiomas enlazan la versión en inglés. Va antes de /{lang}/{slug}.
+@app.get("/privacidad")
+def privacidad():
+    return _page("privacidad.html")
+
+@app.get("/en/privacy")
+def privacy_en():
+    return _page("privacy-en.html")
 
 @app.get("/empezar")
 def empezar():

@@ -31,7 +31,10 @@ async def _canonical_host(request, call_next):
         if request.url.query:
             url += "?" + request.url.query
         return _RR(url, status_code=308)
-    return await call_next(request)
+    response = await call_next(request)
+    if request.url.path.startswith("/static/") and request.url.path.endswith(".html"):
+        response.headers["X-Robots-Tag"] = "noindex, nofollow"   # copia cruda: la página real es su ruta pública
+    return response
 
 from fastapi.staticfiles import StaticFiles
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
@@ -50,6 +53,9 @@ class _HeadAsGet:
             return await self.app(scope, receive, _send)
         return await self.app(scope, receive, send)
 app.add_middleware(_HeadAsGet)
+# Comprime HTML/JS/JSON (Lighthouse: "Enable text compression"). Cloud Run no comprime solo.
+from starlette.middleware.gzip import GZipMiddleware
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 def _now(): return datetime.datetime.utcnow().isoformat() + "Z"
 
@@ -124,6 +130,14 @@ _SEO_DESC = {              # solo se usa si el HTML no trae meta description
     "verificar.html": "Verifica si un dossier EUDR de Origen es auténtico: sube el PDF y comprueba su huella SHA-256 y su sello en Bitcoin, sin que el archivo salga de tu equipo.",
 }
 _NOINDEX = "noindex, nofollow"
+_SEO_ARTICLES = {          # páginas de contenido -> (publicada, modificada) para el schema Article
+    "normativa.html": ("2026-06-09", "2026-09-21"),
+    "eudr-cafe-peru.html": ("2026-09-21", "2026-09-21"),
+}
+_SEO_CRUMB = {             # nombre corto de la página en las migas de pan
+    "normativa.html": "Normativa EUDR",
+    "eudr-cafe-peru.html": "EUDR para el café peruano",
+}
 
 def _seo_base():
     return config.PUBLIC_BASE_URL.rstrip("/")
@@ -137,13 +151,31 @@ def _faq_jsonld(html_text):
             items.append({"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}})
     return {"@type": "FAQPage", "mainEntity": items} if items else None
 
+def _seo_text(pattern, html_text):
+    m = _re.search(pattern, html_text, _re.S | _re.I)
+    return _html.unescape(_re.sub(r"\s+", " ", _re.sub(r"<[^>]+>", " ", m.group(1)))).strip() if m else ""
+
 def _seo_jsonld(name, html_text):
     base = _seo_base()
     org = {"@type": "Organization", "@id": base + "/#org", "name": "Origen", "url": base + "/",
            "logo": base + "/static/icon-512.png",
            "parentOrganization": {"@type": "Organization", "name": "Selva Ecomarketing S.A.C.", "url": "https://selvagencia.com/"}}
     graph = [org]
+    if name in _SEO_ARTICLES:
+        url = base + _SEO_PUBLIC[name]
+        pub, mod = _SEO_ARTICLES[name]
+        graph.append({"@type": "Article", "@id": url + "#article", "mainEntityOfPage": url,
+                      "headline": _seo_text(r"<h1[^>]*>(.*?)</h1>", html_text),
+                      "description": _seo_text(r'<meta name="description" content="([^"]*)"', html_text),
+                      "inLanguage": "es", "image": base + "/static/og.png",
+                      "datePublished": pub, "dateModified": mod,
+                      "author": {"@id": base + "/#org"}, "publisher": {"@id": base + "/#org"}})
+        graph.append({"@type": "BreadcrumbList", "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Origen", "item": base + "/"},
+            {"@type": "ListItem", "position": 2, "name": _SEO_CRUMB.get(name, name), "item": url}]})
     if name == "landing.html":
+        graph.append({"@type": "WebSite", "@id": base + "/#website", "url": base + "/", "name": "Origen",
+                      "inLanguage": "es", "publisher": {"@id": base + "/#org"}})
         graph.append({"@type": "SoftwareApplication", "name": "Origen", "url": base + "/",
                       "applicationCategory": "BusinessApplication", "operatingSystem": "Web, Android, iOS",
                       "inLanguage": ["es", "en"], "publisher": {"@id": base + "/#org"},
@@ -164,11 +196,27 @@ def _page(name):
         tags.append('<meta name="robots" content="' + _NOINDEX + '">')
     else:
         url = base + path
+        # Páginas públicas: siempre en español al cargar (i18n.js no autodetecta el idioma).
+        tags.append('<meta name="i18n-auto" content="off">')
         tags.append('<link rel="canonical" href="' + url + '">')
         if 'property="og:url"' not in text:
             tags.append('<meta property="og:url" content="' + url + '">')
         if 'name="description"' not in text and name in _SEO_DESC:
             tags.append('<meta name="description" content="' + _SEO_DESC[name] + '">')
+        # Vista previa al compartir (WhatsApp, LinkedIn…): título, descripción e imagen.
+        esc = lambda v: _html.escape(v, quote=True)
+        if 'property="og:title"' not in text:
+            tags.append('<meta property="og:title" content="' + esc(_seo_text(r"<title[^>]*>(.*?)</title>", text)) + '">')
+        if 'property="og:description"' not in text:
+            desc = _seo_text(r'<meta name="description" content="([^"]*)"', text) or _SEO_DESC.get(name, "")
+            if desc:
+                tags.append('<meta property="og:description" content="' + esc(desc) + '">')
+        if 'property="og:type"' not in text:
+            tags.append('<meta property="og:type" content="' + ("article" if name in _SEO_ARTICLES else "website") + '">')
+        if 'property="og:image"' not in text:
+            tags.append('<meta property="og:image" content="' + base + '/static/og.png">')
+        tags.append('<meta property="og:site_name" content="Origen">')
+        tags.append('<meta name="twitter:card" content="summary_large_image">')
         tags.append('<script type="application/ld+json">' + json.dumps(_seo_jsonld(name, text), ensure_ascii=False) + '</script>')
     text = text.replace("</head>", "\n".join(tags) + "\n</head>", 1)
     headers = {"X-Robots-Tag": _NOINDEX} if path is None else {}

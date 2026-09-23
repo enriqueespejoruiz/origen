@@ -1,0 +1,87 @@
+"""SEO de las páginas públicas (se salta si no están FastAPI/httpx, como en el CI mínimo)."""
+import os, sys, re, json, gzip, tempfile
+
+import pytest
+
+pytest.importorskip("fastapi")
+pytest.importorskip("httpx")
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+os.environ.setdefault("DATA_DIR", os.path.join(tempfile.gettempdir(), "origen_test_data"))
+
+from fastapi.testclient import TestClient  # noqa: E402
+from app import main  # noqa: E402
+
+client = TestClient(main.app)
+BASE = main._seo_base()
+PUBLIC = ["/", "/normativa", "/eudr-cafe-peru", "/empezar", "/verificar"]
+
+
+def _jsonld(html_text):
+    blocks = re.findall(r'<script type="application/ld\+json">(.*?)</script>', html_text, re.S)
+    assert len(blocks) == 1
+    return json.loads(blocks[0])["@graph"]
+
+
+@pytest.mark.parametrize("path", PUBLIC)
+def test_public_page_seo_basics(path):
+    r = client.get(path)
+    assert r.status_code == 200
+    t = r.text
+    assert "X-Robots-Tag" not in r.headers
+    assert t.count("<title") == 1
+    assert t.count('name="description"') == 1
+    assert len(re.findall(r"<h1[\s>]", t)) == 1
+    assert re.findall(r'<link rel="canonical" href="([^"]+)"', t) == [BASE + path]
+    # español por defecto: i18n.js no autodetecta el idioma en páginas indexables
+    assert '<meta name="i18n-auto" content="off">' in t
+    for prop in ("og:title", "og:description", "og:image", "og:url", "og:type"):
+        assert t.count('property="%s"' % prop) == 1, prop
+    assert 'content="' + BASE + '/static/og.png"' in t
+    assert "Organization" in [g["@type"] for g in _jsonld(t)]
+
+
+def test_article_and_breadcrumb_on_guides():
+    for path in ("/normativa", "/eudr-cafe-peru"):
+        g = {x["@type"]: x for x in _jsonld(client.get(path).text)}
+        assert g["Article"]["headline"] and g["Article"]["inLanguage"] == "es"
+        assert g["Article"]["mainEntityOfPage"] == BASE + path
+        assert [i["item"] for i in g["BreadcrumbList"]["itemListElement"]] == [BASE + "/", BASE + path]
+
+
+def test_landing_graph():
+    types = [g["@type"] for g in _jsonld(client.get("/").text)]
+    assert {"Organization", "WebSite", "SoftwareApplication", "FAQPage"} <= set(types)
+
+
+@pytest.mark.parametrize("path", ["/capturar", "/panel"])
+def test_app_screens_stay_noindex(path):
+    r = client.get(path)
+    assert r.status_code == 200
+    assert r.headers.get("X-Robots-Tag") == main._NOINDEX
+    assert 'i18n-auto' not in r.text          # la app conserva la autodetección ES/EN
+    assert 'rel="canonical"' not in r.text
+
+
+def test_static_html_copies_are_noindex():
+    r = client.get("/static/landing.html")
+    assert r.status_code == 200 and r.headers.get("X-Robots-Tag", "").startswith("noindex")
+    assert "X-Robots-Tag" not in client.get("/static/og.png").headers
+
+
+def test_gzip_and_head():
+    r = client.get("/", headers={"Accept-Encoding": "gzip"})
+    assert r.headers.get("content-encoding") == "gzip"
+    h = client.head("/normativa")
+    assert h.status_code == 200 and h.content == b""
+
+
+def test_robots_and_sitemap():
+    assert "Sitemap: " + BASE + "/sitemap.xml" in client.get("/robots.txt").text
+    locs = re.findall(r"<loc>([^<]+)</loc>", client.get("/sitemap.xml").text)
+    assert sorted(locs) == sorted(BASE + p for p in PUBLIC)
+
+
+def test_i18n_js_respects_public_pages():
+    js = open(os.path.join(main.WEB_DIR, "i18n.js"), encoding="utf-8").read()
+    assert 'meta[name="i18n-auto"][content="off"]' in js

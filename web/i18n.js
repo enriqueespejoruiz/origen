@@ -392,8 +392,8 @@
     var n; while (n = w.nextNode()) { if (n.__es !== undefined) continue; n.__es = n.nodeValue; nodes.push(n); }
     [].forEach.call(document.querySelectorAll('input[placeholder],textarea[placeholder]'), function (e) { if (e.__phes !== undefined) return; e.__phes = e.getAttribute('placeholder'); phs.push(e); });
   }
-  function apply(l) {
-    try { localStorage.setItem('origen_lang', l); } catch (e) {}
+  function apply(l, keep) {
+    if (keep !== false) { try { localStorage.setItem('origen_lang', l); } catch (e) {} }
     document.documentElement.lang = l;
     nodes.forEach(function (n) {
       var es = n.__es, key = es.trim();
@@ -405,13 +405,18 @@
   function curLang() { try { return localStorage.getItem('origen_lang') === 'en' ? 'en' : 'es'; } catch (e) { return 'es'; } }
   window.toggleLang = function () { apply(curLang() === 'en' ? 'es' : 'en'); };
   // Re-traduce contenido insertado por JS (lotes/envíos): colecta los nodos nuevos y aplica el idioma actual.
-  window.i18nSync = function () { collect(); apply(curLang()); };
+  window.i18nSync = function () { collect(); apply(curLang(), false); };
   window.origenLang = curLang;
   function init() {
     collect();
     var saved; try { saved = localStorage.getItem('origen_lang'); } catch (e) {}
-    if (!saved) saved = ((navigator.language || 'es').slice(0, 2) === 'en') ? 'en' : 'es';
-    apply(saved === 'en' ? 'en' : 'es');
+    // Páginas públicas (el servidor pone <meta name="i18n-auto" content="off">): abren en
+    // español salvo que la persona haya elegido EN. Antes se autodetectaba el idioma del
+    // navegador y Google, que renderiza en inglés, indexó la versión traducida.
+    var fixed = !!document.querySelector('meta[name="i18n-auto"][content="off"]');
+    var auto = !saved;
+    if (auto && !fixed) saved = ((navigator.language || 'es').slice(0, 2) === 'en') ? 'en' : 'es';
+    apply(saved === 'en' ? 'en' : 'es', !(auto && fixed));
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

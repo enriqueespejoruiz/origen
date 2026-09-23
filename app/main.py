@@ -127,6 +127,7 @@ _SEO_ARTICLES = {          # páginas de contenido -> (publicada, modificada) pa
     "normativa.html": ("2026-06-09", "2026-09-21"),
     "eudr-cafe-peru.html": ("2026-09-21", "2026-09-21"),
     "eudr-aplazamiento.html": ("2026-09-23", "2026-09-23"),   # se revisa cada mes: actualizar la fecha al editar
+    "eudr-traces-dds.html": ("2026-09-23", "2026-09-23"),
 }
 
 def _seo_base():
@@ -208,6 +209,7 @@ def llms_txt():
 - [Normativa EUDR]({base}/normativa): resumen del reglamento, productos, fechas y quién presenta la declaración.
 - [Aplazamiento del EUDR]({base}/eudr-aplazamiento): fechas vigentes, cronología y últimas novedades (se revisa cada mes).
 - [EUDR para el café peruano]({base}/eudr-cafe-peru): qué exige al café del Perú y qué le toca a la cooperativa.
+- [La declaración EUDR (DDS) en TRACES]({base}/eudr-traces-dds): cómo la presenta el importador, qué lleva, reglas del GeoJSON y qué datos necesita de la cooperativa.
 - [Verificar dossier]({base}/verificar): comprobar la autenticidad de un dossier.
 - [Empezar]({base}/empezar): solicitar acceso.
 - [Artículo](https://selvagencia.com/blog/eudr-cafe-cacao-peru-origen/): EUDR para el café y cacao peruano y por qué construimos Origen.
@@ -242,6 +244,10 @@ def eudr_cafe_peru():
 @app.get("/eudr-aplazamiento")
 def eudr_aplazamiento():
     return _page("eudr-aplazamiento.html")
+
+@app.get("/eudr-traces-dds")
+def eudr_traces_dds():
+    return _page("eudr-traces-dds.html")
 
 @app.get("/empezar")
 def empezar():

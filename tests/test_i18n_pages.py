@@ -141,3 +141,11 @@ def test_delay_page_links_and_dates():
            if g["@type"] == "Article"][0]
     assert art["dateModified"] >= art["datePublished"] == "2026-09-23"
     assert "Actualizado el 23 de septiembre de 2026" in t
+
+
+def test_traces_guide_is_linked():
+    """La guía de la DDS en TRACES existe en todos los idiomas y la enlazan la normativa y la guía del café."""
+    for lang in LANGS:
+        target = I.path_for("eudr-traces-dds", lang)
+        for key in ("normativa", "eudr-cafe-peru"):
+            assert 'href="%s"' % target in client.get(I.path_for(key, lang)).text, (lang, key)

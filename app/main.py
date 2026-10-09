@@ -438,6 +438,16 @@ def create_consignment(c: ConsignmentIn, request: Request):
     if len(countries) > 1:
         raise HTTPException(400, "Un envío debe ser de un solo país de producción.")
     commodity = c.commodity or (next(iter(commodities)) if len(commodities) == 1 else "")
+    # Plan Cooperativa: respeta los embarques incluidos del periodo vigente
+    _coop_doc = storage.get_coop(ctx["coop"]["id"]) or {}
+    if _coop_doc.get("plan") == "coop" and _coop_doc.get("shipments_included") is not None:
+        _since = str(_coop_doc.get("plan_start") or "")[:10]
+        _used = sum(1 for x in storage.list_consignments(ctx["coop"]["id"])
+                    if str(x.get("created_at", ""))[:10] >= _since)
+        _incl = int(_coop_doc.get("shipments_included") or 0) + int(_coop_doc.get("shipments_extra") or 0)
+        if _used >= _incl:
+            raise HTTPException(403, f"Tu plan incluye {_incl} embarques en este periodo y ya usaste {_used}. "
+                                     "Escríbenos para habilitar embarques adicionales.")
     cid = "ENV-" + uuid.uuid4().hex[:8].upper()
     cons = Consignment(cid, ctx["coop"]["id"], (c.name or cid), commodity,
                        c.destination, c.buyer, ids, _now(), ctx["user"]["email"],
@@ -1007,6 +1017,73 @@ def admin_approve_coop(coop_id: str, request: Request):
 
 class CapIn(BaseModel):
     cap: int = 6
+
+class PlanIn(BaseModel):
+    plan: str = "coop"            # embarque | coop | exportador | enterprise
+    months: int = 12
+    producers: int = 0            # plan coop: productores contratados (define tope de lotes)
+    shipments: int = 12           # plan coop: embarques consolidados incluidos por periodo
+
+@app.post("/admin/coops/{coop_id}/plan")
+def admin_coop_plan(coop_id: str, body: PlanIn, request: Request):
+    """Asigna el plan comercial de una coop (un solo comando al cerrar la venta).
+    - embarque:  NO aprueba la cuenta (docs marcados); amplía cupo para cargar padrón.
+                 Los embarques se desbloquean uno a uno con /admin/consignments/{id}/paid.
+    - coop:      aprueba por `months`; tope de lotes = productores x 3; `shipments` incluidos.
+    - exportador: aprueba por `months`; tope 5000 lotes; embarques ilimitados.
+    - enterprise: aprueba por `months`; sin topes."""
+    if not auth.agent_ctx(request):
+        raise HTTPException(404, "No encontrado")
+    plan = (body.plan or "").strip().lower()
+    if plan not in ("embarque", "coop", "exportador", "enterprise"):
+        raise HTTPException(400, "plan debe ser: embarque | coop | exportador | enterprise")
+    import datetime as _dt
+    doc = storage.get_coop(coop_id) or {"id": coop_id, "name": coop_id, "created_at": _now()}
+    doc["plan"] = plan
+    doc["plan_start"] = _now()
+    if plan == "embarque":
+        doc["approved"] = False                      # marca de agua por defecto; se paga por embarque
+        doc["lot_cap"] = max(int(doc.get("lot_cap") or 0), 100)
+        doc.pop("plan_until", None)
+    else:
+        months = max(1, min(int(body.months or 12), 60))
+        doc["approved"] = True
+        doc["plan_until"] = (_dt.datetime.utcnow() + _dt.timedelta(days=31 * months)).strftime("%Y-%m-%d")
+        if plan == "coop":
+            prod = max(1, int(body.producers or 300))
+            doc["producers_contracted"] = prod
+            doc["lot_cap"] = prod * 3
+            doc["shipments_included"] = max(0, int(body.shipments or 12))
+        elif plan == "exportador":
+            doc["lot_cap"] = 5000
+            doc.pop("shipments_included", None)
+        else:  # enterprise
+            doc.pop("lot_cap", None)
+            doc.pop("shipments_included", None)
+    storage.save_coop(doc)
+    log("coop_plan", coop=coop_id, plan=plan, until=doc.get("plan_until", ""),
+        producers=doc.get("producers_contracted", 0))
+    return {"ok": True, "coop": coop_id, "plan": plan, "approved": doc.get("approved"),
+            "plan_until": doc.get("plan_until"), "lot_cap": doc.get("lot_cap"),
+            "shipments_included": doc.get("shipments_included")}
+
+@app.post("/admin/consignments/{cid}/paid")
+def admin_consignment_paid(cid: str, request: Request):
+    """Vía por-embarque: marca un envío como pagado y regenera su paquete SIN marca de agua."""
+    if not auth.agent_ctx(request):
+        raise HTTPException(404, "No encontrado")
+    d = storage.load_consignment(cid)
+    if not d:
+        raise HTTPException(404, "Envío no encontrado")
+    storage.merge_consignment(cid, {"paid": True, "paid_at": _now()})
+    d = storage.load_consignment(cid)
+    try:
+        _build_consignment_outputs(d, force=True)
+    except Exception as e:
+        log("consignment_paid_rebuild_error", consignment_id=cid, error=repr(e)[:200])
+    log("consignment_paid", consignment_id=cid, coop=d.get("coop_id"))
+    return {"ok": True, "consignment_id": cid, "paid": True,
+            "buyer_page": config.PUBLIC_BASE_URL + "/s/c/" + cid}
 
 @app.post("/admin/coops/{coop_id}/cap")
 def admin_coop_cap(coop_id: str, body: CapIn, request: Request):

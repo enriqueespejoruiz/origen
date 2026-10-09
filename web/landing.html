@@ -257,6 +257,7 @@ footer nav a:hover{color:var(--ochre-2)}
   <nav class="nl" aria-label="Principal">
     <button class="lang" data-langbtn onclick="toggleLang()" aria-label="Switch language">EN</button>
     <a class="hide-sm" href="#como">Cómo funciona</a>
+    <a class="hide-sm" href="#precios">Precios</a>
     <a class="hide-sm" href="/normativa">Normativa EUDR</a>
     <a class="hide-sm" href="/verificar">Verificar</a>
     <a href="/panel">Entrar</a>
@@ -412,6 +413,85 @@ footer nav a:hover{color:var(--ochre-2)}
       <div class="item"><i>3</i><div><b>Notarización en cadena (blockchain)</b><p>Cada dossier lleva una huella SHA-256 y un QR. Cualquiera escanea, sube el PDF y confirma que es auténtico y desde cuándo existe — sin que el archivo salga de su equipo.</p></div></div>
       <div class="item"><i>4</i><div><b>Abierto y auditable</b><p>Sin mapas con licencia cerrada ni "confía en mí". Puedes ver y verificar cada fuente y cada dato — lo contrario de las cajas negras de los grandes.</p></div></div>
     </div>
+  </div>
+</section>
+
+<section id="precios" aria-labelledby="h-precios">
+  <style>
+    .pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;margin-top:26px}
+    .pcard{background:#fff;border:1px solid #E3DECF;border-radius:16px;padding:26px 24px;display:flex;flex-direction:column}
+    .pcard.feat{border:2px solid #C2A04C;position:relative;box-shadow:0 10px 30px rgba(11,61,46,.08)}
+    .pcard.feat .ptag{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:#C2A04C;color:#0B3D2E;font-weight:700;font-size:12px;padding:4px 14px;border-radius:999px;white-space:nowrap}
+    .pcard h3{margin:0 0 2px;font-size:19px;color:#0B3D2E}
+    .pwho{color:#6F726B;font-size:13.5px;margin:0 0 14px}
+    .pprice{font-size:34px;font-weight:800;color:#0B3D2E;line-height:1}
+    .pprice small{font-size:14px;font-weight:600;color:#6F726B}
+    .pmin{color:#6F726B;font-size:12.5px;margin:4px 0 14px}
+    .pcard ul{list-style:none;margin:0 0 18px;padding:0;font-size:14px;color:#2b332d}
+    .pcard li{padding:5px 0 5px 24px;position:relative}
+    .pcard li::before{content:"✓";position:absolute;left:0;color:#2E8B5E;font-weight:700}
+    .pcard .btn{margin-top:auto;justify-content:center;text-align:center}
+    .pfree{background:#0B3D2E;color:#FBFAF6;border-radius:16px;padding:18px 24px;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:22px}
+    .pfree b{font-size:16.5px}
+    .pnote{color:#6F726B;font-size:12.5px;margin-top:14px;text-align:center}
+  </style>
+  <div class="wrap">
+    <div class="shead">
+      <span class="eye">Precios claros</span>
+      <h2 id="h-precios">Cumplir no debería costar más que el problema.</h2>
+      <p class="lead">Tres esquemas según tu operación — siempre con todo incluido: verificación satelital, dossier con QR verificable, datos listos para TRACES y soporte en español.</p>
+    </div>
+    <div class="pgrid">
+      <div class="pcard">
+        <h3>Por embarque</h3>
+        <p class="pwho">Para probar sin compromiso o para operaciones puntuales.</p>
+        <div class="pprice">$190 <small>/ contenedor</small></div>
+        <p class="pmin">Sin suscripción. Pagas solo lo que embarcas.</p>
+        <ul>
+          <li>Verificación satelital de todos los lotes del envío</li>
+          <li>Segregación automática de lotes observados</li>
+          <li>Dossier consolidado bilingüe con QR verificable</li>
+          <li>GeoJSON listo para TRACES (6 decimales)</li>
+          <li>Página de entrega para tu comprador</li>
+        </ul>
+        <a class="btn btn-line" href="#contacto">Cotizar mi embarque</a>
+      </div>
+      <div class="pcard feat">
+        <span class="ptag">El elegido por cooperativas</span>
+        <h3>Plan Cooperativa</h3>
+        <p class="pwho">Para cooperativas y asociaciones de productores.</p>
+        <div class="pprice">$4 <small>/ productor / año</small></div>
+        <p class="pmin">Mínimo $1,200/año (hasta 300 productores).</p>
+        <ul>
+          <li>Parcelas ilimitadas por productor + importación desde Excel</li>
+          <li>Monitoreo continuo con alertas y punto exacto a verificar</li>
+          <li>Sustentación en campo con fotos selladas (GPS)</li>
+          <li>Dossiers por lote ilimitados</li>
+          <li>12 embarques consolidados al año incluidos</li>
+          <li>Capacitación del técnico + soporte por WhatsApp</li>
+        </ul>
+        <a class="btn btn-ochre" href="#contacto">Hablar con nosotros</a>
+      </div>
+      <div class="pcard">
+        <h3>Exportador</h3>
+        <p class="pwho">Para exportadores y empresas con múltiples proveedores.</p>
+        <div class="pprice">$6,000 <small>/ año</small></div>
+        <p class="pmin">Enterprise (multi-origen, ERP, SLA): desde $15,000/año.</p>
+        <ul>
+          <li>Hasta 5,000 parcelas de todos tus proveedores</li>
+          <li>Embarques consolidados ilimitados</li>
+          <li>Multiusuario + API de consulta</li>
+          <li>Reportes para tu área de cumplimiento</li>
+          <li>Acompañamiento dedicado</li>
+        </ul>
+        <a class="btn btn-line" href="#contacto">Agendar demo</a>
+      </div>
+    </div>
+    <div class="pfree">
+      <div><b>Empieza gratis hoy:</b> evaluamos una parcela real de tu organización y te entregamos el dossier de muestra — sin tarjeta, sin compromiso.</div>
+      <a class="btn btn-ochre" href="#contacto">Pedir mi evaluación gratuita</a>
+    </div>
+    <p class="pnote">Precios de lanzamiento en USD + IGV. Programa Fundadores: 30% de descuento el primer año para las primeras 10 organizaciones (hasta el 30 de diciembre de 2026).</p>
   </div>
 </section>
 

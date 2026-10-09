@@ -538,7 +538,8 @@ def build_consignment_pdf(cons, items, out_dir, lang=None):
     E = []
 
     from . import storage as _st2
-    if _st2.coop_restricted(cons.get("coop_id", "")):     # muro de activación: documento marcado
+    # muro de activación: documento marcado — salvo embarque pagado individualmente (vía por-embarque)
+    if _st2.coop_restricted(cons.get("coop_id", "")) and not cons.get("paid"):
         E.append(_demo_banner(W, lang))
 
     def kv(rows, fill=False):

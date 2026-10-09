@@ -145,7 +145,18 @@ def coop_restricted(coop_id):
         return True
     c = get_coop(cid)
     if c and "approved" in c:
-        return not c["approved"]
+        if not c["approved"]:
+            return True
+        # suscripción vencida (plan_until pasado) => vuelve a modo evaluación
+        pu = str(c.get("plan_until") or "")
+        if pu:
+            import datetime as _dt
+            try:
+                if pu[:10] < _dt.datetime.utcnow().strftime("%Y-%m-%d"):
+                    return True
+            except Exception:
+                pass
+        return False
     return cid.startswith("piloto-")
 
 

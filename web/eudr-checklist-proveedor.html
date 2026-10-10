@@ -1,0 +1,162 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EUDR: datos que pide tu comprador europeo (checklist) | Origen</title>
+<meta name="description" content="Checklist EUDR: los datos que tu comprador europeo te pedirá por envío según el artículo 9, qué cuenta como legalidad y una plantilla gratis para tus parcelas.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Atkinson+Hyperlegible+Next:wght@400;500;700&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+ :root{--pine:#1344B0;--pine2:#0F2F7A;--leaf:#2F8F4E;--gold:#E0A43A;--ivory:#F3F5F9;--ink:#0B0D12;--line:#DCE1E8;--mut:#5F6775}
+ *{box-sizing:border-box}
+ body{font-family:'Atkinson Hyperlegible Next',system-ui,-apple-system,sans-serif;margin:0;color:var(--ink);background:var(--ivory);line-height:1.65}
+ h1,h2,h3{font-family:'Familjen Grotesk',system-ui,sans-serif;font-weight:600;line-height:1.2;margin:0;letter-spacing:-.3px}
+ a{color:var(--pine)}
+ .wrap{max-width:860px;margin:0 auto;padding:0 20px}
+ .top{background:var(--pine);color:#fff}
+ nav{display:flex;align-items:center;gap:14px;padding:18px 0}
+ nav .wm{font-family:'Familjen Grotesk';font-weight:600;font-size:20px;color:#fff}
+ nav a{color:#D5E1F7;text-decoration:none;font-size:14px}
+ nav .cta{margin-left:auto;background:var(--gold);color:#1A1204;padding:9px 16px;border-radius:9px;font-weight:600}
+ .logo{background:#fff;border-radius:9px;padding:3px;line-height:0}
+ .head{padding:14px 0 56px}
+ .eyebrow{color:var(--gold);font-weight:600;font-size:13px;letter-spacing:.1em;text-transform:uppercase}
+ .head h1{font-size:38px;margin-top:10px;max-width:20ch}
+ .head p{color:#E8EFFC;font-size:18px;max-width:62ch;margin-top:14px}
+ .upd{display:inline-block;margin-top:16px;font-family:'Martian Mono',ui-monospace,monospace;font-size:12px;letter-spacing:.03em;color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);padding:5px 10px;border-radius:4px}
+ main{padding:48px 0}
+ section{margin-bottom:40px}
+ h2{font-size:23px;margin-bottom:10px}
+ p,li{color:#262B33}
+ .dates{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+ .date{background:#fff;border:1px solid var(--line);border-top:3px solid var(--gold);border-radius:0 0 12px 12px;padding:16px;font-size:15px}
+ .date .d{font-family:'Familjen Grotesk';font-weight:700;font-size:22px;color:var(--pine)}
+ .answer{background:#fff;border:1px solid var(--line);border-left:4px solid var(--leaf);border-radius:0 12px 12px 0;padding:14px 18px;font-size:17.5px;font-weight:500;margin:14px 0}
+ ol.tl{list-style:none;margin:18px 0 0 8px;padding:0;border-left:3px solid var(--line)}
+ ol.tl li{position:relative;padding:0 0 18px 24px;font-size:15.5px}
+ ol.tl li::before{content:'';position:absolute;left:-10.5px;top:5px;width:12px;height:12px;border-radius:50%;background:var(--pine);border:3px solid #fff;box-shadow:0 0 0 1px var(--line)}
+ ol.tl li.fut::before{background:var(--gold);box-shadow:0 0 0 1px #B8761A}
+ ol.tl .t{display:block;font-family:'Martian Mono',ui-monospace,monospace;font-size:12px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:var(--pine);margin-bottom:2px}
+ ol.tl li.fut .t{color:#8F5C05}
+ .legend{font-size:13px;color:var(--mut);margin-top:4px}
+ ol.req{padding-left:0;list-style:none;counter-reset:r;margin-top:14px}
+ ol.req li{counter-increment:r;background:#fff;border:1px solid var(--line);border-radius:11px;padding:13px 14px 13px 52px;position:relative;margin-bottom:10px;font-size:15px}
+ ol.req li::before{content:counter(r);position:absolute;left:12px;top:12px;width:28px;height:28px;background:var(--pine);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Familjen Grotesk';font-weight:600;font-size:14px}
+ h3{font-size:18px;margin:22px 0 4px}
+ .callout{background:#EEF3FC;border:1px solid #D5E1F7;border-radius:12px;padding:16px;font-size:15px}
+ .src a{display:block;margin:6px 0;font-size:14px}
+ .disc{color:var(--mut);font-size:13px;border-top:1px solid var(--line);padding-top:16px}
+ .cta2{background:var(--pine);color:#fff!important;text-decoration:none;padding:13px 22px;border-radius:10px;font-weight:600;display:inline-block;font-family:'Familjen Grotesk'}
+ footer{padding:24px 0;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
+ @media(max-width:680px){.dates{grid-template-columns:1fr}.head h1{font-size:28px}nav a.lnk{display:none}}
+
+/* === Morpho a color (v2) === */
+:root{--wing:linear-gradient(128deg,#050B24 0%,#0B2470 28%,#1344B0 52%,#1F5BD8 72%,#4FB0F5 100%);
+ --ocelo:linear-gradient(135deg,#F6C35A 0%,#E0A43A 55%,#B8761A 100%);
+ --btn-blue:linear-gradient(180deg,#2E6DF0 0%,#1344B0 100%)}
+body{background:linear-gradient(180deg,#DCE8FF 0%,#EEF4FF 280px,#FFFFFF 640px) fixed!important}
+.top{background:var(--wing)!important;position:relative}
+.top::after{content:'';display:block;height:8px;background:linear-gradient(90deg,#0B0D12 0 70%,#E0A43A 70% 76%,#0B0D12 76%)}
+nav .cta{background:var(--ocelo)!important;color:#0B0D12!important;border-radius:4px!important}
+.logo{background:transparent!important}
+nav svg path[stroke]{stroke:#fff}
+.eyebrow{color:#F6C35A!important}
+ .faqx details{background:#fff;border:1px solid var(--line);border-radius:11px;padding:12px 16px;margin-bottom:10px}
+ .faqx summary{font-weight:600;cursor:pointer}
+</style></head><body>
+<div class="top">
+  <div class="wrap"><nav>
+    <span class="logo"><svg viewBox="0 0 64 64" width="28" height="28" aria-hidden="true">
+      <path d="M32 6C20.4 6 11 15 11 26.2 11 40 32 58 32 58s21-18 21-31.8C53 15 43.6 6 32 6z" fill="#1344B0"/>
+      <path d="M32 41V27" stroke="#E8EFFC" stroke-width="3" stroke-linecap="round"/>
+      <path d="M32 31c-5 0-9-3-9.5-8 5.5 0 9 2.5 9.5 8z" fill="#E0A43A"/>
+      <path d="M32 28c5 0 9-3 9.5-8-5.5 0-9 2.5-9.5 8z" fill="#2F8F4E"/></svg></span>
+    <a class="wm" href="/" style="text-decoration:none">Origen</a>
+    <a class="lnk" href="/#como" style="margin-left:18px">Cómo funciona</a>
+    <button data-langbtn onclick="toggleLang()" aria-label="Switch language" style="margin-left:auto;background:transparent;border:1px solid rgba(255,255,255,.3);color:#fff;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Familjen Grotesk',sans-serif">EN</button>
+    <a class="cta" href="/capturar">Capturar parcelas</a>
+  </nav></div>
+    <div class="wrap"><div class="head">
+    <div class="eyebrow">EUDR · Checklist del proveedor</div>
+    <h1>EUDR: los datos que tu comprador europeo te va a pedir, uno por uno</h1>
+    <p>Desde el 30 de diciembre de 2026, el importador que compra tu café o tu cacao tiene que reunir, para cada envío, la información que exige el artículo 9 del reglamento. Casi toda sale de tu organización. Esta es la lista completa y una plantilla para ordenarla.</p>
+    <span class="upd">Actualizado el 10 de octubre de 2026</span>
+  </div></div>
+</div>
+
+<main><div class="wrap">
+
+  <section>
+    <div class="answer">Para cada envío, tu comprador necesita: qué producto es y cuánto, de qué país, la geolocalización de todas las parcelas con sus fechas de cosecha, quién se lo vendió y a quién lo vende, y pruebas de que no hubo deforestación después de 2020 y de que se produjo según las leyes del país.</div>
+  </section>
+
+  <section>
+    <h2>La lista del artículo 9</h2>
+    <ol class="req">
+      <li><b>Producto:</b> descripción, nombre comercial y tipo, por ejemplo café verde arábica o granos de cacao fermentados y secos.</li>
+      <li><b>Cantidad:</b> en kilos de masa neta.</li>
+      <li><b>País de producción:</b> y la región, cuando haga falta.</li>
+      <li><b>Geolocalización de todas las parcelas:</b> un punto hasta 4 hectáreas y el polígono si son más, con al menos 6 decimales, más la fecha o el periodo de cosecha.</li>
+      <li><b>Quién vende:</b> nombre, dirección y correo de la empresa o persona que entrega el producto.</li>
+      <li><b>A quién se vende:</b> nombre, dirección y correo del comprador.</li>
+      <li><b>Sin deforestación:</b> información concluyente y verificable de que las parcelas no se deforestaron después del 31 de diciembre de 2020.</li>
+      <li><b>Legalidad:</b> información concluyente y verificable de que se produjo según las leyes del país, incluido el derecho a usar la tierra.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Qué cuenta como «legalidad»</h2>
+    <p>El reglamento define las leyes del país de producción que hay que respetar en la parcela:</p>
+    <ol class="req">
+      <li>Derechos de uso de la tierra.</li>
+      <li>Protección del ambiente.</li>
+      <li>Normas forestales, cuando hay aprovechamiento de madera.</li>
+      <li>Derechos de terceros.</li>
+      <li>Derechos laborales.</li>
+      <li>Derechos humanos protegidos por el derecho internacional.</li>
+      <li>Consentimiento libre, previo e informado.</li>
+      <li>Normas tributarias, anticorrupción, comerciales y aduaneras.</li>
+    </ol>
+    <p>En la práctica, el primer documento que piden los compradores es el de tenencia o uso de la tierra de cada parcela.</p>
+  </section>
+
+  <section>
+    <h2>Cómo lo evalúa tu comprador</h2>
+    <p>Con esos datos, el importador evalúa el riesgo. Entre otros criterios mira la clasificación del país, si hay bosque o pueblos indígenas en la zona, qué tan confiable es la información y qué tan compleja es la cadena, incluido el riesgo de mezclar producto de origen desconocido. El Perú es de riesgo estándar, así que la evaluación es completa.</p>
+    <p>Además, tiene que guardar toda esa documentación al menos cinco años. Si la autoridad la pide, vuelve a ti.</p>
+  </section>
+
+  <section>
+    <h2>Plantilla para ordenar los datos de tus parcelas</h2>
+    <p>Descarga la plantilla, llénala con una fila por parcela y compártela con tu comprador o conviértela en GeoJSON. Las columnas usan los nombres que entiende el sistema de la UE.</p>
+    <p><a class="cta2" href="/static/plantilla-eudr-parcelas.csv" download>Descargar plantilla (CSV)</a></p>
+    <p>Antes de enviar el GeoJSON, revísalo gratis con el <a href="/eudr-validador-geojson">validador GeoJSON para el EUDR</a>.</p>
+  </section>
+
+  <section>
+    <h2>Cómo ayuda Origen</h2>
+    <div class="callout">Origen registra cada parcela desde el celular, incluso sin señal, la verifica contra cuatro fuentes satelitales abiertas, separa las parcelas observadas y entrega por cada envío el dossier de evidencia con el GeoJSON listo para TRACES.</div>
+    <p style="margin-top:14px"><a class="cta2" href="/capturar">Empezar a capturar parcelas</a></p>
+    <p>Cómo presenta tu comprador su declaración: <a href="/eudr-traces-dds">la declaración EUDR (DDS) en TRACES</a>.</p>
+  </section>
+
+  <section class="faqx">
+    <h2>Preguntas frecuentes</h2>
+    <details><summary>¿Tengo que entregar todos estos datos aunque no presente la declaración?</summary><p>Sí. La declaración la presenta tu comprador, pero sin la geolocalización de tus parcelas y las pruebas de origen no puede hacerla.</p></details>
+    <details><summary>¿Basta con un certificado de sostenibilidad?</summary><p>No. Las certificaciones ayudan a reunir información, pero no reemplazan la diligencia debida del operador ni la geolocalización de cada parcela.</p></details>
+    <details><summary>¿Por cuánto tiempo se guardan estos datos?</summary><p>El operador debe conservar la documentación de su diligencia debida al menos cinco años.</p></details>
+    <details><summary>¿Qué pasa si una parcela no tiene papeles de tenencia?</summary><p>Es un riesgo que tu comprador tendrá que evaluar y mitigar. Conviene separar esa parcela del envío hasta tener la documentación.</p></details>
+  </section>
+
+  <section class="src">
+    <h2>Fuentes oficiales</h2>
+    <a href="https://eur-lex.europa.eu/eli/reg/2023/1115/oj" target="_blank" rel="noopener">Reglamento (UE) 2023/1115: artículos 2, 9, 10 y 12 (EUR-Lex)</a>
+    <a href="https://eur-lex.europa.eu/eli/reg/2025/2650/oj" target="_blank" rel="noopener">Reglamento (UE) 2025/2650: modificaciones de 2025 (EUR-Lex)</a>
+    <a href="https://eur-lex.europa.eu/eli/reg_impl/2025/1093/oj" target="_blank" rel="noopener">Reglamento de Ejecución (UE) 2025/1093: clasificación de países por riesgo (EUR-Lex)</a>
+  </section>
+
+  <p class="disc">Resumen informativo, no constituye asesoría legal. Verifica siempre con las fuentes oficiales antes de tomar decisiones.</p>
+
+</div></main>
+
+<div class="wrap"><footer>Origen · Trazabilidad de origen para café y cacao · <a href="/" style="color:var(--mut)">Inicio</a> · <a href="/normativa" style="color:var(--mut)">Normativa EUDR</a> · <a href="/eudr-preguntas-frecuentes" style="color:var(--mut)">Preguntas frecuentes</a> · <!--only:es--><a href="/privacidad" style="color:var(--mut)">Privacidad</a><!--/only:es--><!--except:es--><a href="/en/privacy" style="color:var(--mut)">Privacidad</a><!--/except:es--></footer></div>
+<script src="/static/i18n.js" defer></script>
+</body></html>

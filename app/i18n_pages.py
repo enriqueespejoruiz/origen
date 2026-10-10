@@ -34,6 +34,9 @@ PAGES = {
     "eudr-anexo-1": ("eudr-anexo-1.html", "/eudr-anexo-1"),
     "eudr-preguntas-frecuentes": ("eudr-preguntas-frecuentes.html", "/eudr-preguntas-frecuentes"),
     "eudr-declaracion-simplificada": ("eudr-declaracion-simplificada.html", "/eudr-declaracion-simplificada"),
+    "eudr-validador-geojson": ("eudr-validador-geojson.html", "/eudr-validador-geojson"),
+    "eudr-checklist-proveedor": ("eudr-checklist-proveedor.html", "/eudr-checklist-proveedor"),
+    "eudr-software": ("eudr-software.html", "/eudr-software"),
     "empezar": ("empezar.html", "/empezar"),
     "verificar": ("verificar.html", "/verificar"),
 }
@@ -48,12 +51,14 @@ NATIVE = {"es": "Español", "en": "English", "de": "Deutsch", "fr": "Français",
           "bg": "Български", "el": "Ελληνικά", "hr": "Hrvatski", "sl": "Slovenščina", "et": "Eesti",
           "lv": "Latviešu", "lt": "Lietuvių"}
 ES_LABELS = {"language": "Idioma"}
-FAQ_PAGES = ("landing", "eudr-preguntas-frecuentes", "eudr-declaracion-simplificada")   # páginas con FAQPage (<details><summary>P</summary><p>R</p>)
+FAQ_PAGES = ("landing", "eudr-preguntas-frecuentes", "eudr-declaracion-simplificada", "eudr-validador-geojson",
+             "eudr-checklist-proveedor", "eudr-software")   # páginas con FAQPage (<details><summary>P</summary><p>R</p>)
 ES_CRUMB = {"landing": "Origen", "normativa": "Normativa EUDR", "eudr-cafe-peru": "EUDR para el café peruano",
             "eudr-cacao-peru": "EUDR para el cacao peruano",
             "eudr-aplazamiento": "Aplazamiento del EUDR", "eudr-traces-dds": "La DDS en TRACES",
             "eudr-anexo-1": "Anexo I del EUDR", "eudr-preguntas-frecuentes": "Preguntas frecuentes",
-            "eudr-declaracion-simplificada": "Declaración simplificada",
+            "eudr-declaracion-simplificada": "Declaración simplificada", "eudr-validador-geojson": "Validador GeoJSON",
+            "eudr-checklist-proveedor": "Checklist del proveedor", "eudr-software": "Cómo elegir un software EUDR",
             "empezar": "Empezar", "verificar": "Verificar dossier"}
 
 # Etiquetas: respeta atributos entre comillas (un ">" dentro de un atributo no corta la etiqueta).

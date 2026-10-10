@@ -180,3 +180,24 @@ def test_traces_guide_is_linked():
         target = I.path_for("eudr-traces-dds", lang)
         for key in ("normativa", "eudr-cafe-peru"):
             assert 'href="%s"' % target in client.get(I.path_for(key, lang)).text, (lang, key)
+
+
+def test_validator_checklist_software_pages():
+    """Validador GeoJSON, checklist del proveedor y software: en todos los idiomas, con FAQPage, enlazados
+    (validador desde traces y portada; checklist desde traces y normativa; software desde portada y normativa),
+    y los mensajes del validador traducidos en window.ORIGEN_T."""
+    for lang in LANGS:
+        home = client.get(I.path_for("landing", lang)).text
+        tr = client.get(I.path_for("eudr-traces-dds", lang)).text
+        norm = client.get(I.path_for("normativa", lang)).text
+        assert 'href="%s"' % I.path_for("eudr-validador-geojson", lang) in home and 'href="%s"' % I.path_for("eudr-validador-geojson", lang) in tr
+        assert 'href="%s"' % I.path_for("eudr-checklist-proveedor", lang) in tr and 'href="%s"' % I.path_for("eudr-checklist-proveedor", lang) in norm
+        assert 'href="%s"' % I.path_for("eudr-software", lang) in home and 'href="%s"' % I.path_for("eudr-software", lang) in norm
+        for key in ("eudr-validador-geojson", "eudr-checklist-proveedor", "eudr-software"):
+            t = client.get(I.path_for(key, lang)).text
+            types = [g["@type"] for g in json.loads(re.findall(r'<script type="application/ld\+json">(.*?)</script>', t, re.S)[0].replace("<\\/", "</"))["@graph"]]
+            assert "FAQPage" in types, (lang, key)
+        if lang != "es":
+            dyn = I.LANGS[lang]["dyn"]
+            assert "Sin errores: el archivo cumple las reglas de TRACES que revisamos." in dyn, lang
+    assert client.get("/static/plantilla-eudr-parcelas.csv").status_code == 200

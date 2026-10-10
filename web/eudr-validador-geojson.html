@@ -1,0 +1,408 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Validador GeoJSON para el EUDR y TRACES (gratis) | Origen</title>
+<meta name="description" content="Revisa gratis tu GeoJSON del EUDR antes de subirlo a TRACES: geometrías, 6 decimales, polígonos cerrados sin cruces ni huecos y puntos de hasta 4 ha.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Atkinson+Hyperlegible+Next:wght@400;500;700&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+ :root{--pine:#1344B0;--pine2:#0F2F7A;--leaf:#2F8F4E;--gold:#E0A43A;--ivory:#F3F5F9;--ink:#0B0D12;--line:#DCE1E8;--mut:#5F6775}
+ *{box-sizing:border-box}
+ body{font-family:'Atkinson Hyperlegible Next',system-ui,-apple-system,sans-serif;margin:0;color:var(--ink);background:var(--ivory);line-height:1.65}
+ h1,h2,h3{font-family:'Familjen Grotesk',system-ui,sans-serif;font-weight:600;line-height:1.2;margin:0;letter-spacing:-.3px}
+ a{color:var(--pine)}
+ .wrap{max-width:860px;margin:0 auto;padding:0 20px}
+ .top{background:var(--pine);color:#fff}
+ nav{display:flex;align-items:center;gap:14px;padding:18px 0}
+ nav .wm{font-family:'Familjen Grotesk';font-weight:600;font-size:20px;color:#fff}
+ nav a{color:#D5E1F7;text-decoration:none;font-size:14px}
+ nav .cta{margin-left:auto;background:var(--gold);color:#1A1204;padding:9px 16px;border-radius:9px;font-weight:600}
+ .logo{background:#fff;border-radius:9px;padding:3px;line-height:0}
+ .head{padding:14px 0 56px}
+ .eyebrow{color:var(--gold);font-weight:600;font-size:13px;letter-spacing:.1em;text-transform:uppercase}
+ .head h1{font-size:38px;margin-top:10px;max-width:20ch}
+ .head p{color:#E8EFFC;font-size:18px;max-width:62ch;margin-top:14px}
+ .upd{display:inline-block;margin-top:16px;font-family:'Martian Mono',ui-monospace,monospace;font-size:12px;letter-spacing:.03em;color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);padding:5px 10px;border-radius:4px}
+ main{padding:48px 0}
+ section{margin-bottom:40px}
+ h2{font-size:23px;margin-bottom:10px}
+ p,li{color:#262B33}
+ .dates{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+ .date{background:#fff;border:1px solid var(--line);border-top:3px solid var(--gold);border-radius:0 0 12px 12px;padding:16px;font-size:15px}
+ .date .d{font-family:'Familjen Grotesk';font-weight:700;font-size:22px;color:var(--pine)}
+ .answer{background:#fff;border:1px solid var(--line);border-left:4px solid var(--leaf);border-radius:0 12px 12px 0;padding:14px 18px;font-size:17.5px;font-weight:500;margin:14px 0}
+ ol.tl{list-style:none;margin:18px 0 0 8px;padding:0;border-left:3px solid var(--line)}
+ ol.tl li{position:relative;padding:0 0 18px 24px;font-size:15.5px}
+ ol.tl li::before{content:'';position:absolute;left:-10.5px;top:5px;width:12px;height:12px;border-radius:50%;background:var(--pine);border:3px solid #fff;box-shadow:0 0 0 1px var(--line)}
+ ol.tl li.fut::before{background:var(--gold);box-shadow:0 0 0 1px #B8761A}
+ ol.tl .t{display:block;font-family:'Martian Mono',ui-monospace,monospace;font-size:12px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:var(--pine);margin-bottom:2px}
+ ol.tl li.fut .t{color:#8F5C05}
+ .legend{font-size:13px;color:var(--mut);margin-top:4px}
+ ol.req{padding-left:0;list-style:none;counter-reset:r;margin-top:14px}
+ ol.req li{counter-increment:r;background:#fff;border:1px solid var(--line);border-radius:11px;padding:13px 14px 13px 52px;position:relative;margin-bottom:10px;font-size:15px}
+ ol.req li::before{content:counter(r);position:absolute;left:12px;top:12px;width:28px;height:28px;background:var(--pine);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Familjen Grotesk';font-weight:600;font-size:14px}
+ h3{font-size:18px;margin:22px 0 4px}
+ .callout{background:#EEF3FC;border:1px solid #D5E1F7;border-radius:12px;padding:16px;font-size:15px}
+ .src a{display:block;margin:6px 0;font-size:14px}
+ .disc{color:var(--mut);font-size:13px;border-top:1px solid var(--line);padding-top:16px}
+ .cta2{background:var(--pine);color:#fff!important;text-decoration:none;padding:13px 22px;border-radius:10px;font-weight:600;display:inline-block;font-family:'Familjen Grotesk'}
+ footer{padding:24px 0;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
+ @media(max-width:680px){.dates{grid-template-columns:1fr}.head h1{font-size:28px}nav a.lnk{display:none}}
+
+/* === Morpho a color (v2) === */
+:root{--wing:linear-gradient(128deg,#050B24 0%,#0B2470 28%,#1344B0 52%,#1F5BD8 72%,#4FB0F5 100%);
+ --ocelo:linear-gradient(135deg,#F6C35A 0%,#E0A43A 55%,#B8761A 100%);
+ --btn-blue:linear-gradient(180deg,#2E6DF0 0%,#1344B0 100%)}
+body{background:linear-gradient(180deg,#DCE8FF 0%,#EEF4FF 280px,#FFFFFF 640px) fixed!important}
+.top{background:var(--wing)!important;position:relative}
+.top::after{content:'';display:block;height:8px;background:linear-gradient(90deg,#0B0D12 0 70%,#E0A43A 70% 76%,#0B0D12 76%)}
+nav .cta{background:var(--ocelo)!important;color:#0B0D12!important;border-radius:4px!important}
+.logo{background:transparent!important}
+nav svg path[stroke]{stroke:#fff}
+.eyebrow{color:#F6C35A!important}
+ .tool{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px}
+ .filelbl{display:block;font-weight:600;margin:6px 0}
+ #gjtext{width:100%;min-height:180px;margin-top:12px;font-family:'Martian Mono',ui-monospace,monospace;font-size:12.5px;border:1px solid var(--line);border-radius:10px;padding:12px;background:#F8FAFD;color:var(--ink)}
+ .tbtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+ .tbtns button{border:0;cursor:pointer;font-size:15px}
+ .ghost{background:#fff!important;color:var(--pine)!important;border:1px solid var(--pine)!important;padding:12px 18px;border-radius:10px;font-weight:600;font-family:'Familjen Grotesk'}
+ .out{margin-top:16px}
+ .verdict{padding:12px 16px;border-radius:10px;font-weight:600;font-family:'Familjen Grotesk';font-size:17px}
+ .v-ok{background:#E7F5EC;color:#1E6B3A}.v-warn{background:#FDF3E1;color:#7A4E05}.v-bad{background:#FBE9E7;color:#9E2A22}
+ .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+ .st{background:#F3F5F9;border-radius:10px;padding:10px 12px}.st b{display:block;font-family:'Familjen Grotesk';font-size:22px;color:var(--pine)}.st span{font-size:13px;color:var(--mut)}
+ ul.iss{list-style:none;padding:0;margin:12px 0 0}
+ ul.iss li{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;padding:9px 0;border-top:1px solid var(--line);font-size:15px}
+ ul.iss .tag{font-family:'Martian Mono',ui-monospace,monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:999px}
+ .lv-E .tag{background:#FBE9E7;color:#9E2A22}.lv-W .tag{background:#FDF3E1;color:#7A4E05}.lv-I .tag{background:#EEF3FC;color:#1344B0}
+ ul.iss .idx{font-size:13px;color:var(--mut);white-space:nowrap}
+ ul.iss .msg{flex:1 1 280px}
+ .map{display:none;width:100%;height:auto;margin-top:14px;background:#F3F5F9;border-radius:10px}
+ pre.code{background:#0B0D12;color:#E8EFFC;border-radius:10px;padding:14px;overflow:auto;font-size:12.5px;font-family:'Martian Mono',ui-monospace,monospace}
+ .faqx details{background:#fff;border:1px solid var(--line);border-radius:11px;padding:12px 16px;margin-bottom:10px}
+ .faqx summary{font-weight:600;cursor:pointer}
+ @media(max-width:680px){.stats{grid-template-columns:repeat(2,1fr)}}
+</style></head><body>
+<div class="top">
+  <div class="wrap"><nav>
+    <span class="logo"><svg viewBox="0 0 64 64" width="28" height="28" aria-hidden="true">
+      <path d="M32 6C20.4 6 11 15 11 26.2 11 40 32 58 32 58s21-18 21-31.8C53 15 43.6 6 32 6z" fill="#1344B0"/>
+      <path d="M32 41V27" stroke="#E8EFFC" stroke-width="3" stroke-linecap="round"/>
+      <path d="M32 31c-5 0-9-3-9.5-8 5.5 0 9 2.5 9.5 8z" fill="#E0A43A"/>
+      <path d="M32 28c5 0 9-3 9.5-8-5.5 0-9 2.5-9.5 8z" fill="#2F8F4E"/></svg></span>
+    <a class="wm" href="/" style="text-decoration:none">Origen</a>
+    <a class="lnk" href="/#como" style="margin-left:18px">Cómo funciona</a>
+    <button data-langbtn onclick="toggleLang()" aria-label="Switch language" style="margin-left:auto;background:transparent;border:1px solid rgba(255,255,255,.3);color:#fff;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Familjen Grotesk',sans-serif">EN</button>
+    <a class="cta" href="/capturar">Capturar parcelas</a>
+  </nav></div>
+    <div class="wrap"><div class="head">
+    <div class="eyebrow">EUDR · Herramienta gratuita</div>
+    <h1>Validador GeoJSON para el EUDR: revisa tu archivo antes de subirlo a TRACES</h1>
+    <p>Pega o sube el GeoJSON de tus parcelas y comprueba en segundos si cumple las reglas del sistema de información de la UE: tipo de geometría, orden y decimales de las coordenadas, polígonos cerrados, sin huecos ni cruces, y el límite de 4 hectáreas para los puntos.</p>
+    <span class="upd">Tu archivo no sale de tu navegador</span>
+  </div></div>
+</div>
+
+<main><div class="wrap">
+
+  <section class="tool">
+    <h2>Revisa tu archivo</h2>
+    <label class="filelbl" for="gjfile">Subir archivo .geojson o .json</label>
+    <input id="gjfile" type="file" accept=".geojson,.json,application/geo+json,application/json">
+    <textarea id="gjtext" spellcheck="false" placeholder="O pega aquí el contenido de tu GeoJSON"></textarea>
+    <div class="tbtns">
+      <button id="gjrun" class="cta2" type="button">Validar</button>
+      <button id="gjex" class="ghost" type="button">Cargar un ejemplo</button>
+    </div>
+    <div id="gjout" class="out" aria-live="polite"></div>
+    <svg id="gjmap" class="map" aria-hidden="true"></svg>
+  </section>
+
+  <section>
+    <h2>Qué revisa el validador</h2>
+    <ol class="req">
+      <li>Que sea GeoJSON válido, con Feature o FeatureCollection.</li>
+      <li>Que las geometrías sean Point, MultiPoint, Polygon o MultiPolygon, las únicas que acepta TRACES.</li>
+      <li>Que las coordenadas estén en WGS84, en el orden longitud, latitud, y con al menos 6 decimales.</li>
+      <li>Que cada polígono tenga al menos 4 pares de coordenadas, esté cerrado y no tenga huecos ni líneas que se crucen.</li>
+      <li>Que ningún punto represente una parcela de más de 4 hectáreas: esas necesitan el polígono completo.</li>
+      <li>Que las propiedades opcionales estén bien escritas: ProductionPlace, ProducerName, ProducerCountry (código de dos letras) y Area (un número, en hectáreas).</li>
+      <li>Que el archivo no supere los 25 MB por declaración.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Cómo armar un GeoJSON que TRACES acepte</h2>
+    <p>Hasta 4 hectáreas basta un punto con el área en hectáreas. Si la parcela es más grande, el técnico camina el borde y se guarda el polígono completo. Las coordenadas van con al menos 6 decimales; más no ayuda, porque el sistema corta a 6 y puede generar puntos repetidos. Para los lados rectos bastan dos puntos.</p>
+    <pre class="code">{"type": "FeatureCollection", "features": [
+  {"type": "Feature",
+   "properties": {"ProducerName": "Productor 1", "ProducerCountry": "PE", "ProductionPlace": "Parcela 1", "Area": 2.5},
+   "geometry": {"type": "Point", "coordinates": [-72.538211, -13.163068]}}
+]}</pre>
+    <p>Las propiedades distinguen mayúsculas: «productionplace» no sirve. Y el área va como número: «"Area": "3"» se lee como cero.</p>
+  </section>
+
+  <section>
+    <h2>Del campo al GeoJSON, sin errores</h2>
+    <div class="callout">Origen registra cada parcela desde el celular, incluso sin señal, la verifica contra cuatro fuentes satelitales abiertas y entrega por cada envío un GeoJSON listo para TRACES, junto con el dossier de evidencia.</div>
+    <p style="margin-top:14px"><a class="cta2" href="/capturar">Empezar a capturar parcelas</a></p>
+    <p>Cómo se presenta la declaración: <a href="/eudr-traces-dds">la declaración EUDR (DDS) en TRACES</a>.</p>
+  </section>
+
+  <section class="faqx">
+    <h2>Preguntas frecuentes</h2>
+    <details><summary>¿Mi archivo se sube a algún servidor?</summary><p>No. La revisión se hace en tu navegador: el archivo no se envía a Origen ni a nadie.</p></details>
+    <details><summary>¿Cuántos decimales necesitan las coordenadas?</summary><p>Al menos seis, según el reglamento. El sistema de la UE corta las coordenadas a seis decimales, así que más decimales no aportan.</p></details>
+    <details><summary>¿Cuándo hace falta un polígono en lugar de un punto?</summary><p>Cuando la parcela mide más de 4 hectáreas. Si un punto no indica el área, el sistema asume 4 hectáreas.</p></details>
+    <details><summary>¿Que el archivo pase el validador significa que cumplo el EUDR?</summary><p>No. Solo significa que el formato es correcto. Falta comprobar que no hubo deforestación después del 31 de diciembre de 2020 y que el producto cumple las leyes del país de producción.</p></details>
+  </section>
+
+  <section class="src">
+    <h2>Fuentes oficiales</h2>
+    <a href="https://acceptance.eudr.webcloud.ec.europa.eu/tracesnt/help/eudr-documentation/operator/geojson-description.html" target="_blank" rel="noopener">Comisión Europea: descripción del archivo GeoJSON del EUDR</a>
+    <a href="https://eur-lex.europa.eu/eli/reg/2023/1115/oj" target="_blank" rel="noopener">Reglamento (UE) 2023/1115: artículo 2, punto 28, y artículo 9 (EUR-Lex)</a>
+    <a href="https://green-forum.ec.europa.eu/nature-and-biodiversity/deforestation-regulation-implementation/information-system-deforestation-regulation_en" target="_blank" rel="noopener">Comisión Europea: el sistema de información del EUDR</a>
+  </section>
+
+  <p class="disc">Herramienta informativa: revisa el formato, no la legalidad ni la ausencia de deforestación. Las reglas del sistema de la UE pueden cambiar; revisa la documentación oficial antes de presentar.</p>
+
+</div></main>
+
+<div class="wrap"><footer>Origen · Trazabilidad de origen para café y cacao · <a href="/" style="color:var(--mut)">Inicio</a> · <a href="/normativa" style="color:var(--mut)">Normativa EUDR</a> · <a href="/eudr-preguntas-frecuentes" style="color:var(--mut)">Preguntas frecuentes</a> · <!--only:es--><a href="/privacidad" style="color:var(--mut)">Privacidad</a><!--/only:es--><!--except:es--><a href="/en/privacy" style="color:var(--mut)">Privacidad</a><!--/except:es--></footer></div>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var M = {  // mensajes fijos: el servidor los traduce (window.ORIGEN_T) cuando se insertan
+    json: "El archivo no es un JSON válido. Revisa corchetes, comas y comillas.",
+    type: "No es GeoJSON: falta \"type\" o no es Feature ni FeatureCollection.",
+    geomtype: "Tipo de geometría no aceptado por TRACES (solo Point, MultiPoint, Polygon y MultiPolygon).",
+    nogeom: "Elemento sin geometría.",
+    nan: "Coordenada que no es un número.",
+    range: "Coordenada fuera de rango (longitud entre -180 y 180, latitud entre -90 y 90).",
+    swap: "Parece que la longitud y la latitud están invertidas: el orden correcto es [longitud, latitud].",
+    fewdec: "Menos de 6 decimales: el EUDR pide al menos 6 decimales en cada coordenada.",
+    moredec: "Más de 6 decimales: TRACES corta (no redondea) a 6. No es un error.",
+    short: "Polígono con menos de 4 pares de coordenadas.",
+    open: "Polígono abierto: el primer y el último punto deben ser iguales.",
+    hole: "Polígono con huecos: TRACES no los acepta. Divide la forma en dos polígonos.",
+    cross: "Polígono con líneas que se cruzan.",
+    dup: "Puntos repetidos al cortar las coordenadas a 6 decimales.",
+    line: "Puntos seguidos en línea recta: basta con el primero y el último.",
+    bigpt: "Punto con área mayor a 4 hectáreas: el EUDR exige el polígono completo.",
+    noarea: "Punto sin área: TRACES asume 4 hectáreas.",
+    smallpoly: "Polígono de 4 hectáreas o menos: también bastaría un punto.",
+    areastr: "\"Area\" debe ser un número, no un texto: \"3\" se lee como 0.",
+    propcase: "Propiedad mal escrita: TRACES distingue mayúsculas (ProductionPlace, ProducerName, ProducerCountry, Area).",
+    iso: "ProducerCountry debe ser un código de país de dos letras, por ejemplo PE.",
+    size: "El archivo supera los 25 MB por declaración.",
+    bigring: "Polígono muy grande: no se revisaron los cruces de líneas.",
+    ok: "Sin errores: el archivo cumple las reglas de TRACES que revisamos.",
+    bad: "El archivo tiene errores que TRACES rechazaría.",
+    warn: "Sin errores, pero con avisos que conviene revisar.",
+    el: "Elemento",
+    E: "Error", W: "Aviso", I: "Nota",
+    npar: "Parcelas", npt: "Puntos", npoly: "Polígonos", ha: "Hectáreas en polígonos"
+  };
+  var KNOWN = ["ProductionPlace", "ProducerName", "ProducerCountry", "Area"];
+  var EXAMPLE = '{"type":"FeatureCollection","features":[\n' +
+    ' {"type":"Feature","properties":{"ProducerName":"Productor 1","ProducerCountry":"PE","ProductionPlace":"Parcela 1","Area":2.5},\n' +
+    '  "geometry":{"type":"Point","coordinates":[-72.538211,-13.163068]}},\n' +
+    ' {"type":"Feature","properties":{"ProducerName":"Productor 2","ProducerCountry":"PE","ProductionPlace":"Parcela 2"},\n' +
+    '  "geometry":{"type":"Polygon","coordinates":[[[-72.541102,-13.160021],[-72.536118,-13.159874],[-72.535902,-13.164233],[-72.540987,-13.164415],[-72.541102,-13.160021]]]}},\n' +
+    ' {"type":"Feature","properties":{"productionplace":"Parcela 3","Area":"6"},\n' +
+    '  "geometry":{"type":"Point","coordinates":[-72.5301,-13.1702]}}\n]}';
+
+  var issues, stats, shapes;
+  function add(level, key, idx) { issues.push({ l: level, k: key, i: idx }); }
+  function rawDecimals(text) {  // los decimales se cuentan en el texto: JSON.parse borra los ceros finales
+    var re = /"coordinates"\s*:/g, m, few = 0, more = 0;
+    while ((m = re.exec(text))) {
+      var i = text.indexOf("[", m.index), depth = 0, k = i;
+      if (i < 0) break;
+      for (; k < text.length; k++) { var c = text[k]; if (c === "[") depth++; else if (c === "]") { depth--; if (!depth) break; } }
+      (text.slice(i, k + 1).match(/-?\d+(?:\.(\d+))?(?:[eE][-+]?\d+)?/g) || []).forEach(function (n) {
+        var d = (n.split(".")[1] || "").replace(/[eE].*/, "").length;
+        if (d < 6) few++; else if (d > 6) more++;
+      });
+      re.lastIndex = k;
+    }
+    if (few) add("W", "fewdec", 0);
+    if (more) add("I", "moredec", 0);
+  }
+  function trunc6(v) { return Math.trunc(v * 1e6); }
+  function ringAreaHa(r) {  // área geodésica aproximada (fórmula de Chamberlain y Duquette)
+    var R = 6378137, a = 0;
+    for (var i = 0; i < r.length - 1; i++) {
+      var p1 = r[i], p2 = r[i + 1];
+      a += (p2[0] - p1[0]) * Math.PI / 180 * (2 + Math.sin(p1[1] * Math.PI / 180) + Math.sin(p2[1] * Math.PI / 180));
+    }
+    return Math.abs(a * R * R / 2) / 10000;
+  }
+  function segX(a, b, c, d) {
+    function o(p, q, r) { var v = (q[1] - p[1]) * (r[0] - q[0]) - (q[0] - p[0]) * (r[1] - q[1]); return v > 0 ? 1 : v < 0 ? -1 : 0; }
+    var o1 = o(a, b, c), o2 = o(a, b, d), o3 = o(c, d, a), o4 = o(c, d, b);
+    return o1 !== o2 && o3 !== o4 && o1 && o2 && o3 && o4;
+  }
+  function checkPos(p, idx, f) {
+    if (!Array.isArray(p) || p.length < 2 || typeof p[0] !== "number" || typeof p[1] !== "number" || !isFinite(p[0]) || !isFinite(p[1])) { f.nan = 1; return false; }
+    if (Math.abs(p[0]) > 180 || Math.abs(p[1]) > 90) { f.range = 1; return false; }
+    if (Math.abs(p[0]) <= 25 && Math.abs(p[1]) > 25 && Math.abs(p[1]) <= 125 && p[1] < 0 && p[0] < 25) f.swapc = (f.swapc || 0) + 1;
+    f.n = (f.n || 0) + 1;
+    return true;
+  }
+  function checkRing(r, idx, f, isOuter) {
+    if (!Array.isArray(r) || r.length < 4) { add("E", "short", idx); return null; }
+    var ok = true;
+    r.forEach(function (p) { if (!checkPos(p, idx, f)) ok = false; });
+    if (!ok) return null;
+    var a = r[0], z = r[r.length - 1];
+    if (a[0] !== z[0] || a[1] !== z[1]) { add("E", "open", idx); }
+    var t = r.map(function (p) { return [trunc6(p[0]), trunc6(p[1])]; });
+    for (var i = 1; i < t.length - 1; i++) {
+      for (var j = 0; j < i; j++) { if (t[i][0] === t[j][0] && t[i][1] === t[j][1]) { f.dup = 1; break; } }
+      if (f.dup) break;
+    }
+    for (var k = 1; k < t.length - 1; k++) {
+      var p0 = t[k - 1], p1 = t[k], p2 = t[k + 1];
+      if ((p1[0] - p0[0]) * (p2[1] - p0[1]) - (p1[1] - p0[1]) * (p2[0] - p0[0]) === 0 && !(p0[0] === p1[0] && p0[1] === p1[1])) { f.line = 1; break; }
+    }
+    if (r.length > 3000) f.bigring = 1;
+    else {
+      var n = r.length - 1;
+      outer: for (var s = 0; s < n; s++) {
+        for (var u = s + 2; u < n; u++) {
+          if (s === 0 && u === n - 1) continue;
+          if (segX(r[s], r[s + 1], r[u], r[u + 1])) { f.cross = 1; break outer; }
+        }
+      }
+    }
+    return ringAreaHa(r);
+  }
+  function checkGeom(g, idx, props) {
+    var f = {};
+    if (!g || typeof g !== "object") { add("E", "nogeom", idx); return; }
+    var T = g.type, C = g.coordinates;
+    if (["Point", "MultiPoint", "Polygon", "MultiPolygon"].indexOf(T) < 0) { add("E", "geomtype", idx); return; }
+    if (T === "Point" || T === "MultiPoint") {
+      var pts = T === "Point" ? [C] : (Array.isArray(C) ? C : []);
+      pts.forEach(function (p) { if (checkPos(p, idx, f)) shapes.push({ t: "pt", c: p, i: idx }); });
+      stats.pt += pts.length;
+      var A = props ? props.Area : undefined;
+      if (A === undefined) add("I", "noarea", idx);
+      else if (typeof A === "number" && A > 4) add("E", "bigpt", idx);
+    } else {
+      var polys = T === "Polygon" ? [C] : (Array.isArray(C) ? C : []);
+      polys.forEach(function (poly) {
+        if (!Array.isArray(poly) || !poly.length) { add("E", "short", idx); return; }
+        if (poly.length > 1) add("E", "hole", idx);
+        var ha = checkRing(poly[0], idx, f, true);
+        if (ha !== null) {
+          stats.ha += ha; stats.poly++;
+          if (ha <= 4) add("I", "smallpoly", idx);
+          shapes.push({ t: "poly", c: poly[0], i: idx });
+        }
+      });
+    }
+    if (f.nan) add("E", "nan", idx);
+    if (f.range) add("E", "range", idx);
+    if (f.swapc && f.swapc === f.n) add("W", "swap", idx);
+    if (f.dup) add("E", "dup", idx);
+    if (f.cross) add("E", "cross", idx);
+    if (f.line) add("W", "line", idx);
+    if (f.bigring) add("I", "bigring", idx);
+  }
+  function checkProps(p, idx) {
+    if (!p || typeof p !== "object") return;
+    Object.keys(p).forEach(function (k) {
+      var low = KNOWN.map(function (x) { return x.toLowerCase(); }).indexOf(k.toLowerCase());
+      if (low >= 0 && KNOWN[low] !== k) add("W", "propcase", idx);
+    });
+    if ("Area" in p && typeof p.Area !== "number") add("E", "areastr", idx);
+    if ("ProducerCountry" in p && !/^[A-Z]{2}$/.test(String(p.ProducerCountry))) add("E", "iso", idx);
+  }
+  function validate(text, bytes) {
+    issues = []; stats = { par: 0, pt: 0, poly: 0, ha: 0 }; shapes = [];
+    if (bytes > 25 * 1024 * 1024) add("E", "size", 0);
+    var j; try { j = JSON.parse(text); } catch (e) { add("E", "json", 0); return; }
+    rawDecimals(text);
+    var feats;
+    if (j && j.type === "FeatureCollection" && Array.isArray(j.features)) feats = j.features;
+    else if (j && j.type === "Feature") feats = [j];
+    else if (j && ["Point", "MultiPoint", "Polygon", "MultiPolygon"].indexOf(j.type) >= 0) feats = [{ type: "Feature", properties: {}, geometry: j }];
+    else { add("E", "type", 0); return; }
+    stats.par = feats.length;
+    feats.forEach(function (ft, n) {
+      var idx = n + 1;
+      if (!ft || ft.type !== "Feature") { add("E", "type", idx); return; }
+      checkProps(ft.properties, idx);
+      checkGeom(ft.geometry, idx, ft.properties);
+    });
+  }
+  function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+  function render() {
+    var out = $("gjout"); out.innerHTML = "";
+    var ne = issues.filter(function (x) { return x.l === "E"; }).length, nw = issues.filter(function (x) { return x.l === "W"; }).length;
+    var head = el("div", "verdict " + (ne ? "v-bad" : nw ? "v-warn" : "v-ok"));
+    head.appendChild(el("span", null, ne ? M.bad : nw ? M.warn : M.ok));
+    out.appendChild(head);
+    if (stats.par) {
+      var st = el("div", "stats");
+      [[M.npar, stats.par], [M.npt, stats.pt], [M.npoly, stats.poly], [M.ha, stats.ha.toFixed(2)]].forEach(function (s) {
+        var b = el("div", "st"); b.appendChild(el("b", null, String(s[1]))); b.appendChild(el("span", null, s[0])); st.appendChild(b);
+      });
+      out.appendChild(st);
+    }
+    var ul = el("ul", "iss");
+    var order = { E: 0, W: 1, I: 2 };
+    issues.sort(function (a, b) { return order[a.l] - order[b.l] || a.i - b.i; });
+    var seen = {};
+    issues.forEach(function (x) {
+      var key = x.l + x.k + x.i; if (seen[key]) return; seen[key] = 1;
+      var li = el("li", "lv-" + x.l);
+      li.appendChild(el("span", "tag", M[x.l]));
+      if (x.i) { var w = el("span", "idx"); w.appendChild(el("span", null, M.el)); w.appendChild(document.createTextNode(" ")); w.appendChild(el("span", null, String(x.i))); li.appendChild(w); }
+      li.appendChild(el("span", "msg", M[x.k]));
+      ul.appendChild(li);
+    });
+    out.appendChild(ul);
+    drawMap();
+  }
+  function drawMap() {
+    var svg = $("gjmap"); while (svg.firstChild) svg.removeChild(svg.firstChild);
+    if (!shapes.length) { svg.style.display = "none"; return; }
+    svg.style.display = "block";
+    var xs = [], ys = [];
+    shapes.forEach(function (s) { (s.t === "pt" ? [s.c] : s.c).forEach(function (p) { xs.push(p[0]); ys.push(p[1]); }); });
+    var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
+    var k = Math.cos((y0 + y1) / 2 * Math.PI / 180), W = 600, H = 320, pad = 18;
+    var sx = (x1 - x0) * k || 1e-4, sy = (y1 - y0) || 1e-4, sc = Math.min((W - 2 * pad) / sx, (H - 2 * pad) / sy);
+    var P = function (p) { return [pad + (p[0] - x0) * k * sc, H - pad - (p[1] - y0) * sc]; };
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    var bad = {}; issues.forEach(function (x) { if (x.l === "E") bad[x.i] = 1; });
+    var NS = "http://www.w3.org/2000/svg";
+    shapes.forEach(function (s) {
+      var c = bad[s.i] ? "#C4332B" : "#1344B0";
+      if (s.t === "pt") {
+        var q = P(s.c), e = document.createElementNS(NS, "circle");
+        e.setAttribute("cx", q[0]); e.setAttribute("cy", q[1]); e.setAttribute("r", 6); e.setAttribute("fill", c); svg.appendChild(e);
+      } else {
+        var e2 = document.createElementNS(NS, "polygon");
+        e2.setAttribute("points", s.c.map(function (p) { return P(p).join(","); }).join(" "));
+        e2.setAttribute("fill", c); e2.setAttribute("fill-opacity", ".18"); e2.setAttribute("stroke", c); e2.setAttribute("stroke-width", "2");
+        svg.appendChild(e2);
+      }
+    });
+  }
+  function run(text, bytes) { validate(text, bytes == null ? new Blob([text]).size : bytes); render(); }
+  $("gjrun").addEventListener("click", function () { run($("gjtext").value); });
+  $("gjex").addEventListener("click", function () { $("gjtext").value = EXAMPLE; run(EXAMPLE); });
+  $("gjfile").addEventListener("change", function (e) {
+    var f = e.target.files && e.target.files[0]; if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () { var t = String(rd.result); $("gjtext").value = t.length > 200000 ? t.slice(0, 200000) : t; run(t, f.size); };
+    rd.readAsText(f);
+  });
+  window.origenValidate = function (t) { validate(t, new Blob([t]).size); return { issues: issues, stats: stats }; };
+})();
+</script>
+<script src="/static/i18n.js" defer></script>
+</body></html>

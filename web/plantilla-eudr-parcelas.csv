@@ -1,0 +1,2 @@
+ProducerName (Nombre del productor / Producer name),ProducerCountry (ISO2),ProductionPlace (Parcela / Plot),Area (ha),Latitude (Latitud),Longitude (Longitud),Polygon file if > 4 ha (Archivo del polígono si > 4 ha),Harvest from (Cosecha desde),Harvest to (Cosecha hasta),Quantity kg (Cantidad kg),HS code (Partida),Land tenure document (Documento de tenencia),Notes (Notas)
+Productor 1,PE,Parcela 1,2.5,-13.163068,-72.538211,,2026-05-01,2026-08-31,1200,0901.11,Certificado de posesión 123,

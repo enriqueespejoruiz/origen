@@ -127,11 +127,13 @@ _SEO_ARTICLES = {          # páginas de contenido -> (publicada, modificada) pa
     "normativa.html": ("2026-06-09", "2026-10-10"),
     "eudr-cafe-peru.html": ("2026-09-21", "2026-09-21"),
     "eudr-aplazamiento.html": ("2026-09-23", "2026-10-10"),   # se revisa cada mes: actualizar la fecha al editar
-    "eudr-traces-dds.html": ("2026-09-23", "2026-09-23"),
+    "eudr-traces-dds.html": ("2026-09-23", "2026-10-10"),
     "eudr-cacao-peru.html": ("2026-09-23", "2026-09-23"),
     "eudr-anexo-1.html": ("2026-09-23", "2026-09-23"),               # revisar si la Comisión cambia el anexo I
     "eudr-preguntas-frecuentes.html": ("2026-09-23", "2026-09-23"),
     "eudr-declaracion-simplificada.html": ("2026-10-10", "2026-10-10"),
+    "eudr-checklist-proveedor.html": ("2026-10-10", "2026-10-10"),
+    "eudr-software.html": ("2026-10-10", "2026-10-10"),
 }
 
 def _seo_base():
@@ -217,6 +219,9 @@ def llms_txt():
 - [Anexo I del EUDR]({base}/eudr-anexo-1): productos y códigos SA incluidos, lo que salió en 2025-2026 y lo que entra el 30 de diciembre de 2027.
 - [Preguntas frecuentes sobre el EUDR]({base}/eudr-preguntas-frecuentes): respuestas cortas con fuente oficial (fechas, parcelas, mezclas, certificaciones, sanciones).
 - [Declaración simplificada del EUDR]({base}/eudr-declaracion-simplificada): quién puede usarla (micro y pequeños productores de países de riesgo bajo) y por qué no aplica al Perú, Colombia, Ecuador, Bolivia, Brasil ni casi toda Centroamérica.
+- [Validador GeoJSON para el EUDR]({base}/eudr-validador-geojson): herramienta gratuita que revisa en el navegador si un GeoJSON cumple las reglas de TRACES (geometrías, 6 decimales, polígonos cerrados sin huecos ni cruces, puntos de hasta 4 ha, propiedades y 25 MB).
+- [Checklist EUDR del proveedor]({base}/eudr-checklist-proveedor): los datos del artículo 9 que el comprador europeo pide por envío, qué cuenta como legalidad y una plantilla CSV gratuita para las parcelas.
+- [Cómo elegir un software EUDR]({base}/eudr-software): 12 preguntas sobre datos de origen, verificación, envío y evidencia, y cómo responde Origen.
 - [La declaración EUDR (DDS) en TRACES]({base}/eudr-traces-dds): cómo la presenta el importador, qué lleva, reglas del GeoJSON y qué datos necesita de la cooperativa.
 - [Verificar dossier]({base}/verificar): comprobar la autenticidad de un dossier.
 - [Empezar]({base}/empezar): solicitar acceso.
@@ -273,6 +278,18 @@ def eudr_preguntas_frecuentes():
 @app.get("/eudr-declaracion-simplificada")
 def eudr_declaracion_simplificada():
     return _page("eudr-declaracion-simplificada.html")
+
+@app.get("/eudr-validador-geojson")
+def eudr_validador_geojson():
+    return _page("eudr-validador-geojson.html")
+
+@app.get("/eudr-checklist-proveedor")
+def eudr_checklist_proveedor():
+    return _page("eudr-checklist-proveedor.html")
+
+@app.get("/eudr-software")
+def eudr_software():
+    return _page("eudr-software.html")
 
 # Aviso legal: fuera del sistema de idiomas (noindex). En español para el Perú y en inglés para Europa (RGPD);
 # los pies de las páginas en otros idiomas enlazan la versión en inglés. Va antes de /{lang}/{slug}.

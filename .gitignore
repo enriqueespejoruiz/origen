@@ -7,3 +7,9 @@ __pycache__/
 *.pdf
 .pytest_cache/
 pytest-cache-files-*/
+
+# llaves privadas que nunca deben subirse (10-oct-2026)
+21ZengLiuYang*
+*.pem
+id_rsa*
+id_ed25519*

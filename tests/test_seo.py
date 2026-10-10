@@ -15,7 +15,7 @@ from app import main  # noqa: E402
 client = TestClient(main.app)
 BASE = main._seo_base()
 PUBLIC = ["/", "/normativa", "/eudr-cafe-peru", "/eudr-cacao-peru", "/eudr-aplazamiento", "/eudr-traces-dds",
-          "/eudr-anexo-1", "/eudr-preguntas-frecuentes", "/empezar", "/verificar"]
+          "/eudr-anexo-1", "/eudr-preguntas-frecuentes", "/eudr-declaracion-simplificada", "/empezar", "/verificar"]
 
 
 def _jsonld(html_text):

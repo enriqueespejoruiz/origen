@@ -124,13 +124,14 @@ _SEO_DESC = {              # solo se usa si el HTML no trae meta description
 }
 _NOINDEX = "noindex, nofollow"
 _SEO_ARTICLES = {          # páginas de contenido -> (publicada, modificada) para el schema Article
-    "normativa.html": ("2026-06-09", "2026-09-21"),
+    "normativa.html": ("2026-06-09", "2026-10-10"),
     "eudr-cafe-peru.html": ("2026-09-21", "2026-09-21"),
-    "eudr-aplazamiento.html": ("2026-09-23", "2026-09-23"),   # se revisa cada mes: actualizar la fecha al editar
+    "eudr-aplazamiento.html": ("2026-09-23", "2026-10-10"),   # se revisa cada mes: actualizar la fecha al editar
     "eudr-traces-dds.html": ("2026-09-23", "2026-09-23"),
     "eudr-cacao-peru.html": ("2026-09-23", "2026-09-23"),
     "eudr-anexo-1.html": ("2026-09-23", "2026-09-23"),               # revisar si la Comisión cambia el anexo I
     "eudr-preguntas-frecuentes.html": ("2026-09-23", "2026-09-23"),
+    "eudr-declaracion-simplificada.html": ("2026-10-10", "2026-10-10"),
 }
 
 def _seo_base():
@@ -215,6 +216,7 @@ def llms_txt():
 - [EUDR para el cacao peruano]({base}/eudr-cacao-peru): qué exige al cacao del Perú, del grano al chocolate, y el problema de los cacaotales bajo sombra en los mapas.
 - [Anexo I del EUDR]({base}/eudr-anexo-1): productos y códigos SA incluidos, lo que salió en 2025-2026 y lo que entra el 30 de diciembre de 2027.
 - [Preguntas frecuentes sobre el EUDR]({base}/eudr-preguntas-frecuentes): respuestas cortas con fuente oficial (fechas, parcelas, mezclas, certificaciones, sanciones).
+- [Declaración simplificada del EUDR]({base}/eudr-declaracion-simplificada): quién puede usarla (micro y pequeños productores de países de riesgo bajo) y por qué no aplica al Perú, Colombia, Ecuador, Bolivia, Brasil ni casi toda Centroamérica.
 - [La declaración EUDR (DDS) en TRACES]({base}/eudr-traces-dds): cómo la presenta el importador, qué lleva, reglas del GeoJSON y qué datos necesita de la cooperativa.
 - [Verificar dossier]({base}/verificar): comprobar la autenticidad de un dossier.
 - [Empezar]({base}/empezar): solicitar acceso.
@@ -267,6 +269,10 @@ def eudr_anexo_1():
 @app.get("/eudr-preguntas-frecuentes")
 def eudr_preguntas_frecuentes():
     return _page("eudr-preguntas-frecuentes.html")
+
+@app.get("/eudr-declaracion-simplificada")
+def eudr_declaracion_simplificada():
+    return _page("eudr-declaracion-simplificada.html")
 
 # Aviso legal: fuera del sistema de idiomas (noindex). En español para el Perú y en inglés para Europa (RGPD);
 # los pies de las páginas en otros idiomas enlazan la versión en inglés. Va antes de /{lang}/{slug}.

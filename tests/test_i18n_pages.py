@@ -140,7 +140,21 @@ def test_delay_page_links_and_dates():
     art = [g for g in json.loads(re.findall(r'<script type="application/ld\+json">(.*?)</script>', t, re.S)[0].replace("<\\/", "</"))["@graph"]
            if g["@type"] == "Article"][0]
     assert art["dateModified"] >= art["datePublished"] == "2026-09-23"
-    assert "Actualizado el 23 de septiembre de 2026" in t
+    assert "Actualizado el 10 de octubre de 2026" in t
+
+
+def test_simplified_declaration_page():
+    """Página de la declaración simplificada: en todos los idiomas, con FAQPage, enlazada desde portada (FAQ),
+    normativa y aplazamiento; dice que el Perú es riesgo estándar y no promete la declaración simplificada."""
+    for lang in LANGS:
+        target = I.path_for("eudr-declaracion-simplificada", lang)
+        for key in ("landing", "normativa", "eudr-aplazamiento"):
+            assert 'href="%s"' % target in client.get(I.path_for(key, lang)).text, (lang, key)
+        t = client.get(target).text
+        types = [g["@type"] for g in json.loads(re.findall(r'<script type="application/ld\+json">(.*?)</script>', t, re.S)[0].replace("<\\/", "</"))["@graph"]]
+        assert "FAQPage" in types and "Article" in types, lang
+    t = client.get("/eudr-declaracion-simplificada").text
+    assert "riesgo estándar" in t and "Costa Rica" in t
 
 
 def test_new_guides_are_linked():

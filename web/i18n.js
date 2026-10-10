@@ -343,6 +343,8 @@
     "Embarques consolidados ilimitados": "Unlimited consolidated shipments",
     "Multiusuario + API de consulta": "Multi-user + query API",
     "Reportes para tu área de cumplimiento": "Reports for your compliance team",
+    "Presentación automatizada de DDS vía la API oficial de la UE (próximamente)": "Automated DDS filing via the EU's official API (coming soon)",
+    "¿No habían \"simplificado\" el EUDR?": "Wasn't the EUDR \"simplified\"?",
     "Acompañamiento dedicado": "Dedicated support",
     "Agendar demo": "Book a demo",
     "Empieza gratis hoy:": "Start free today:",

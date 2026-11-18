@@ -19,6 +19,9 @@ GFW_VERSION    = os.getenv("GFW_VERSION", "v1.11")
 GFW_ORIGIN     = os.getenv("GFW_ORIGIN", "https://eudrperu.com")
 # ArcGIS Location Platform (imagen satelital del dossier, uso comercial con atribución "Powered by Esri").
 ESRI_API_KEY   = os.getenv("ESRI_API_KEY", "")
+# Evidencia satelital propia (Sentinel-2 + radar Sentinel-1). Presupuesto de segundos por lote.
+SAT_ENABLED    = os.getenv("SAT_ENABLED", "1") not in ("0", "false", "no")
+SAT_BUDGET_S   = float(os.getenv("SAT_BUDGET_S", "150"))
 LOSS_THRESHOLD_HA = float(os.getenv("LOSS_THRESHOLD_HA", "0.1"))
 ALERTS_THRESHOLD  = int(os.getenv("ALERTS_THRESHOLD", "3"))
 # Techos de rendimiento plausible (kg por ha) para el chequeo anti-fraude de volumen.
@@ -42,6 +45,8 @@ CRON_TOKEN = os.getenv("CRON_TOKEN", "")
 DEMO_KEY = os.getenv("DEMO_KEY", "")
 # --- Acceso de agente servidor-a-servidor (Sentinel; vacío = deshabilitado) ---
 AGENT_API_KEY = os.getenv("AGENT_API_KEY", "")
+# Alta resolución bajo pedido: a quién avisar (WhatsApp, formato internacional sin "+")
+HIRES_NOTIFY_WA = os.getenv("HIRES_NOTIFY_WA", "")
 
 def gemini_ready():   return bool(GEMINI_API_KEY or USE_VERTEX)
 def auth_ready():     return bool(GOOGLE_OAUTH_CLIENT_ID)

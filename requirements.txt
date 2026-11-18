@@ -26,3 +26,5 @@ itsdangerous>=2.1
 opentimestamps-client>=0.7
 # --- Importación masiva (Excel) ---
 openpyxl>=3.1
+# --- Importación de Shapefile (.zip) ---
+pyshp>=2.3

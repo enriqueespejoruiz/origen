@@ -41,33 +41,63 @@ def upload_file(path):
             print("STORAGE-FALLBACK:", repr(e)[:200])
     return path
 
+_CHUNK = 900_000          # Firestore: máx. ~1 MiB por documento → un archivo grande va en partes
+
+def _blob_local(lot_id, name):
+    return os.path.join(config.DATA_DIR, "blobs", f"{lot_id}__{name}")
+
 def save_blob(lot_id, name, data: bytes):
-    """Guarda un archivo generado (pdf/geojson) de forma durable para servirlo desde cualquier instancia."""
-    import base64
+    """Guarda un archivo (pdf/geojson/foto/imagen) de forma durable, cada uno en sus propios documentos
+    de Firestore y partido en trozos de 900 KB. Antes todos los archivos de un lote iban en UN documento
+    (files/{lote}) y al pasar de 1 MiB (fotos + dossier) la escritura fallaba en silencio."""
+    try:
+        os.makedirs(os.path.join(config.DATA_DIR, "blobs"), exist_ok=True)
+        with open(_blob_local(lot_id, name), "wb") as f:
+            f.write(data)
+    except Exception as e:
+        print("STORAGE-LOCAL:", repr(e)[:120])
     if config.GCP_PROJECT:
         try:
             from google.cloud import firestore
-            firestore.Client(project=config.GCP_PROJECT).collection("files").document(lot_id)\
-                .set({name: base64.b64encode(data).decode()}, merge=True)
+            col = firestore.Client(project=config.GCP_PROJECT).collection("blobs")
+            key = f"{lot_id}__{name}"
+            parts = [data[i:i + _CHUNK] for i in range(0, len(data), _CHUNK)] or [b""]
+            for i, part in enumerate(parts):
+                col.document(f"{key}__{i}").set({"data": part})
+            col.document(key).set({"lot_id": lot_id, "name": name, "n": len(parts), "size": len(data)})
             return "firestore"
         except Exception as e:
             print("STORAGE-FALLBACK:", repr(e)[:200])
     return "local"
 
 def load_blob(lot_id, name):
-    """Lee un archivo generado desde el almacenamiento durable (Firestore). None si no existe."""
+    """Lee un archivo durable. Formato nuevo (blobs/, en partes) y, si no está, el antiguo (files/{lote})."""
     import base64
     if config.GCP_PROJECT:
         try:
             from google.cloud import firestore
-            doc = firestore.Client(project=config.GCP_PROJECT).collection("files").document(lot_id).get()
+            db = firestore.Client(project=config.GCP_PROJECT)
+            key = f"{lot_id}__{name}"
+            meta = db.collection("blobs").document(key).get()
+            if meta.exists:
+                n = int(meta.to_dict().get("n") or 0)
+                out = b""
+                for i in range(n):
+                    d = db.collection("blobs").document(f"{key}__{i}").get()
+                    if not d.exists:
+                        out = None; break
+                    out += bytes(d.to_dict().get("data") or b"")
+                if out:
+                    return out
+            doc = db.collection("files").document(lot_id).get()     # formato antiguo
             if doc.exists:
                 v = doc.to_dict().get(name)
                 if v:
                     return base64.b64decode(v)
         except Exception as e:
             print("STORAGE-FALLBACK:", repr(e)[:200])
-    return None
+    fp = _blob_local(lot_id, name)
+    return open(fp, "rb").read() if os.path.exists(fp) else None
 
 # ---------- Usuarios y multi-tenant (login con Google) ----------
 
@@ -380,3 +410,73 @@ def get_notary(lot_id):
     if os.path.exists(fp):
         return json.load(open(fp))
     return None
+
+# ---------- Pedidos de imagen de alta resolución (servicio bajo pedido) ----------
+
+def save_hires(rec):
+    """Crea o actualiza un pedido de alta resolución (id HR-…). Devuelve el id."""
+    import uuid, datetime
+    hid = rec.get("id") or ("HR-" + uuid.uuid4().hex[:8].upper())
+    rec["id"] = hid
+    rec.setdefault("created_at", datetime.datetime.utcnow().isoformat() + "Z")
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            firestore.Client(project=config.GCP_PROJECT).collection("hires_requests").document(hid).set(rec, merge=True)
+            return hid
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
+    d = os.path.join(config.DATA_DIR, "hires"); os.makedirs(d, exist_ok=True)
+    fp = os.path.join(d, f"{hid}.json")
+    cur = json.load(open(fp)) if os.path.exists(fp) else {}
+    cur.update(rec)
+    json.dump(cur, open(fp, "w"), indent=2, default=str)
+    return hid
+
+def get_hires(hid):
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            doc = firestore.Client(project=config.GCP_PROJECT).collection("hires_requests").document(hid).get()
+            return doc.to_dict() if doc.exists else None
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
+    fp = os.path.join(config.DATA_DIR, "hires", f"{hid}.json")
+    return json.load(open(fp)) if os.path.exists(fp) else None
+
+def list_hires(lot_id=None, status=None, limit=200):
+    """Pedidos de alta resolución, filtrados por lote y/o estado (más recientes primero)."""
+    out = []
+    done = False
+    if config.GCP_PROJECT:
+        try:
+            from google.cloud import firestore
+            from google.cloud.firestore_v1.base_query import FieldFilter
+            q = firestore.Client(project=config.GCP_PROJECT).collection("hires_requests")
+            if lot_id:
+                q = q.where(filter=FieldFilter("lot_id", "==", lot_id))
+            elif status:
+                q = q.where(filter=FieldFilter("status", "==", status))
+            out = [d.to_dict() for d in q.limit(limit).stream()]
+            done = True
+        except Exception as e:
+            print("STORAGE-FALLBACK:", repr(e)[:200])
+    if not done:
+        import glob
+        for fp in glob.glob(os.path.join(config.DATA_DIR, "hires", "HR-*.json")):
+            try:
+                out.append(json.load(open(fp)))
+            except Exception:
+                continue
+    if lot_id:
+        out = [r for r in out if r.get("lot_id") == lot_id]
+    if status:
+        out = [r for r in out if r.get("status") == status]
+    out.sort(key=lambda r: r.get("created_at") or "", reverse=True)
+    return out[:limit]
+
+def save_image_blob(lot_id, name, data: bytes):
+    return save_blob(lot_id, name, data)
+
+def load_image_blob(lot_id, name):
+    return load_blob(lot_id, name)

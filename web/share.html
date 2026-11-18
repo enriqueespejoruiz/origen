@@ -74,7 +74,10 @@ header .lang{color:#fff!important;background:transparent!important;border-color:
 </style></head><body>
 
 <header>
-  <div class="logo"><span class="mk">O</span>Origen</div>
+  <div class="logo"><svg viewBox="0 0 64 64" width="26" height="26" aria-hidden="true" style="vertical-align:-6px;margin-right:6px">
+    <path d="M32 6C20.4 6 11 15 11 26.2 11 40 32 58 32 58s21-18 21-31.8C53 15 43.6 6 32 6z" fill="#fff"/>
+    <path d="M32 31c-5 0-9-3-9.5-8 5.5 0 9 2.5 9.5 8z" fill="#E0A43A"/>
+    <path d="M32 28c5 0 9-3 9.5-8-5.5 0-9 2.5-9.5 8z" fill="#2F8F4E"/></svg>Origen</div>
   <span class="sp"></span>
   <button class="lang" data-langbtn onclick="toggleLang()" aria-label="Switch language">EN</button>
 </header>
@@ -112,7 +115,7 @@ var CM={coffee:'Café',cafe:'Café',cocoa:'Cacao',cacao:'Cacao',oil_palm:'Palma 
 var VMAP={
   negligible:['v-ok','✓','Sin deforestación','No se detectó pérdida de bosque tras el corte (31-dic-2020).'],
   review:['v-rev','!','A revisar','Hay parcelas con señales a verificar o sustentar antes de exportar.'],
-  high:['v-hi','✕','Requiere segregación','Hay parcelas observadas: deben excluirse o sustentarse (sin mass-balance).'],
+  high:['v-hi','✕','Requiere segregación','Hay parcelas observadas: deben excluirse del envío o sustentarse. El EUDR no permite mezclarlas con producto conforme.'],
   '':['v-na','•','En preparación','El paquete todavía se está procesando.']
 };
 function esc(s){return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
@@ -137,15 +140,20 @@ function render(d){
   var com=CM[(d.commodity||'').toLowerCase()]||d.commodity||'';
   var bits=[com]; if(d.kind==='consignment'&&d.destination) bits.push('→ '+d.destination);
   if(d.kind==='lot'&&d.region) bits.push(d.region);
+  if(d.countries&&d.countries.length) bits.push(d.countries.map(function(c){return c.name;}).join(', '));
   $('sub').textContent=bits.filter(Boolean).join('  ·  ');
   var v=VMAP[d.verdict]||VMAP[''];
   $('verdict').className='verdict '+v[0]; $('vdot').textContent=v[1];
   $('vlabel').textContent=v[2]; $('vdesc').textContent=v[3];
+  var AN={descartada:'Un analista de Origen revisó la alerta y la descartó (detalle en el dossier).',confirmada:'Un analista de Origen confirmó la pérdida de cobertura (detalle en el dossier).',campo:'Un analista de Origen pidió verificación en campo (detalle en el dossier).'};
+  if(d.analyst&&AN[d.analyst]) $('vdesc').textContent=v[3]+' '+AN[d.analyst];
   var f='';
   if(d.kind==='consignment') f+=fact(d.n_lots,'Lotes');
   f+=fact(d.n_plots,'Parcelas');
   if(d.total_kg) f+=fact(Number(d.total_kg).toLocaleString()+' kg','Volumen');
   if(d.kind==='consignment'){ if(d.producers) f+=fact(d.producers,'Productores'); }
+  if(d.cooperative) f+=fact(d.cooperative,'Organización');
+  var vd=(d.verified_at||d.created_at||'').slice(0,10); if(vd) f+=fact(vd,'Verificado');
   $('facts').innerHTML=f;
   $('dlDossier').href=d.downloads.dossier; $('dlGeo').href=d.downloads.geojson;
   $('verify').href=d.verify_url||'/verificar';

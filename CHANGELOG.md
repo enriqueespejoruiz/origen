@@ -2,6 +2,57 @@
 
 Formato: cambios agrupados por fecha. El proyecto sigue el espíritu *build-in-public* del XPRIZE.
 
+## 2026-11-18 (4) — Revisión de UX por usuario (gerente, técnico de campo, comprador)
+- **Panel (gerente)**: el título es el nombre de la organización; **resumen** arriba (lotes, en orden, a revisar,
+  observados, sin verificar) que filtra la lista al tocarlo, y un aviso de **siguiente paso**. Cada fila tiene dos
+  acciones visibles (Dossier + Revisión experta o Compartir) y el resto en un menú «Más ▾» (antes eran 10 enlaces).
+  Columnas «Estado» y «Acciones». Etiquetas con icono además del color: «✓ En orden», «! A revisar», «× Observado».
+- **Cabecera**: «Salir» y «EN» eran invisibles (texto blanco sobre fondo blanco); corregido. En el celular la
+  cabecera ya no desborda y las tablas pasan a tarjetas (antes había scroll lateral y se perdían Estado y Acciones).
+- **Captura (técnico)**: cabecera sin desborde en 390 px; los lotes del servidor muestran el estado arriba y los
+  enlaces debajo (la etiqueta se salía de la pantalla); controles de 44 px; «organización» en vez de «cooperativa».
+- **Página del comprador**: país de producción, organización y fecha de verificación; conclusión del analista si la
+  hay; logotipo de Origen; explicación sin jerga («mass-balance»). `/api/share/*` devuelve `countries`,
+  `verified_at` y `analyst`.
+- Foco visible en teclado (`:focus-visible`) y textos de las acciones con `aria-label`.
+
+## 2026-11-18 (3) — País de producción por lote (ya no «PE» fijo)
+- **`app/countries.py`**: países ISO 3166-1 alfa-2 con nombre en español e inglés (CLDR), orígenes frecuentes
+  del EUDR primero; `norm()` acepta código o nombre («Colombia», «Costa de Marfil»); `of_lot()` devuelve «PE»
+  solo para lotes antiguos guardados sin país (no se migra nada en Firestore).
+- **Organización**: al crearla se elige su país (`/api/coop` acepta `country`); es el valor por defecto de sus lotes.
+- **Captura**: selector «País de producción» (recuerda el último elegido; el mapa abre en ese país); la cola
+  sin señal lo guarda y lo envía al sincronizar. Edición del lote: también el país.
+- **Importación**: columna `pais`/`country` validada (código o nombre); vacía → país de la organización; en
+  GeoJSON/KML/Shapefile se lee `ProducerCountry`/`country`. Plantilla con columna `pais` y ejemplo de Colombia.
+- **Dossier y GeoJSON**: usan el país del lote («Colombia (CO)»); el dossier del envío lista todos los países.
+  Un envío ya puede juntar lotes de varios países (antes se rechazaba).
+- Textos sin Perú fijo: copiloto, resumen de Gemini, ayuda de coordenadas, ejemplos de región. `GET /api/countries`.
+- Tests: `tests/test_country.py` (446 en total).
+
+## 2026-11-18 (2) — Revisión experta: analista + alta resolución bajo pedido; archivos sin tope de 1 MiB
+- **Panel**: en lotes «a revisar» u «observados», enlace **Alta resolución**: la coop pide imagen de archivo
+  comercial (15–50 cm) para antes/después del corte, ve la cotización y la acepta o rechaza. Nada se compra
+  sin su aceptación. Estados: solicitada → cotizada → aceptada → entregada (o sin imagen / cancelada).
+- **API**: `GET/POST /lots/{id}/hires`, `POST /lots/{id}/hires/{hid}/accept|cancel`. Administración con llave
+  de agente: `GET /admin/hires` (con la geometría de la parcela para buscar en el archivo),
+  `POST /admin/hires/{hid}/quote|status|deliver`. Al entregar, la imagen se guarda en su propio documento
+  (≤ 700 KB) y el dossier se regenera con la sección «Imagen de muy alta resolución (bajo pedido)».
+- Aviso a Origen por WhatsApp si `HIRES_NOTIFY_WA` está configurado; siempre queda en el log (`hires_*`).
+- `tools/hires_render.py`: recorta la entrega GeoTIFF a la parcela, ajusta el color y dibuja el borde.
+- **Revisión del analista** (lo que Coolx vende como «un experto revisa cada alerta»): `POST /admin/lots/{id}/review`
+  con conclusión `descartada | confirmada | campo`, nota y evidencia revisada. Sale en el dossier («Revisión del
+  analista de Origen») y como etiqueta en el panel. Explica el veredicto automático; no lo reemplaza. El pedido
+  desde el panel pasa a llamarse «Revisión experta» e incluye la opción «solo analista, sin compra».
+- **Almacenamiento de archivos**: cada archivo (dossier, GeoJSON, fotos, imágenes) va en sus propios documentos
+  de Firestore, en partes de 900 KB (`blobs/`). Antes todos los archivos de un lote compartían un documento con
+  tope de 1 MiB y, con varias fotos, la escritura fallaba en silencio. Lee también el formato antiguo.
+- **Exportar en otros formatos** (`app/exporter.py`): cada lote y cada envío se descargan también en
+  Google Earth (KMZ), KML, Shapefile (.zip con capa de polígonos y de puntos, WGS84) y Excel (centroide + WKT).
+  `GET /lots/{id}/export.{kmz|kml|shp|xlsx}`, `/consignments/{id}/export.{…}` y `/api/lots/export.{…}`
+  (todas las parcelas de la coop en un archivo). En el panel: «Otros formatos…» por fila y «Exportar parcelas…».
+- Tests: `tests/test_hires.py`, `tests/test_export_formats.py` (440 en total).
+
 ## 2026-11-18 — SEO global: 7 productos, cualquier país, importadores y estado de noviembre
 - **Mensaje**: portada y metas en 22 idiomas con «7 productos, cualquier país»; H1 «tu envío»; descriptor
   «EUDR · 7 productos»; FAQ «¿Sirve para productores de cualquier país?»; bloque «¿Importas a la UE?»; los

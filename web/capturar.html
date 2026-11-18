@@ -120,6 +120,15 @@ button{background:var(--btn-blue)}
 button:hover{background:#0B0D12}
 #gate{background:var(--wing)!important}
 .gatecard{border-top:4px solid #E0A43A!important}
+
+/* === UX nov-2026 === */
+header{flex-wrap:wrap;row-gap:8px}
+@media (max-width:420px){ header .sub{display:none} header .uchip{max-width:38vw!important} .dot{padding:5px 9px} }
+.item.srv{display:block}
+.srvhd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.item.srv .dl{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px 16px}
+.item.srv .dl a{padding:6px 0;min-height:32px}
+main button,main select,main input:not([type=checkbox]):not([type=radio]):not([type=file]){min-height:44px}
 </style></head><body>
 <div id="gate">
   <div class="gatecard">
@@ -134,9 +143,11 @@ button:hover{background:#0B0D12}
       <div id="gbtn"></div>
     </div>
     <div id="coopBox2">
-      <h2>Tu cooperativa</h2>
-      <p>¿Cómo se llama tu cooperativa o asociación?</p>
+      <h2>Tu organización</h2>
+      <p>¿Cómo se llama tu cooperativa, asociación o empresa?</p>
       <input id="coopName2" placeholder="ej. Cooperativa Aurora" autocomplete="organization">
+      <label for="coopCountry2" style="display:block;text-align:left;margin-top:10px;font-size:13px">País de la organización</label>
+      <select id="coopCountry2" autocomplete="country" style="width:100%"></select>
       <button id="coopGo2">Continuar</button>
     </div>
     <div class="gnote" id="gnote">Más ágil y seguro: tus capturas quedan firmadas con tu cuenta.</div>
@@ -163,7 +174,7 @@ button:hover{background:#0B0D12}
     <p class="muted" style="margin:8px 0 0">Funciona sin señal, como una app nativa. Ocupa casi nada.</p>
   </div>
   <div class="card" id="coopCard">
-    <label for="coop">Cooperativa</label>
+    <label for="coop">Organización</label>
     <input id="coop" placeholder="Nombre de la cooperativa" autocomplete="organization">
   </div>
   <div class="card">
@@ -176,9 +187,10 @@ button:hover{background:#0B0D12}
       <div><label for="area">Área (ha)</label><input id="area" type="number" inputmode="decimal" placeholder="ej. 2"></div>
     </div>
     <div class="row">
-      <div><label for="region">Región</label><input id="region" placeholder="ej. Cusco" autocomplete="off"></div>
-      <div><label for="cantidad">Cantidad (kg, aprox.)</label><input id="cantidad" inputmode="decimal" placeholder="ej. 1200"></div>
+      <div><label for="country">País de producción</label><select id="country" autocomplete="country"></select></div>
+      <div><label for="region">Región</label><input id="region" placeholder="ej. departamento o estado" autocomplete="off"></div>
     </div>
+    <label for="cantidad">Cantidad (kg, aprox.)</label><input id="cantidad" inputmode="decimal" placeholder="ej. 1200">
     <div id="speciesBox" style="display:none"><label for="species">Especie (nombre común y científico)</label><input id="species" placeholder="ej. Tornillo — Cedrelinga cateniformis" autocomplete="off"></div>
     <p class="muted" id="cattleNote" style="display:none;margin:6px 0 0">Ganado: un punto por cada establecimiento donde estuvo el animal (no se exige polígono).</p>
     <label for="lang">Idioma del dossier</label>
@@ -197,7 +209,7 @@ button:hover{background:#0B0D12}
           <div><label for="manlon">Longitud</label><input id="manlon" inputmode="decimal" placeholder="ej. -76.372045" autocomplete="off"></div>
         </div>
         <button type="button" class="sec" id="manUse">Usar estas coordenadas</button>
-        <p class="muted" style="margin-top:6px">Para coordenadas que ya tienes (GPS externo, título, plano). Usa punto decimal y al menos 5 decimales; en Perú la latitud es negativa (ej. -6.478123) y la longitud ~ -70 a -81.</p>
+        <p class="muted" style="margin-top:6px">Para coordenadas que ya tienes (GPS externo, título, plano). Usa punto decimal y al menos 5 decimales; al sur del ecuador la latitud es negativa (ej. -6.478123) y al oeste de Greenwich la longitud también.</p>
       </div>
       <button type="button" id="pmapToggle" style="background:none;border:0;padding:6px 0;margin-top:2px;color:var(--brand-pine);font-size:13.5px;font-weight:600;cursor:pointer;text-decoration:underline">Elegir el punto en el mapa</button>
       <div id="pmapBox" style="display:none;margin-top:6px">
@@ -274,7 +286,7 @@ button:hover{background:#0B0D12}
   </div>
   <div class="card" id="srvCard" style="display:none">
     <div class="qhead">
-      <b id="srvTitle">Lotes de la cooperativa</b>
+      <b id="srvTitle">Lotes de la organización</b>
       <button class="sec" id="srvRefresh">Actualizar</button>
     </div>
     <div id="slist"></div>
@@ -286,6 +298,7 @@ button:hover{background:#0B0D12}
       <div><label for="edProd">Productor</label><input id="edProd"></div>
       <div><label for="edRegion">Región</label><input id="edRegion"></div>
     </div>
+    <label for="edCountry">País de producción</label><select id="edCountry"></select>
     <div class="row">
       <div><label for="edArea">Área (ha)</label><input id="edArea" inputmode="decimal"></div>
       <div><label for="edQty">Cantidad (kg)</label><input id="edQty" inputmode="decimal"></div>
@@ -303,8 +316,8 @@ button:hover{background:#0B0D12}
   <div id="bgstat" role="status" style="position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:60;display:none;background:#1344B0;color:#fff;padding:9px 18px;border-radius:999px;font-size:13px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:88vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
   <div class="card">
     <div class="qhead"><b>¿Ya tienes la georreferencia?</b></div>
-    <p class="muted" style="margin-top:2px">Si tus parcelas ya están en un Excel o CSV, súbelo y las registramos todas de una vez (necesitas señal).</p>
-    <div class="filerow"><input id="impfile" type="file" accept=".xlsx,.xlsm,.csv,.geojson,.json"></div>
+    <p class="muted" style="margin-top:2px">Si tus parcelas ya están en Excel, CSV, Google Earth (KML/KMZ), GPX o Shapefile, súbelas y las registramos todas de una vez (necesitas señal).</p>
+    <div class="filerow"><input id="impfile" type="file" accept=".xlsx,.xlsm,.csv,.geojson,.json,.kml,.kmz,.gpx,.zip"></div>
     <button class="sec" id="impgo" style="margin-top:8px">Importar parcelas</button>
     <p class="muted" style="margin-top:8px">Descarga la plantilla: <a href="/api/import/template.xlsx" style="color:var(--brand-pine);font-weight:700">Excel</a> &nbsp;·&nbsp; <a href="/api/import/template" style="color:var(--brand-pine);font-weight:700">CSV</a></p>
     <div id="impout" class="muted" style="margin-top:8px" aria-live="polite"></div>
@@ -517,9 +530,12 @@ function leafletLoad(cb){
   s.onerror=()=>{mapLoading=false;alert('No se pudo cargar el mapa: revisa tu conexión.');};
   document.head.appendChild(s);
 }
+function _mapCenter(){
+  var k=($('country')&&$('country').value)||'PE'; return (window.ORIGEN_CENTER&&ORIGEN_CENTER[k])||[0,-20];
+}
 function mapInit(){
   if(mapReady)return;
-  let c=[-9.19,-75.02], z=5;                                   // Perú
+  let c=_mapCenter(), z=5;                                     // centro del país elegido
   if(verts.length){c=[verts[verts.length-1].lat,verts[verts.length-1].lon];z=16;}
   else if(fixes.length){const f=fixes[fixes.length-1];c=[f.lat,f.lon];z=16;}
   map=L.map('map',{tap:false}).setView(c,z);
@@ -560,7 +576,7 @@ function pmapSet(lat,lon,quiet){
 }
 function pmapInit(){
   if(pmapReady)return;
-  let c=[-9.19,-75.02], z=5;                                   // Perú
+  let c=_mapCenter(), z=5;                                     // centro del país elegido
   if(coords){c=[coords.lat,coords.lon];z=16;}
   pmap=L.map('pmap',{tap:false}).setView(c,z);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -716,19 +732,19 @@ async function loadCoopLots(){
     const d=await r.json(); const lots=d.lots||[];
     if(!lots.length){$('srvCard').style.display='none';return;}
     $('srvCard').style.display='block';
-    $('srvTitle').textContent='Lotes de la cooperativa ('+lots.length+')';
+    $('srvTitle').textContent='Lotes de la organización ('+lots.length+')';
     $('slist').innerHTML=lots.map(l=>{
       let b='<span class="b ok">enviado</span>';
-      if(l.overall_risk==='high')b='<span class="b hi">deforestación</span>';
-      else if(l.overall_risk==='review')b='<span class="b rev">revisar</span>';
-      else if(l.overall_risk==='negligible')b='<span class="b ok">limpio</span>';
+      if(l.overall_risk==='high')b='<span class="b hi">× Observado</span>';
+      else if(l.overall_risk==='review')b='<span class="b rev">! A revisar</span>';
+      else if(l.overall_risk==='negligible')b='<span class="b ok">✓ En orden</span>';
       const al=l.alert;
       const links='<div class="dl"><a href="#" data-dl="dossier" data-id="'+l.lot_id+'">Dossier PDF</a>'
-        +'<a href="#" data-dl="geojson" data-id="'+l.lot_id+'">Datos (GeoJSON)</a>'
+        +'<a href="#" data-dl="geojson" data-id="'+l.lot_id+'">GeoJSON</a>'
         +(al?('<a href="https://www.google.com/maps?q='+al.lat+','+al.lon+'" target="_blank" rel="noopener" style="color:#B02D25">⚑ Ir al punto</a>'):'')
         +((l.overall_risk==='review'||l.overall_risk==='high')?('<a href="#" data-sust="'+l.lot_id+'"'+(al?(' data-alat="'+al.lat+'" data-alon="'+al.lon+'" data-adate="'+(al.date||'')+'"'):'')+'>Sustentar</a>'):'')
         +'<a href="#" data-edit="'+l.lot_id+'">Editar</a></div>';
-      return '<div class="item"><div>'+(l.producer||l.lot_id)+'<div class="muted">'+l.lot_id+' · '+(l.n_plots||1)+' parcela(s)</div>'+links+'</div>'+b+'</div>';
+      return '<div class="item srv"><div class="srvhd"><div><b>'+(l.producer||l.lot_id)+'</b><div class="muted">'+l.lot_id+' · '+(l.n_plots||1)+' parcela(s)'+(l.country?' · '+l.country:'')+'</div></div>'+b+'</div>'+links+'</div>';
     }).join('');
     if(window.i18nSync)i18nSync();
   }catch(e){}
@@ -754,7 +770,7 @@ window.editOpen=async lot_id=>{
   if(!d||!d.lot_id){alert('No se pudo cargar el lote.');return;}
   edLot=lot_id; edPts=(d.points||[]).map(p=>({lat:+p.lat,lon:+p.lon}));
   $('editLot').textContent=lot_id;
-  $('edProd').value=d.producer||''; $('edRegion').value=d.region||'';
+  $('edProd').value=d.producer||''; $('edRegion').value=d.region||''; if(window.fillCountrySelect)fillCountrySelect($('edCountry'),d.country||'PE');
   $('edArea').value=d.area_ha!=null?d.area_ha:''; $('edQty').value=d.quantity||'';
   $('edNote').value=(d.substantiation&&d.substantiation.note)||'';
   $('edOut').textContent='';
@@ -776,7 +792,7 @@ $('edSave').onclick=async()=>{
   if(!edLot)return;
   $('edSave').disabled=true; const t=$('edSave').textContent; $('edSave').textContent='Guardando…';
   try{
-    const body={producer:$('edProd').value.trim(),region:$('edRegion').value.trim(),
+    const body={producer:$('edProd').value.trim(),region:$('edRegion').value.trim(),country:($('edCountry')?$('edCountry').value:''),
       quantity:$('edQty').value.trim(),area_ha:parseFloat($('edArea').value)||null,
       points:edPts.length?edPts:null};
     const r=await fetch('/lots/'+edLot+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
@@ -844,7 +860,7 @@ $('save').onclick=()=>{
   if(window._volWarn && !confirm(window._volWarn)) return;
   let item={id:Date.now(),producer:$('prod').value.trim(),cooperative:$('coop').value.trim(),
     commodity:$('com').value,area_ha:parseFloat($('area').value)||null,
-    region:$('region').value.trim(),quantity:$('cantidad').value.trim(),
+    region:$('region').value.trim(),country:($('country')?$('country').value:''),quantity:$('cantidad').value.trim(),
     extra:{lang:$('lang').value,species:($('species')?$('species').value.trim():''),
            legality:{title:$('legtitle').value.trim(),env:$('legenv').value.trim(),labor:$('leglabor').value.trim()},
            buyer:{name:$('buyername').value.trim(),country:$('buyercountry').value.trim(),eori:$('buyereori').value.trim()}},
@@ -877,9 +893,9 @@ function render(){
   $('list').innerHTML=queue.slice().reverse().map(i=>{
     let b='<span class="b pend">Pendiente</span>';
     if(i.status==='enviado'){
-      if(i.risk==='high')b='<span class="b hi">deforestación</span>';
-      else if(i.risk==='review')b='<span class="b rev">revisar</span>';
-      else if(i.risk)b='<span class="b ok">limpio</span>';
+      if(i.risk==='high')b='<span class="b hi">× Observado</span>';
+      else if(i.risk==='review')b='<span class="b rev">! A revisar</span>';
+      else if(i.risk)b='<span class="b ok">✓ En orden</span>';
       else b='<span class="b ok">enviado</span>';
     }
     if(i.status==='rechazado')b='<span class="b hi" title="'+(i.reason||'').replace(/"/g,'&quot;')+'">rechazado</span>';
@@ -1058,8 +1074,9 @@ addEventListener('appinstalled',function(){ var c=document.getElementById('insta
   }
   function authCoop(){ $('gate').style.display='grid'; $('loginBox2').style.display='none'; $('coopBox2').style.display='block'; }
   $('coopGo2').onclick=async function(){
-    const name=$('coopName2').value.trim(); if(!name){alert('Pon el nombre de tu cooperativa');return;}
-    const r=await fetch('/api/coop',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})});
+    const name=$('coopName2').value.trim(); if(!name){alert('Pon el nombre de tu organización');return;}
+    const country=$('coopCountry2')?$('coopCountry2').value:'';
+    const r=await fetch('/api/coop',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,country})});
     if(r.ok) authBoot(); else alert('No se pudo guardar');
   };
   function authApp(s){
@@ -1068,6 +1085,7 @@ addEventListener('appinstalled',function(){ var c=document.getElementById('insta
     $('uchip').innerHTML=(s.user.picture?'<img src="'+s.user.picture+'" alt="">':'')+'<span>'+(s.coop.name||s.user.email)+'</span>';
     var cc=$('coopCard'); if(cc)cc.style.display='none';
     var ci=$('coop'); if(ci)ci.value=s.coop.name||'';
+    if(s.coop.country){ try{localStorage.setItem('origen_country_org',s.coop.country);}catch(e){} countryInit(); }
     if(typeof render==='function')render();
     if(navigator.onLine && typeof sync==='function')sync();
   }
@@ -1102,6 +1120,18 @@ addEventListener('appinstalled',function(){ var c=document.getElementById('insta
     var ed=ev.target.closest('a[data-edit]'); if(ed){ev.preventDefault();window.editOpen(ed.getAttribute('data-edit'));return;}
     var a=ev.target.closest('a[data-dl]'); if(!a)return; ev.preventDefault(); dl(a.getAttribute('data-id'),a.getAttribute('data-dl'));});
 })();
+</script>
+<script src="/static/countries.js"></script>
+<script>
+/* País de producción: por defecto el de la organización; recuerda el último elegido en este teléfono. */
+function countryInit(){
+  var org='',last='';
+  try{org=localStorage.getItem('origen_country_org')||'';last=localStorage.getItem('origen_country_last')||'';}catch(e){}
+  var sel=document.getElementById('country'); if(sel&&window.fillCountrySelect){ fillCountrySelect(sel,last||org||'PE');
+    sel.onchange=function(){try{localStorage.setItem('origen_country_last',sel.value);}catch(e){}}; }
+  var s2=document.getElementById('coopCountry2'); if(s2&&window.fillCountrySelect&&!s2.options.length) fillCountrySelect(s2,'PE');
+}
+countryInit();
 </script>
 <script src="/static/i18n.js" defer></script>
 </body></html>

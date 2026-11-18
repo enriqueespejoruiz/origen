@@ -1,4 +1,5 @@
 import os, json, datetime
+from . import countries as _ct
 from .geo import lot_to_geojson, traces_properties, plot_geometry, volume_issues
 from . import config
 from . import commodities as _cm
@@ -77,7 +78,7 @@ _STR = {
         "h_sources": "Fuentes de datos",
         "sources": ("Verificación por parcela cruzando cuatro fuentes satelitales: Hansen Global Forest Change "
                     "(UMD/Google, vía Global Forest Watch), JRC Global Forest Cover 2020 (mapa de referencia de la UE), "
-                    "GFW Integrated Alerts (RADD/GLAD) y áreas protegidas (WDPA)."),
+                    "GFW Integrated Alerts (RADD/GLAD) y áreas protegidas (WDPA), más evidencia propia de Origen con imágenes Sentinel-2 y radar Sentinel-1."),
         "h_verify": "Verificación",
         "verify": ("<b>Verificación de autenticidad</b><br/>Escanea el código o visita {url}/verificar — "
                    "comprueba que este dossier es auténtico y su fecha de emisión mediante su huella SHA-256 registrada por Origen."),
@@ -110,7 +111,7 @@ _STR = {
         "h_sources": "Data sources",
         "sources": ("Per-plot verification cross-checking four satellite sources: Hansen Global Forest Change "
                     "(UMD/Google, via Global Forest Watch), JRC Global Forest Cover 2020 (EU reference map), "
-                    "GFW Integrated Alerts (RADD/GLAD) and protected areas (WDPA)."),
+                    "GFW Integrated Alerts (RADD/GLAD) and protected areas (WDPA), plus Origen's own evidence from Sentinel-2 imagery and Sentinel-1 radar."),
         "h_verify": "Verification",
         "verify": ("<b>Authenticity verification</b><br/>Scan the code or visit {url}/verificar — "
                    "confirm this dossier is authentic and its issue date via its SHA-256 hash registered by Origen."),
@@ -180,7 +181,7 @@ def _qr_png(data, out_dir, lot_id):
     except Exception as e:
         print("qr error:", repr(e)); return None
 
-def build_pdf(lot, findings, narrative, profile, out_dir, lang=None, photo_path=None, field_photos=None):
+def build_pdf(lot, findings, narrative, profile, out_dir, lang=None, photo_path=None, field_photos=None, hires=None):
     """Dossier de Diligencia Debida EUDR (Art. 9) — bilingüe (ES/EN)."""
     _ensure(out_dir)
     lang = (lang or (lot.extra or {}).get("lang") or "es")
@@ -243,7 +244,7 @@ def build_pdf(lot, findings, narrative, profile, out_dir, lang=None, photo_path=
 
     E += [Paragraph(t["h_product"], H),
           kv([(t["l_product"], hs[2]), (t["l_hs"], hs[0]), (t["l_sci"], hs[1]),
-              (t["l_country"], lot.country), (t["l_qty"], lot.quantity or t["qty_ph"])])]
+              (t["l_country"], f"{_ct.name(_ct.of_lot(lot), lang)} ({_ct.of_lot(lot)})"), (t["l_qty"], lot.quantity or t["qty_ph"])])]
     E += [Paragraph(t["h_origin"], H),
           kv([(t["l_producer"], lot.producer_name or "—"), (t["l_coop"], lot.cooperative or "—"),
               (t["l_region"], lot.region or "—"), (t["l_nplots"], str(len(lot.plots)))])]
@@ -290,6 +291,60 @@ def build_pdf(lot, findings, narrative, profile, out_dir, lang=None, photo_path=
                 E += [Spacer(1, 6), RLImage(mp, width=W, height=W * 0.46), Paragraph(cap, S)]
         except Exception as e:
             print("map embed error:", repr(e))
+    # Evidencia satelital propia (Sentinel-2 antes/después + radar Sentinel-1)
+    _sats = [(f, getattr(f, "sat", None)) for f in findings if getattr(f, "sat", None)]
+    if _sats:
+        from reportlab.platypus import Image as RLImage
+        from . import satellite as _sat
+        en = (lang == "en")
+        E += [Paragraph("Origen satellite evidence (Sentinel-2 · Sentinel-1)" if en else
+                        "Evidencia satelital propia de Origen (Sentinel-2 · Sentinel-1)", H)]
+        for f, sat in _sats:
+            s2 = sat.get("s2") or {}
+            line = _sat.summary(sat, "en" if en else "es")
+            if line:
+                E += [Paragraph(_esc(f"{f.plot_id}: {line}"), P)]
+            img = s2.get("image")
+            if img and os.path.exists(img):
+                try:
+                    pw, ph = _img_dims(img, W, 7.5 * cm)
+                    E += [Spacer(1, 4), RLImage(img, width=pw, height=ph)]
+                    cap = ((f"Natural colour, cloud-free composite. Left: 2020 baseline ({', '.join(s2.get('base_dates', []))}). "
+                            f"Right: most recent ({', '.join(s2.get('recent_dates', []))}).") if en else
+                           (f"Color natural, sin nubes. Izquierda: línea base 2020 ({', '.join(s2.get('base_dates', []))}). "
+                            f"Derecha: lo más reciente ({', '.join(s2.get('recent_dates', []))})."))
+                    E += [Paragraph(_esc(cap), S)]
+                except Exception as e:
+                    print("sat embed error:", repr(e)[:120])
+        E += [Paragraph(("Contains modified Copernicus Sentinel data (ESA). Sentinel-1 RTC: Microsoft Planetary Computer, CC BY 4.0. "
+                         "This evidence can only raise a verdict to review, never lower it.") if en else
+                        ("Contiene datos modificados de Copernicus Sentinel (ESA). Sentinel-1 RTC: Microsoft Planetary Computer, CC BY 4.0. "
+                         "Esta evidencia solo puede subir un veredicto a revisión, nunca bajarlo."), S)]
+
+    # Imagen de muy alta resolución (servicio bajo pedido: archivo comercial 15–50 cm)
+    _hr = [(p, m) for p, m in (hires or []) if p and os.path.exists(p)]
+    if _hr:
+        from reportlab.platypus import Image as RLImage
+        en = (lang == "en")
+        E += [Paragraph("Very-high-resolution imagery (on request)" if en else
+                        "Imagen de muy alta resolución (bajo pedido)", H)]
+        for p, m in _hr:
+            try:
+                pw, ph = _img_dims(p, W, 9.0 * cm)
+                bits = [m.get("label") or "", m.get("source") or "",
+                        (("acquired " if en else "toma del ") + str(m.get("acquired"))) if m.get("acquired") else "",
+                        (f"{float(m['resolution_m']):g} m/pixel" if m.get("resolution_m") else "")]
+                E += [Spacer(1, 4), RLImage(p, width=pw, height=ph),
+                      Paragraph(_esc(" · ".join(b for b in bits if b)), S)]
+                if m.get("attribution"):
+                    E += [Paragraph(_esc(m["attribution"]), S)]
+            except Exception as e:
+                print("hires embed error:", repr(e)[:120])
+        E += [Spacer(1, 4), Paragraph(("Commercial archive imagery acquired by Origen at the cooperative's request, to inspect the plot "
+                         "in detail. It supports the analyst's review; it does not change the automatic verdict.") if en else
+                        ("Imagen de archivo comercial adquirida por Origen a pedido de la cooperativa para inspeccionar la "
+                         "parcela en detalle. Apoya la revisión del analista; no cambia el veredicto automático."), S)]
+
     try:
         from . import geo as _geo
         _gi = []
@@ -307,6 +362,25 @@ def build_pdf(lot, findings, narrative, profile, out_dir, lang=None, photo_path=
             E += [Paragraph(t["h_photo"], H), RLImage(photo_path, width=pw, height=ph), Paragraph(t["photo_cap"], S)]
         except Exception as e:
             print("photo embed error:", repr(e))
+
+    # ---- Revisión del analista de Origen ----
+    _rv = (lot.extra or {}).get("analyst_review") if isinstance(lot.extra, dict) else None
+    if _rv and _rv.get("note"):
+        en = (lang == "en")
+        _cl = {"descartada": ("Alerta descartada (falso positivo)", "Alert dismissed (false positive)"),
+               "confirmada": ("Pérdida de cobertura confirmada", "Cover loss confirmed"),
+               "campo": ("Requiere verificación en campo", "Field verification required")}.get(_rv.get("conclusion"), ("", ""))
+        E += [Paragraph("Origen analyst review" if en else "Revisión del analista de Origen", H),
+              Paragraph(f"<b>{_esc(_cl[1] if en else _cl[0])}</b> — {_esc(_rv.get('analyst', ''))}, "
+                        f"{_esc(str(_rv.get('at', ''))[:10])}", P),
+              Paragraph(_esc(_rv["note"]), P)]
+        if _rv.get("evidence"):
+            E += [Paragraph(("Evidence reviewed: " if en else "Evidencia revisada: ") +
+                            _esc("; ".join(_rv["evidence"])), S)]
+        E += [Paragraph(("The review explains the automatic verdict; it does not replace it. The final due-diligence "
+                         "decision rests with the operator.") if en else
+                        ("La revisión explica el veredicto automático; no lo reemplaza. La decisión final de diligencia "
+                         "debida corresponde al operador."), S)]
 
     # ---- Anexo: verificación en campo (fotos con sello GPS + sustentación) ----
     _sub = (lot.extra or {}).get("substantiation") if isinstance(lot.extra, dict) else None
@@ -452,7 +526,7 @@ _CSTR = {
                      "material conforme."),
         "h_sources": "Fuentes de datos",
         "sources": ("Verificación por parcela basada en Hansen Global Forest Change (UMD/Google, vía Global Forest Watch), "
-                    "JRC Global Forest Cover 2020, GFW Integrated Alerts (RADD/GLAD) y áreas protegidas (WDPA)."),
+                    "JRC Global Forest Cover 2020, GFW Integrated Alerts (RADD/GLAD) y áreas protegidas (WDPA), más evidencia propia de Origen con imágenes Sentinel-2 y radar Sentinel-1."),
         "h_verify": "Verificación",
         "verify": ("<b>Verificación de autenticidad</b><br/>Escanea el código o visita {url}/verificar — "
                    "comprueba que este dossier consolidado es auténtico y su fecha de emisión mediante su huella SHA-256."),
@@ -489,7 +563,7 @@ _CSTR = {
                      "its volume must be segregated or substantiated, and cannot be mixed with compliant material."),
         "h_sources": "Data sources",
         "sources": ("Per-plot verification based on Hansen Global Forest Change (UMD/Google, via Global Forest Watch), "
-                    "JRC Global Forest Cover 2020, GFW Integrated Alerts (RADD/GLAD) and protected areas (WDPA)."),
+                    "JRC Global Forest Cover 2020, GFW Integrated Alerts (RADD/GLAD) and protected areas (WDPA), plus Origen's own evidence from Sentinel-2 imagery and Sentinel-1 radar."),
         "h_verify": "Verification",
         "verify": ("<b>Authenticity verification</b><br/>Scan the code or visit {url}/verificar — "
                    "confirm this consolidated dossier is authentic and its issue date via its SHA-256 hash."),
@@ -577,7 +651,7 @@ def build_consignment_pdf(cons, items, out_dir, lang=None):
 
     E += [Paragraph(t["h_summary"], H),
           kv([(t["l_id"], cons.get("name","") or cid), (t["l_commodity"], hs[2]), (t["l_hs"], hs[0]),
-              (t["l_country"], "PE"), (t["l_dest"], cons.get("destination","")), (t["l_buyer"], cons.get("buyer","")),
+              (t["l_country"], ", ".join(f"{_ct.name(c, lang)} ({c})" for c in sorted({_ct.of_lot(l) for l, _ in items}))), (t["l_dest"], cons.get("destination","")), (t["l_buyer"], cons.get("buyer","")),
               (t["l_nlots"], str(len(items))), (t["l_nplots"], str(n_plots)),
               (t["l_vol"], (f"{total_kg:,.0f} {t['kg']}" if total_kg > 0 else t["none"]))], fill=True)]
 

@@ -55,6 +55,7 @@ td .who{color:var(--text-3);font-size:12px}
 .b.none{background:var(--glass);color:var(--text-3)}
 .dl a{color:var(--brand-leaf-2);text-decoration:none;font-weight:600;font-size:13px;margin-right:14px}
 .dl a:hover{text-decoration:underline}
+.dl select.fmt{font-size:12.5px;padding:3px 6px;border:1px solid var(--hair);border-radius:8px;background:#fff;color:var(--brand-leaf-2);font-weight:600;margin-right:14px;cursor:pointer}
 .empty{padding:42px 20px;text-align:center;color:var(--text-2)}
 .muted{color:var(--text-3);font-size:13px}
 /* modal de descarga */
@@ -176,6 +177,16 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--brand-leaf-2);cur
 #legalModal textarea{min-height:54px;resize:vertical}
 #legalModal input[type=file]{width:100%;color:var(--text-2);font-size:13px;margin-top:4px}
 #legalModal .acts{display:flex;gap:10px;margin-top:18px}#legalModal .acts button{flex:1;justify-content:center}
+#hrModal{position:fixed;inset:0;z-index:74;display:none;place-items:center;background:rgba(11,13,18,.45);padding:22px}
+#hrModal .lcard{background:var(--bg-2);border:1px solid var(--hair);color:#0B0D12;border-radius:18px;padding:24px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto}
+#hrModal h3{font-size:19px;margin:0 0 2px}#hrModal p.s{color:var(--text-2);font-size:13px;margin:0 0 10px}
+#hrModal label{display:block;font-size:12.5px;color:var(--text-2);margin:12px 0 5px;font-weight:500}
+#hrModal select,#hrModal textarea{width:100%;padding:10px 12px;font-size:14px;border:1px solid var(--hair);border-radius:10px;background:#FFFFFF;color:#0B0D12;font-family:var(--fb)}
+#hrModal textarea{min-height:54px;resize:vertical}
+#hrModal .acts{display:flex;gap:10px;margin-top:18px}#hrModal .acts button{flex:1;justify-content:center}
+#hrModal .hreq{border:1px solid var(--hair);border-radius:12px;padding:12px;margin:10px 0;font-size:13px;background:#fff}
+#hrModal .hreq .st{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px;background:#EEF2FA;color:#1344B0}
+#hrModal .hreq table{width:100%;font-size:12px;margin-top:8px;border-collapse:collapse}#hrModal .hreq td{padding:3px 4px;border-top:1px solid var(--hair)}
 .legbadge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px}
 .legbadge.full{background:rgba(34,180,120,.16);color:#2F8F4E}.legbadge.part{background:rgba(214,168,49,.16);color:var(--brand-gold-2)}.legbadge.none{background:#F3F5F9;color:var(--text-3)}
 
@@ -205,6 +216,53 @@ header .logo{background:transparent!important}
 header svg path[stroke]{stroke:#fff}
 .btn-gold,#copBtn,.cmsg.me{background:var(--btn-blue)!important}
 #gate{background:var(--wing)!important}
+
+/* === UX nov-2026: cabecera legible, resumen, acciones agrupadas y vista móvil === */
+header .btn-ghost,header [data-langbtn]{background:rgba(255,255,255,.12)!important;border:1px solid rgba(255,255,255,.38)!important;color:#fff!important}
+header .btn-ghost:hover,header [data-langbtn]:hover{background:rgba(255,255,255,.22)!important}
+header .chip{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3);color:#fff}
+:focus-visible{outline:3px solid #4FB0F5;outline-offset:2px}
+.wrap{padding-bottom:110px}
+.card{overflow:visible!important}
+.card table{border-radius:6px}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:18px}
+.kpi{background:#fff;border:1px solid var(--hair);border-radius:6px;padding:12px 14px;text-align:left;cursor:pointer;font:inherit;color:inherit;min-height:44px}
+.kpi:hover{border-color:#9DB5E8}.kpi[aria-pressed=true]{border-color:#1344B0;box-shadow:inset 0 0 0 1px #1344B0}
+.kpi b{display:block;font-family:var(--fh);font-size:24px;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi span{font-size:12.5px;color:var(--text-2)}
+.kpi.ok b{color:#1F5BD8}.kpi.rev b{color:#9A6A12}.kpi.high b{color:var(--risk-high)}.kpi.none b{color:var(--text-3)}
+.next{margin-top:12px;padding:12px 14px;border-left:3px solid #E0A43A;background:#FFF8EA;font-size:14px;color:#3D3424;border-radius:4px;display:none}
+.b.review{color:#8A5D0B!important;background:rgba(240,185,74,.22)!important}
+.dl{white-space:normal}
+.dl a{display:inline-block;padding:6px 0;margin-right:14px}
+.dl a.pri{background:#1344B0;color:#fff!important;padding:6px 12px;border-radius:4px;text-decoration:none}
+.dl a.pri:hover{background:#0B2470}
+details.more{display:inline-block;position:relative}
+details.more>summary{list-style:none;cursor:pointer;color:var(--brand-leaf-2);font-weight:600;font-size:13px;padding:6px 10px;border:1px solid var(--hair);border-radius:4px;background:#fff;min-height:32px}
+details.more>summary::-webkit-details-marker{display:none}
+details.more[open]>summary{border-color:#1344B0}
+details.more .menu{position:absolute;right:0;top:calc(100% + 4px);z-index:30;background:#fff;border:1px solid var(--hair);border-radius:6px;box-shadow:0 14px 40px rgba(11,13,18,.16);padding:6px;min-width:220px;display:flex;flex-direction:column}
+details.more .menu a{margin:0;padding:9px 10px;border-radius:4px;color:#0B0D12!important;font-weight:500}
+details.more .menu a:hover{background:#F3F5F9;text-decoration:none}
+details.more .menu select.fmt{margin:4px 6px 6px;padding:8px}
+details.more .menu hr{border:0;border-top:1px solid var(--hair);margin:4px 0}
+@media (max-width:760px){
+  header{flex-wrap:wrap;padding:12px 14px;gap:8px}
+  header .coop,header .chip{display:none}
+  .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .toolbar>*{flex:1 1 calc(50% - 5px);min-width:0}
+  .toolbar #lotSearch,.toolbar #lotRisk{flex:1 1 100%}
+  .card{overflow:visible}
+  .card table thead{display:none}
+  .card table,.card tbody,.card tr,.card td{display:block;width:100%}
+  .card tr{border-bottom:1px solid var(--hair);padding:12px 14px;position:relative}
+  .card td{border:0;padding:3px 0}
+  .card td.sel{position:absolute;right:12px;top:12px;width:auto;padding:0}
+  .card td[data-label]::before{content:attr(data-label);display:inline-block;min-width:92px;color:var(--text-3);font-size:12px}
+  .card td.dl{padding-top:10px}
+  details.more .menu{right:auto;left:0}
+  #copBtn{bottom:14px!important;right:14px!important;padding:10px 14px!important}
+}
 </style></head><body>
 
 <div id="gate">
@@ -220,9 +278,11 @@ header svg path[stroke]{stroke:#fff}
       <div id="gbtn"></div>
     </div>
     <div id="coopBox">
-      <h2>Tu cooperativa</h2>
-      <p>¿Cómo se llama tu cooperativa o asociación?</p>
+      <h2>Tu organización</h2>
+      <p>¿Cómo se llama tu cooperativa, asociación o empresa?</p>
       <input id="coopName" placeholder="ej. Cooperativa Aurora" autocomplete="organization">
+      <label for="coopCountry" style="display:block;text-align:left;margin:10px 0 4px;font-size:13px;color:var(--text-2)">País de la organización</label>
+      <select id="coopCountry" autocomplete="country" style="width:100%;padding:10px 12px;border:1px solid var(--hair);border-radius:10px;font-size:15px;margin-bottom:10px"></select>
       <button class="btn btn-gold" id="coopGo">Continuar</button>
     </div>
     <div class="gnote" id="gnote"></div>
@@ -245,9 +305,11 @@ header svg path[stroke]{stroke:#fff}
 
 <main class="wrap" id="app" style="display:none">
   <div class="head">
-    <div class="eyebrow">Panel de la cooperativa</div>
-    <h1 id="title">Tu cooperativa</h1>
-    <p class="muted">Cada lote verificado contra las 4 fuentes, y los envíos consolidados listos para tu comprador.</p>
+    <div class="eyebrow">Panel</div>
+    <h1 id="title">Tu organización</h1>
+    <p class="muted">Cada lote verificado contra las fuentes satelitales, y los envíos consolidados listos para tu comprador.</p>
+    <div class="kpis" id="kpis" role="group" aria-label="Resumen de lotes"></div>
+    <div class="next" id="next" role="status"></div>
   </div>
 
   <div id="alerts" style="display:none"></div>
@@ -258,19 +320,22 @@ header svg path[stroke]{stroke:#fff}
     <input id="lotSearch" placeholder="Buscar productor, lote o región…" oninput="filterLots()">
     <select id="lotRisk" onchange="filterLots()">
       <option value="">Todos los riesgos</option>
-      <option value="high">Deforestación</option>
-      <option value="review">Revisar</option>
-      <option value="negligible">Limpio</option>
+      <option value="high">Observado</option>
+      <option value="review">A revisar</option>
+      <option value="negligible">En orden</option>
       <option value="none">Sin procesar</option>
     </select>
     <a class="btn btn-ghost" href="/api/lots.csv">Exportar CSV</a>
+    <select class="btn btn-ghost" id="expAll" title="Todas las parcelas de la cooperativa en un archivo" style="cursor:pointer">
+      <option value="">Exportar parcelas…</option><option value="kmz">Google Earth (KMZ)</option><option value="kml">KML</option>
+      <option value="shp">Shapefile (.zip)</option><option value="xlsx">Excel</option></select>
     <a class="btn btn-ghost" href="#" id="impBtn" title="Sube el Excel/CSV con las parcelas que ya tienes georreferenciadas">Importar parcelas</a>
     <a class="btn btn-ghost" href="/api/export.zip" title="Descarga toda tu data en formatos abiertos">Llévate tu data</a>
   </div>
   <div class="card">
     <table>
       <thead><tr><th class="sel"><input type="checkbox" id="selAll" title="Seleccionar todo"></th>
-        <th>Lote</th><th>Productor</th><th>Producto</th><th>Riesgo</th><th>Fecha</th><th>Descargas</th></tr></thead>
+        <th>Lote</th><th>Productor</th><th>Producto</th><th>Estado</th><th>Fecha</th><th>Acciones</th></tr></thead>
       <tbody id="rows"></tbody>
     </table>
     <div class="empty" id="empty" style="display:none">
@@ -283,7 +348,7 @@ header svg path[stroke]{stroke:#fff}
     <a class="btn btn-ghost" href="/api/consignments.csv" style="margin-left:auto">Exportar CSV</a></div>
   <div class="card">
     <table>
-      <thead><tr><th>Envío</th><th>Destino</th><th>Lotes</th><th>Parcelas</th><th>Volumen</th><th>Veredicto</th><th>Descargas</th></tr></thead>
+      <thead><tr><th>Envío</th><th>Destino</th><th>Lotes</th><th>Parcelas</th><th>Volumen</th><th>Veredicto</th><th>Acciones</th></tr></thead>
       <tbody id="consrows"></tbody>
     </table>
     <div class="empty" id="consempty" style="display:none">
@@ -356,9 +421,9 @@ header svg path[stroke]{stroke:#fff}
 <div id="impModal" style="position:fixed;inset:0;z-index:76;display:none;place-items:center;background:rgba(11,13,18,.45);padding:22px"><div class="lcard" style="background:var(--bg-2);border:1px solid var(--hair);color:#0B0D12;border-radius:18px;padding:24px;max-width:500px;width:100%">
   <h3 style="font-size:19px;margin:0 0 2px">Importar parcelas</h3>
   <p class="s" style="color:var(--text-2);font-size:13px;margin:0 0 10px">¿Tu cooperativa ya tiene la georreferencia de los asociados? Súbela y obtén la misma verificación y el mismo sello — sin repetir el trabajo de campo.</p>
-  <label style="display:block;font-size:12.5px;color:var(--text-2);margin:12px 0 5px;font-weight:500">Archivo (Excel .xlsx, CSV o GeoJSON)</label>
-  <input type="file" id="impFile" accept=".xlsx,.xlsm,.csv,.geojson,.json" style="width:100%;color:var(--text-2);font-size:13px">
-  <p style="font-size:12.5px;color:var(--text-3);margin:10px 0 0">Columnas: productor, producto, region, lat, lon, area_ha, cantidad_kg — opcional: lote, parcela, poligono. <a href="/api/import/template" style="color:var(--brand-leaf-2)">Descargar plantilla</a></p>
+  <label for="impFile" style="display:block;font-size:12.5px;color:var(--text-2);margin:12px 0 5px;font-weight:500">Archivo (Excel, CSV, GeoJSON, KML/KMZ, GPX o Shapefile .zip)</label>
+  <input type="file" id="impFile" accept=".xlsx,.xlsm,.csv,.geojson,.json,.kml,.kmz,.gpx,.zip" style="width:100%;color:var(--text-2);font-size:13px">
+  <p style="font-size:12.5px;color:var(--text-3);margin:10px 0 0">Columnas: productor, producto, pais (código ISO, ej. CO), region, lat, lon, area_ha, cantidad_kg — opcional: lote, parcela, poligono. Sin columna pais, se usa el país de tu organización. <a href="/api/import/template" style="color:var(--brand-leaf-2)">Descargar plantilla</a></p>
   <div id="impOut" style="margin-top:12px;font-size:13px;color:var(--text-2)"></div>
   <div class="acts" style="display:flex;gap:10px;margin-top:18px">
     <button class="btn btn-ghost" id="impCancel" style="flex:1;justify-content:center">Cancelar</button>
@@ -383,6 +448,28 @@ header svg path[stroke]{stroke:#fff}
   </div>
 </div></div>
 
+<div id="hrModal"><div class="lcard">
+  <h3>Revisión experta de la parcela</h3>
+  <p class="s">Un analista de Origen revisa la alerta con todas las imágenes (Sentinel-2, radar, alertas y fotos de campo) y deja su conclusión en el dossier. Si hace falta ver la parcela en detalle (15–50 cm por píxel: árboles, caminos, claros nuevos), buscamos en el archivo de satélites comerciales, te enviamos opciones y precio, y <b>solo compramos si aceptas</b>.</p>
+  <div id="hrList"></div>
+  <div id="hrForm">
+    <label for="hrPeriod">¿Qué fecha te interesa?</label>
+    <select id="hrPeriod">
+      <option value="ambos">Antes y después (2020 y lo más reciente)</option>
+      <option value="reciente">Solo lo más reciente</option>
+      <option value="2020">Solo alrededor de 2020 (fecha de corte)</option>
+      <option value="analista">Solo revisión del analista, con imágenes gratuitas (sin compra)</option>
+    </select>
+    <label for="hrNote">Comentario (opcional)</label>
+    <textarea id="hrNote" placeholder="ej. el comprador pide ver el borde norte de la parcela"></textarea>
+  </div>
+  <p class="s" style="margin-top:12px">En zonas muy nubladas puede no haber una toma clara; si es así te lo decimos y no se cobra nada.</p>
+  <div class="acts">
+    <button class="btn btn-ghost" id="hrCancel">Cerrar</button>
+    <button class="btn btn-gold" id="hrSend">Pedir cotización</button>
+  </div>
+</div></div>
+
 <button id="copBtn" style="display:none">✦ Copiloto</button>
 <div id="copPanel">
   <div class="ch"><b>Copiloto Origen</b><button class="x" id="copClose" aria-label="Cerrar">×</button></div>
@@ -400,7 +487,7 @@ header svg path[stroke]{stroke:#fff}
 <script>
 const $=id=>document.getElementById(id);
 let CLIENT_ID='';
-const RISK={negligible:['clean','limpio'],review:['review','revisar'],high:['high','deforestación']};
+const RISK={negligible:['clean','✓ En orden'],review:['review','! A revisar'],high:['high','× Observado']};
 
 async function boot(){
   let s={};
@@ -429,8 +516,9 @@ function showCoop(){
   $('gate').style.display='grid'; $('loginBox').style.display='none'; $('coopBox').style.display='block';
 }
 $('coopGo').onclick=async()=>{
-  const name=$('coopName').value.trim(); if(!name){alert('Pon el nombre de tu cooperativa');return;}
-  const r=await fetch('/api/coop',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})});
+  const name=$('coopName').value.trim(); if(!name){alert('Pon el nombre de tu organización');return;}
+  const country=$('coopCountry')?$('coopCountry').value:'';
+  const r=await fetch('/api/coop',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,country})});
   if(r.ok) boot(); else alert('No se pudo guardar');
 };
 $('logout').onclick=async()=>{ await fetch('/auth/logout',{method:'POST'}); boot(); };
@@ -438,7 +526,7 @@ $('logout').onclick=async()=>{ await fetch('/auth/logout',{method:'POST'}); boot
 let LOTS=[]; const SEL=new Set();
 async function showApp(s){
   $('gate').style.display='none'; $('hdr').style.display='flex'; $('app').style.display='block';
-  $('coopLabel').textContent=s.coop.name||'';
+  $('coopLabel').textContent=s.coop.name||''; if(s.coop.name)$('title').textContent=s.coop.name;
   $('userChip').innerHTML=(s.user.picture?'<img src="'+s.user.picture+'" alt="">':'')+'<span>'+(s.user.email||'')+'</span>';
   loadLots(); loadCons(); loadTeam(); loadAlerts();
   $('copBtn').style.display='inline-flex';
@@ -458,24 +546,45 @@ function lotMatches(l){
 }
 function lotRowHTML(l){
   const rk=RISK[l.overall_risk]; const badge=rk?('<span class="b '+rk[0]+'">'+rk[1]+'</span>'):'<span class="b none">sin procesar</span>';
+  const AN={descartada:['clean','✓ analista: descartada'],confirmada:['high','analista: confirmada'],campo:['review','analista: ir a campo']};
+  const an=AN[l.analyst]?(' <span class="b '+AN[l.analyst][0]+'" title="Revisión del analista de Origen">'+AN[l.analyst][1]+'</span>'):'';
   const vflag=l.volume_flag?' <span class="b high" title="Volumen inverosímil para el área (posible mezcla de origen)">⚠ volumen</span>':'';
   const date=(l.created_at||'').slice(0,10);
   const ck=SEL.has(l.lot_id)?' checked':'';
-  return '<tr><td class="sel"><input type="checkbox" class="lotck" data-id="'+l.lot_id+'"'+ck+'></td>'+
-    '<td><b>'+l.lot_id+'</b></td><td>'+(l.producer||'—')+
-    '<div class="who">'+(l.captured_by||'')+'</div></td><td>'+comLabel(l.commodity)+'</td><td>'+badge+vflag+'</td>'+
-    '<td>'+date+'</td><td class="dl"><a href="#" data-cop="'+l.lot_id+'">Copiloto</a>'+
-    '<a href="#" data-sim="'+l.lot_id+'">Simular</a>'+
-    '<a href="#" data-share="'+l.lot_id+'">Compartir</a>'+
-    '<a href="#" data-legal="'+l.lot_id+'">Legalidad</a>'+
-    '<a href="#" data-dl="dossier" data-id="'+l.lot_id+'">Dossier</a>'+
-    '<a href="#" data-dl="geojson" data-id="'+l.lot_id+'">GeoJSON</a>'+
-    '<a href="#" data-map="'+l.lot_id+'">Ver en mapa</a>'+
-    '<a href="#" data-reproc="'+l.lot_id+'">Reprocesar</a>'+
-    '<a href="#" data-wa="'+l.lot_id+'">WhatsApp</a></td></tr>';
+  const flagged=(l.overall_risk==='review'||l.overall_risk==='high');
+  const FMT='<select class="fmt" data-exp="lots" data-id="'+l.lot_id+'" aria-label="Descargar las parcelas en otro formato"><option value="">Otros formatos…</option><option value="kmz">Google Earth (KMZ)</option><option value="kml">KML</option><option value="shp">Shapefile (.zip)</option><option value="xlsx">Excel</option></select>';
+  return '<tr><td class="sel"><input type="checkbox" class="lotck" data-id="'+l.lot_id+'"'+ck+' aria-label="Seleccionar '+l.lot_id+'"></td>'+
+    '<td data-label="Lote"><b>'+l.lot_id+'</b></td><td data-label="Productor">'+cesc(l.producer||'—')+
+    '<div class="who">'+cesc(l.captured_by||'')+'</div></td><td data-label="Producto">'+comLabel(l.commodity)+(l.country?' <span class="who" title="País de producción">· '+cesc(l.country)+'</span>':'')+'</td><td data-label="Estado">'+badge+an+vflag+'</td>'+
+    '<td data-label="Fecha">'+date+'</td><td class="dl">'+
+    '<a href="#" class="pri" data-dl="dossier" data-id="'+l.lot_id+'">Dossier</a>'+
+    (flagged?'<a href="#" data-hr="'+l.lot_id+'">Revisión experta</a>':'<a href="#" data-share="'+l.lot_id+'">Compartir</a>')+
+    '<details class="more"><summary aria-label="Más acciones del lote '+l.lot_id+'">Más ▾</summary><div class="menu">'+
+      (flagged?'<a href="#" data-share="'+l.lot_id+'">Compartir con el comprador</a>':'')+
+      '<a href="#" data-cop="'+l.lot_id+'">Preguntar al copiloto</a>'+
+      '<a href="#" data-sim="'+l.lot_id+'">Simular exclusiones</a>'+
+      '<a href="#" data-legal="'+l.lot_id+'">Legalidad</a>'+
+      '<a href="#" data-map="'+l.lot_id+'">Ver en mapa</a>'+
+      '<a href="#" data-wa="'+l.lot_id+'">Enviar por WhatsApp</a>'+
+      '<hr><a href="#" data-dl="geojson" data-id="'+l.lot_id+'">GeoJSON (TRACES)</a>'+FMT+
+      '<hr><a href="#" data-reproc="'+l.lot_id+'">Volver a verificar</a>'+
+    '</div></details></td></tr>';
+}
+function renderKpis(){
+  var k={all:LOTS.length,negligible:0,review:0,high:0,none:0};
+  LOTS.forEach(function(l){ if(l.overall_risk&&k[l.overall_risk]!=null)k[l.overall_risk]++; else k.none++; });
+  var cur=$('lotRisk')?$('lotRisk').value:'';
+  var it=[['','all','Lotes',''],['negligible','negligible','En orden','ok'],['review','review','A revisar','rev'],['high','high','Observados','high'],['none','none','Sin verificar','none']];
+  $('kpis').innerHTML=it.map(function(x){ return '<button type="button" class="kpi '+x[3]+'" data-kpi="'+x[0]+'" aria-pressed="'+(cur===x[0])+'"><b>'+k[x[1]]+'</b><span>'+x[2]+'</span></button>'; }).join('');
+  var nx=$('next'), msg='';
+  if(k.high) msg='<b>Siguiente paso:</b> '+k.high+' lote(s) observados. Ábrelos con «Revisión experta» para que un analista revise la alerta, o sustenta en campo antes de incluirlos en un envío.';
+  else if(k.review) msg='<b>Siguiente paso:</b> '+k.review+' lote(s) a revisar. Pide una «Revisión experta» o sustenta con fotos de campo.';
+  else if(k.none) msg='<b>Siguiente paso:</b> '+k.none+' lote(s) sin verificar. Usa «Más ▾ → Volver a verificar».';
+  else if(k.negligible) msg='<b>Todo en orden.</b> Marca los lotes que van juntos y pulsa «Crear envío» para el dossier consolidado.';
+  nx.innerHTML=msg; nx.style.display=msg?'block':'none';
 }
 function renderLots(){
-  $('lotsCount').textContent='('+LOTS.length+')';
+  $('lotsCount').textContent='('+LOTS.length+')'; renderKpis();
   if(!LOTS.length){ $('empty').style.display='block'; $('rows').innerHTML=''; updateSel(); return; }
   $('empty').style.display='none';
   const list=LOTS.filter(lotMatches);
@@ -523,7 +632,11 @@ async function dl(id,kind){
   }catch(e){ modalErr(e.message||'Error de red'); }
 }
 $('mclose').onclick=hideModal;
+$('kpis').addEventListener('click',function(ev){ var b=ev.target.closest('[data-kpi]'); if(!b)return;
+  $('lotRisk').value=b.getAttribute('data-kpi'); renderLots(); });
+document.addEventListener('click',function(ev){ document.querySelectorAll('details.more[open]').forEach(function(d){ if(!d.contains(ev.target))d.removeAttribute('open'); }); });
 $('rows').addEventListener('click',function(ev){
+  var dm=ev.target.closest('details.more'); if(dm&&ev.target.closest('a'))dm.removeAttribute('open');
   var w=ev.target.closest('a[data-wa]'); if(w){ev.preventDefault();openWa(w.getAttribute('data-wa'));return;}
   var m=ev.target.closest('a[data-map]'); if(m){ev.preventDefault();viewMap(m.getAttribute('data-map'));return;}
   var rp=ev.target.closest('a[data-reproc]'); if(rp){ev.preventDefault();reprocLot(rp.getAttribute('data-reproc'));return;}
@@ -531,6 +644,7 @@ $('rows').addEventListener('click',function(ev){
   var sm=ev.target.closest('a[data-sim]'); if(sm){ev.preventDefault();simOpen('lot',sm.getAttribute('data-sim'));return;}
   var sh=ev.target.closest('a[data-share]'); if(sh){ev.preventDefault();shareLink('/s/'+sh.getAttribute('data-share'),sh);return;}
   var lg=ev.target.closest('a[data-legal]'); if(lg){ev.preventDefault();legalOpen(lg.getAttribute('data-legal'));return;}
+  var hr=ev.target.closest('a[data-hr]'); if(hr){ev.preventDefault();hrOpen(hr.getAttribute('data-hr'));return;}
   var a=ev.target.closest('a[data-dl]'); if(!a)return; ev.preventDefault(); dl(a.getAttribute('data-id'),a.getAttribute('data-dl'));
 });
 async function reprocLot(id){
@@ -559,7 +673,7 @@ function viewMap(id){
 }
 
 /* ----- selección de lotes + envíos consolidados ----- */
-const CRISK={negligible:['clean2','apto'],review:['review2','revisar'],high:['high2','segregar']};
+const CRISK={negligible:['clean2','✓ Apto'],review:['review2','! A revisar'],high:['high2','× Segregar']};
 function updateSel(){
   document.querySelectorAll('.lotck').forEach(function(c){ c.checked=SEL.has(c.dataset.id); });
   const n=SEL.size;
@@ -611,19 +725,24 @@ async function loadCons(){
       if(!c.processed && c.verdict==='negligible') badge='<span class="b wait">por procesar</span>';
       else { const rk=CRISK[c.verdict]||CRISK.negligible; badge='<span class="b '+rk[0]+'">'+rk[1]+'</span>'; }
       const vol=c.total_kg?(Number(c.total_kg).toLocaleString()+' kg'):'—';
-      return '<tr><td><b>'+(c.name||c.consignment_id)+'</b><div class="who">'+c.consignment_id+'</div></td>'+
-        '<td>'+(c.destination||'—')+'</td><td>'+c.n_lots+'</td><td>'+c.n_plots+'</td><td>'+vol+'</td>'+
-        '<td>'+badge+'</td><td class="dl"><a href="#" data-csim="'+c.consignment_id+'">Simular</a>'+
+      return '<tr><td data-label="Envío"><b>'+cesc(c.name||c.consignment_id)+'</b><div class="who">'+c.consignment_id+'</div></td>'+
+        '<td data-label="Destino">'+cesc(c.destination||'—')+'</td><td data-label="Lotes">'+c.n_lots+'</td><td data-label="Parcelas">'+c.n_plots+'</td><td data-label="Volumen">'+vol+'</td>'+
+        '<td data-label="Veredicto">'+badge+'</td><td class="dl">'+
+        '<a href="#" class="pri" data-cdl="dossier" data-id="'+c.consignment_id+'">Dossier</a>'+
         '<a href="#" data-cshare="'+c.consignment_id+'">Compartir</a>'+
-        '<a href="#" data-cdl="dossier" data-id="'+c.consignment_id+'">Dossier</a>'+
-        '<a href="#" data-cdl="geojson" data-id="'+c.consignment_id+'">GeoJSON</a>'+
-        '<a href="#" data-creg="'+c.consignment_id+'">Regenerar</a>'+
-        '<a href="#" data-cwa="'+c.consignment_id+'">WhatsApp</a></td></tr>';
+        '<details class="more"><summary aria-label="Más acciones del envío">Más ▾</summary><div class="menu">'+
+          '<a href="#" data-csim="'+c.consignment_id+'">Simular exclusiones</a>'+
+          '<a href="#" data-cwa="'+c.consignment_id+'">Enviar por WhatsApp</a>'+
+          '<hr><a href="#" data-cdl="geojson" data-id="'+c.consignment_id+'">GeoJSON (TRACES)</a>'+
+          '<select class="fmt" data-exp="consignments" data-id="'+c.consignment_id+'" aria-label="Descargar las parcelas en otro formato"><option value="">Otros formatos…</option><option value="kmz">Google Earth (KMZ)</option><option value="kml">KML</option><option value="shp">Shapefile (.zip)</option><option value="xlsx">Excel</option></select>'+
+          '<hr><a href="#" data-creg="'+c.consignment_id+'">Regenerar dossier</a>'+
+        '</div></details></td></tr>';
     }).join('');
     if(window.i18nSync)i18nSync();
   }catch(e){ $('consempty').style.display='block'; $('consempty').textContent='No se pudieron cargar los envíos.'; }
 }
 $('consrows').addEventListener('click',function(ev){
+  var dm=ev.target.closest('details.more'); if(dm&&ev.target.closest('a'))dm.removeAttribute('open');
   var w=ev.target.closest('a[data-cwa]'); if(w){ev.preventDefault();openWaCons(w.getAttribute('data-cwa'));return;}
   var rg=ev.target.closest('a[data-creg]'); if(rg){ev.preventDefault();regenCons(rg.getAttribute('data-creg'));return;}
   var cs=ev.target.closest('a[data-csim]'); if(cs){ev.preventDefault();simOpen('cons',cs.getAttribute('data-csim'));return;}
@@ -794,6 +913,64 @@ async function legalSave(){
 (function(){ $('legCancel').onclick=legalClose; $('legSave').onclick=legalSave;
   $('legalModal').addEventListener('click',function(e){ if(e.target===this)legalClose(); }); })();
 
+/* ----- Imagen de alta resolución bajo pedido ----- */
+var HR_LOT=null;
+var HR_ST={solicitada:'Solicitada — estamos buscando imágenes',cotizada:'Cotización lista',aceptada:'Aceptada — en compra',entregada:'Entregada — ya está en el dossier',sin_imagen:'Sin imagen clara disponible',cancelada:'Cancelada'};
+function hrReqHTML(r){
+  var h='<div class="hreq"><span class="st">'+cesc(HR_ST[r.status]||r.status)+'</span> <b>'+cesc(r.id)+'</b> · '+cesc((r.created_at||'').slice(0,10));
+  var q=r.quote;
+  if(q&&(r.status==='cotizada'||r.status==='aceptada'||r.status==='entregada')){
+    h+='<div style="margin-top:8px">Precio: <b>US$ '+Number(q.price_usd).toFixed(2)+'</b>'+(q.valid_until?(' · válido hasta '+cesc(q.valid_until)):'')+'</div>';
+    if(q.options&&q.options.length){ h+='<table>'+q.options.map(function(o){ return '<tr><td>'+cesc(o.label||o.source||'')+'</td><td>'+cesc(o.date||'')+'</td><td>'+(o.resolution_m?cesc(o.resolution_m)+' m':'')+'</td><td>'+(o.cloud!=null?cesc(o.cloud)+'% nubes':'')+'</td></tr>'; }).join('')+'</table>'; }
+    if(q.note) h+='<div style="margin-top:6px;color:var(--text-2)">'+cesc(q.note)+'</div>';
+  }
+  if(r.status_note) h+='<div style="margin-top:6px;color:var(--text-2)">'+cesc(r.status_note)+'</div>';
+  if(r.status==='cotizada') h+='<div class="acts" style="margin-top:10px"><button class="btn btn-ghost" data-hrcancel="'+cesc(r.id)+'">Rechazar</button><button class="btn btn-gold" data-hraccept="'+cesc(r.id)+'">Aceptar y comprar</button></div>';
+  if(r.status==='solicitada') h+='<div style="margin-top:8px"><a href="#" data-hrcancel="'+cesc(r.id)+'">Cancelar pedido</a></div>';
+  return h+'</div>';
+}
+async function hrLoad(){
+  $('hrList').innerHTML='<p class="s">Cargando…</p>';
+  try{ var r=await fetch('/lots/'+HR_LOT+'/hires'); var d=r.ok?await r.json():{requests:[]};
+    var reqs=d.requests||[]; var open=reqs.some(function(x){return ['solicitada','cotizada','aceptada'].indexOf(x.status)>=0;});
+    $('hrList').innerHTML=reqs.map(hrReqHTML).join('');
+    $('hrForm').style.display=open?'none':'block'; $('hrSend').style.display=open?'none':'inline-flex';
+  }catch(e){ $('hrList').innerHTML='<p class="s">No se pudo cargar.</p>'; }
+  if(window.i18nSync)i18nSync();
+}
+function hrOpen(lot_id){ HR_LOT=lot_id; $('hrNote').value=''; $('hrPeriod').value='ambos'; $('hrModal').style.display='grid'; hrLoad(); }
+function hrClose(){ $('hrModal').style.display='none'; }
+async function hrSend(){
+  var b=$('hrSend'); var t=b.textContent; b.disabled=true; b.textContent='Enviando…';
+  try{ var r=await fetch('/lots/'+HR_LOT+'/hires',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({period:$('hrPeriod').value,note:$('hrNote').value})});
+    if(!r.ok){ var m='No se pudo enviar'; try{m=(await r.json()).detail||m;}catch(e){} alert(m); } else { await hrLoad(); }
+  }catch(e){ alert('Error de red'); }
+  b.disabled=false; b.textContent=t; if(window.i18nSync)i18nSync();
+}
+async function hrAct(hid,act){
+  if(act==='accept'&&!confirm('Al aceptar, Origen compra la imagen al precio indicado. ¿Continuar?'))return;
+  try{ var r=await fetch('/lots/'+HR_LOT+'/hires/'+hid+'/'+act,{method:'POST'});
+    if(!r.ok){ var m='No se pudo completar'; try{m=(await r.json()).detail||m;}catch(e){} alert(m); }
+  }catch(e){ alert('Error de red'); }
+  hrLoad();
+}
+(function(){ $('hrCancel').onclick=hrClose; $('hrSend').onclick=hrSend;
+  $('hrModal').addEventListener('click',function(e){
+    if(e.target===this){hrClose();return;}
+    var a=e.target.closest('[data-hraccept]'); if(a){e.preventDefault();hrAct(a.getAttribute('data-hraccept'),'accept');return;}
+    var c=e.target.closest('[data-hrcancel]'); if(c){e.preventDefault();hrAct(c.getAttribute('data-hrcancel'),'cancel');return;}
+  }); })();
+
+/* ----- Exportar parcelas a KML/KMZ/Shapefile/Excel ----- */
+document.addEventListener('change',function(ev){
+  var el=ev.target; if(!el||el.tagName!=='SELECT')return;
+  var f=el.value; if(!f)return;
+  if(el.id==='expAll'){ window.location='/api/lots/export.'+f; }
+  else if(el.getAttribute('data-exp')){ window.location='/'+el.getAttribute('data-exp')+'/'+el.getAttribute('data-id')+'/export.'+f; }
+  else return;
+  el.value='';
+});
+
 /* ----- Importación masiva de parcelas ----- */
 function impOpen(){ $('impModal').style.display='grid'; $('impFile').value=''; $('impOut').textContent=''; }
 function impClose(){ $('impModal').style.display='none'; }
@@ -822,5 +999,7 @@ async function impSend(){
 
 boot();
 </script>
+<script src="/static/countries.js"></script>
+<script>if(window.fillCountrySelect)fillCountrySelect(document.getElementById("coopCountry"),"PE");</script>
 <script src="/static/i18n.js" defer></script>
 </body></html>

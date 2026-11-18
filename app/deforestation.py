@@ -152,7 +152,10 @@ def _jrc_forest(plot):
     return sum(1 for v in vals if v == 1) / max(len(vals), 1)
 
 def _gfw_check(lot: Lot):
-    """Combina fuentes: perdida (Hansen) + alertas (Integrated Alerts) + WDPA + baseline JRC 2020."""
+    """Combina fuentes: perdida (Hansen) + alertas (Integrated Alerts) + WDPA + baseline JRC 2020,
+    y evidencia propia Sentinel-2 / Sentinel-1 (solo puede subir un veredicto, nunca bajarlo)."""
+    import time as _t, os as _os, tempfile as _tmp
+    t0 = _t.time()
     out = []
     for pl in lot.plots:
         geom = _plot_polygon(pl)
@@ -198,7 +201,30 @@ def _gfw_check(lot: Lot):
                 detail += f" · alerta cerca de {apts[0]['lat']:.6f}, {apts[0]['lon']:.6f}"
                 if apts[0].get("date"):
                     detail += f" ({apts[0]['date']})"
-        out.append(DeforestationFinding(pl.plot_id, risk, high, detail, apts))
+        sat = None
+        if config.SAT_ENABLED and pl.points and (_t.time() - t0) < config.SAT_BUDGET_S:
+            try:
+                from . import satellite
+                img = _os.path.join(_tmp.gettempdir(), f"{lot.lot_id}_{pl.plot_id}_s2.jpg")
+                # radar solo donde importa: con señales GFW o cuando hay nubes en Sentinel-2
+                sat = satellite.assess(pl, img, radar=False)
+                s2 = sat.get("s2")
+                if (risk != "negligible") or (not s2) or (s2.get("valid_pct", 0) < 60) or sat.get("flag"):
+                    try:
+                        sat["s1"] = satellite.sentinel1_change(pl)
+                        s1 = sat["s1"]
+                        sat["flag"] = bool(sat.get("flag") or (s1 and s1["delta_db"] <= -satellite.S1_FLAG_DB))
+                    except Exception as e:
+                        print("s1 error:", repr(e)[:160])
+                line = satellite.summary(sat)
+                if line:
+                    detail += " · evidencia propia: " + line
+                if sat.get("flag") and risk == "negligible":
+                    risk = "review"
+                    detail += " · cambio de vegetación detectado por Origen: revisar en campo"
+            except Exception as e:
+                print("sat error:", repr(e)[:200]); sat = None
+        out.append(DeforestationFinding(pl.plot_id, risk, high, detail, apts, sat))
     return out
 
 # ---------- Fallbacks ----------

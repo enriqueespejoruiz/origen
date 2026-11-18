@@ -936,7 +936,11 @@
   "Si el país es de riesgo estándar, como el Perú, Colombia o Brasil, tu comprador necesita todo esto para cada envío, sin versión simplificada.": "Jos maa on keskimääräisen riskin maa, kuten Peru, Kolumbia tai Brasilia, tarvitset kaiken tämän jokaiselle lähetykselle ilman yksinkertaistettua versiota.",
   "Si importas:": "Jos olet maahantuoja:",
   "¿Importas a la UE?": "Tuotko EU:hun?",
-  "Más guías por producto:": "Lisää oppaita hyödykkeittäin:"
+  "Más guías por producto:": "Lisää oppaita hyödykkeittäin:",
+  "Evidencia propia de cada parcela": "Omat todisteet jokaisesta lohkosta",
+  "Además de las 4 fuentes, Origen arma su propia imagen Sentinel-2 de 2020 y la compara con la más reciente. Si hay nubes, mira con el radar Sentinel-1. ¿Sigue la duda? Pide una revisión experta: un analista revisa la alerta y, si hace falta, conseguimos imagen de 15 a 50 cm. Te cotizamos antes y solo compramos si aceptas.": "Neljän lähteen lisäksi Origen tekee oman Sentinel-2-kuvan vuodelta 2020 ja vertaa sitä uusimpaan. Pilvisellä säällä se käyttää Sentinel-1-tutkaa. Jäikö epäselvyyttä? Pyydä asiantuntijatarkastus: analyytikko tarkistaa hälytyksen ja hankkii tarvittaessa 15–50 cm:n tarkkuuden kuvan. Saat ensin tarjouksen, ja ostamme vain, jos hyväksyt.",
+  "¿En qué formato tengo que tener mis parcelas?": "Missä muodossa lohkojen pitää olla?",
+  "En el que ya uses: Excel, CSV, GeoJSON, KML o KMZ de Google Earth, GPX del GPS o Shapefile. Y las descargas en GeoJSON, KML o KMZ, Shapefile o Excel.": "Siinä, jota jo käytetään: Excel, CSV, GeoJSON, Google Earthin KML/KMZ, GPS:n GPX tai Shapefile. Ja voit ladata ne GeoJSON-, KML/KMZ-, Shapefile- tai Excel-muodossa."
  },
  "dyn": {
   "Buscando…": "Haetaan…",

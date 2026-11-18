@@ -936,7 +936,11 @@
   "Si el país es de riesgo estándar, como el Perú, Colombia o Brasil, tu comprador necesita todo esto para cada envío, sin versión simplificada.": "Dacă țara este cu risc standard, precum Peru, Columbia sau Brazilia, aveți nevoie de toate acestea pentru fiecare expediere, fără variantă simplificată.",
   "Si importas:": "Dacă importați:",
   "¿Importas a la UE?": "Importați în UE?",
-  "Más guías por producto:": "Alte ghiduri pe produs:"
+  "Más guías por producto:": "Alte ghiduri pe produs:",
+  "Evidencia propia de cada parcela": "Dovezi proprii pentru fiecare parcelă",
+  "Además de las 4 fuentes, Origen arma su propia imagen Sentinel-2 de 2020 y la compara con la más reciente. Si hay nubes, mira con el radar Sentinel-1. ¿Sigue la duda? Pide una revisión experta: un analista revisa la alerta y, si hace falta, conseguimos imagen de 15 a 50 cm. Te cotizamos antes y solo compramos si aceptas.": "Pe lângă cele 4 surse, Origen realizează propria imagine Sentinel-2 din 2020 și o compară cu cea mai recentă. Când sunt nori, folosește radarul Sentinel-1. Mai aveți dubii? Cereți o analiză de specialitate: un analist verifică alerta și, dacă e nevoie, obținem imagini de 15–50 cm. Primiți mai întâi o ofertă de preț și cumpărăm doar dacă acceptați.",
+  "¿En qué formato tengo que tener mis parcelas?": "În ce format trebuie să fie parcelele?",
+  "En el que ya uses: Excel, CSV, GeoJSON, KML o KMZ de Google Earth, GPX del GPS o Shapefile. Y las descargas en GeoJSON, KML o KMZ, Shapefile o Excel.": "În cel deja folosit: Excel, CSV, GeoJSON, KML/KMZ din Google Earth, GPX de la GPS sau Shapefile. Și le puteți descărca în format GeoJSON, KML/KMZ, Shapefile sau Excel."
  },
  "dyn": {
   "Buscando…": "Se caută…",

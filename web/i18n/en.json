@@ -983,7 +983,6 @@
   "Desde el 30 de diciembre de 2026, para declarar café, cacao, palma, soya, caucho, madera o ganado necesitas la geolocalización de cada parcela de origen y la prueba de que no se deforestó después de 2020. Esos datos los tiene tu proveedor. Origen se los pide, los verifica y te los entrega listos para tu declaración.": "From 30 December 2026, to declare coffee, cocoa, palm oil, soy, rubber, wood or cattle you need the geolocation of every plot of origin and proof that it was not deforested after 2020. Your supplier has that data. Origen asks them for it, verifies it and hands it to you ready for your statement.",
   "Origen es la parte del cumplimiento que ocurre en origen: tus proveedores registran sus parcelas, Origen las verifica con satélites y tú recibes por cada envío el GeoJSON y la evidencia que necesitas para presentar la declaración de diligencia debida.": "Origen covers the part of compliance that happens at origin: your suppliers capture their plots, Origen checks them against satellite data and, for every shipment, you receive the GeoJSON and the evidence you need to submit your due diligence statement.",
   "Invitas a tus proveedores.": "You invite your suppliers.",
-  "La cooperativa, el exportador o el productor registra sus parcelas desde el celular, aunque no haya señal, o sube el Excel, CSV o GeoJSON que ya tiene.": "The cooperative, exporter or farmer captures their plots on a phone, even with no signal, or uploads the Excel, CSV or GeoJSON file they already have.",
   "Origen verifica cada parcela.": "Origen checks every plot.",
   "La cruza con la pérdida de bosque de Hansen, las alertas GLAD y RADD, las áreas protegidas (WDPA) y el mapa de bosque 2020 de la UE (JRC), y la marca como limpia, por revisar o con deforestación, con la razón.": "It crosses each plot with Hansen forest loss, GLAD and RADD alerts, protected areas (WDPA) and the EU 2020 forest map (JRC), and flags it as clean, to review or deforested, with the reason.",
   "Recibes un dossier por envío.": "You receive one dossier per shipment.",
@@ -1005,7 +1004,6 @@
   "¿Sirve si compro a exportadores o traders y no directamente a productores?": "Does it work if I buy from exporters or traders rather than directly from farmers?",
   "Sí. Basta con que alguien en la cadena llegue al productor: el exportador o la cooperativa registra las parcelas y Origen junta todas las que van en cada envío.": "Yes. Someone in the chain just needs to reach the farmer: the exporter or the cooperative captures the plots and Origen brings together all those in each shipment.",
   "¿Y si mi proveedor ya tiene sus parcelas mapeadas?": "What if my supplier already has its plots mapped?",
-  "Las sube desde Excel, CSV o GeoJSON y pasan por la misma verificación y el mismo dossier que las que se registran en el campo.": "They upload them from Excel, CSV or GeoJSON and the plots go through the same checks and the same dossier as those captured in the field.",
   "¿Cómo sé que un dossier no fue alterado?": "How do I know a dossier has not been altered?",
   "Cada dossier lleva una huella SHA-256 y un sello en Bitcoin (OpenTimestamps). Se comprueba en la página de verificación sin que el archivo salga de tu equipo.": "Every dossier carries a SHA-256 fingerprint and a Bitcoin timestamp (OpenTimestamps). You can check it on the verification page without the file ever leaving your computer.",
   "¿Origen presenta la declaración en TRACES?": "Does Origen submit the statement in TRACES?",
@@ -1084,7 +1082,14 @@
   "Qué plantaciones abastecieron cada lote, aunque el látex haya pasado por intermediarios y plantas de procesamiento.": "Which plantations supplied each batch, even if the latex went through middlemen and processing plants.",
   "Qué plantaciones entran en cada lote de aceite: la planta mezcla fruta de muchos productores y el EUDR no permite compensar con otras parcelas.": "Which plantations go into each batch of oil: the mill mixes fruit from many growers and the EUDR does not allow offsetting with other plots.",
   "Qué productos entran": "Which products are in scope",
-  "Más guías por producto:": "More guides by commodity:"
+  "Más guías por producto:": "More guides by commodity:",
+  "Evidencia propia de cada parcela": "Our own evidence for every plot",
+  "Además de las 4 fuentes, Origen arma su propia imagen Sentinel-2 de 2020 y la compara con la más reciente. Si hay nubes, mira con el radar Sentinel-1. ¿Sigue la duda? Pide una revisión experta: un analista revisa la alerta y, si hace falta, conseguimos imagen de 15 a 50 cm. Te cotizamos antes y solo compramos si aceptas.": "On top of the 4 sources, Origen builds its own Sentinel-2 image from 2020 and compares it with the latest one. Under clouds, it checks Sentinel-1 radar. Still unsure? Request an expert review: an analyst checks the alert and, if needed, we source 15–50 cm imagery. You get a quote first, and we only buy if you accept.",
+  "¿En qué formato tengo que tener mis parcelas?": "What format do the plots need to be in?",
+  "En el que ya uses: Excel, CSV, GeoJSON, KML o KMZ de Google Earth, GPX del GPS o Shapefile. Y las descargas en GeoJSON, KML o KMZ, Shapefile o Excel.": "Whatever is already in use: Excel, CSV, GeoJSON, Google Earth KML/KMZ, GPS GPX or Shapefile. And you can download them as GeoJSON, KML/KMZ, Shapefile or Excel.",
+  "La cooperativa, el exportador o el productor registra sus parcelas desde el celular, aunque no haya señal, o sube el archivo que ya tiene: Excel, CSV, GeoJSON, KML o KMZ, GPX o Shapefile.": "The cooperative, exporter or farmer captures their plots on a phone, even with no signal, or uploads the file they already have: Excel, CSV, GeoJSON, KML/KMZ, GPX or Shapefile.",
+  "Las sube en el formato que ya usa (Excel, CSV, GeoJSON, KML o KMZ, GPX o Shapefile) y pasan por la misma verificación y el mismo dossier que las que se registran en el campo.": "They upload them in the format they already use (Excel, CSV, GeoJSON, KML/KMZ, GPX or Shapefile) and the plots go through the same checks and the same dossier as those captured in the field.",
+  "Si una alerta deja dudas, pides una revisión experta y, si hace falta, imagen de alta resolución (15 a 50 cm), cotizada antes de comprarla.": "If an alert leaves doubts, you request an expert review and, if needed, high-resolution imagery (15–50 cm), quoted before it is bought."
  },
  "dyn": {
   "Buscando…": "Searching…",
@@ -1153,7 +1158,10 @@
  "app_features": [
   "All 7 EUDR commodities with their HS codes: coffee, cocoa, oil palm, soy, rubber, wood (with species) and cattle",
   "Plot capture on a phone, even offline: a point, or a polygon for plots over 4 ha, in any country",
-  "Bulk import of plots from Excel, CSV or GeoJSON",
+  "Plot import from Excel, CSV, GeoJSON, KML/KMZ, GPX and Shapefile; export to GeoJSON, KML/KMZ, Shapefile and Excel",
+  "Our own evidence for every plot: Sentinel-2 from 2020 against the latest image, and Sentinel-1 radar under clouds",
+  "Expert review on request and 15–50 cm high-resolution imagery on request, quoted beforehand",
+  "Country of production per lot (ISO 3166-1)",
   "Checks against Hansen/Global Forest Watch, GLAD and RADD alerts (Landsat, Sentinel-2 and Sentinel-1), WDPA and the EU JRC 2020 forest map",
   "One dossier per shipment with TRACES-ready GeoJSON, SHA-256 fingerprint, QR code and Bitcoin timestamp (OpenTimestamps)",
   "Segregation simulator and lot confidence score",

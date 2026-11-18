@@ -936,7 +936,11 @@
   "Si el país es de riesgo estándar, como el Perú, Colombia o Brasil, tu comprador necesita todo esto para cada envío, sin versión simplificada.": "Αν η χώρα είναι συνήθους κινδύνου, όπως το Περού, η Κολομβία ή η Βραζιλία, τα χρειάζεστε όλα αυτά για κάθε αποστολή, χωρίς απλουστευμένη εκδοχή.",
   "Si importas:": "Αν κάνετε εισαγωγές:",
   "¿Importas a la UE?": "Κάνετε εισαγωγές στην ΕΕ;",
-  "Más guías por producto:": "Περισσότεροι οδηγοί ανά προϊόν:"
+  "Más guías por producto:": "Περισσότεροι οδηγοί ανά προϊόν:",
+  "Evidencia propia de cada parcela": "Δικά μας αποδεικτικά για κάθε γεωτεμάχιο",
+  "Además de las 4 fuentes, Origen arma su propia imagen Sentinel-2 de 2020 y la compara con la más reciente. Si hay nubes, mira con el radar Sentinel-1. ¿Sigue la duda? Pide una revisión experta: un analista revisa la alerta y, si hace falta, conseguimos imagen de 15 a 50 cm. Te cotizamos antes y solo compramos si aceptas.": "Πέρα από τις 4 πηγές, το Origen φτιάχνει τη δική του εικόνα Sentinel-2 του 2020 και τη συγκρίνει με την πιο πρόσφατη. Όταν έχει σύννεφα, ελέγχει με το ραντάρ Sentinel-1. Υπάρχει ακόμη αμφιβολία; Ζητήστε έλεγχο από ειδικό: ένας αναλυτής εξετάζει την ειδοποίηση και, αν χρειαστεί, προμηθευόμαστε εικόνα 15–50 εκ. Λαμβάνετε πρώτα προσφορά και αγοράζουμε μόνο αν συμφωνήσετε.",
+  "¿En qué formato tengo que tener mis parcelas?": "Σε ποια μορφή πρέπει να είναι τα γεωτεμάχια;",
+  "En el que ya uses: Excel, CSV, GeoJSON, KML o KMZ de Google Earth, GPX del GPS o Shapefile. Y las descargas en GeoJSON, KML o KMZ, Shapefile o Excel.": "Σε αυτήν που ήδη χρησιμοποιείται: Excel, CSV, GeoJSON, KML/KMZ του Google Earth, GPX από GPS ή Shapefile. Και τα κατεβάζετε ως GeoJSON, KML/KMZ, Shapefile ή Excel."
  },
  "dyn": {
   "Buscando…": "Αναζήτηση…",

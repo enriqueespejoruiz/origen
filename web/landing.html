@@ -457,6 +457,9 @@ footer nav a:hover{color:var(--ochre-2)}
       <div class="col"><b>Reglas, no IA</b><p>Rojo: pérdida o alertas de 0,1 ha o más después de 2020. Ámbar: una señal menor, un área protegida o bosque 2020 en el 80% de la parcela. Verde: sin señales. Gemini solo redacta el resumen y explica cada hallazgo.</p></div>
       <div class="col"><b>Sellado en Bitcoin</b><p>Calculamos la huella SHA-256 del PDF y la anclamos en la cadena de Bitcoin con OpenTimestamps. Tu comprador escanea el QR o usa las herramientas abiertas de OpenTimestamps: si cambia un solo carácter, la prueba falla.</p></div>
     </div>
+    <div class="cols reglas" style="grid-template-columns:1fr;margin-top:28px">
+      <div class="col"><b>Evidencia propia de cada parcela</b><p>Además de las 4 fuentes, Origen arma su propia imagen Sentinel-2 de 2020 y la compara con la más reciente. Si hay nubes, mira con el radar Sentinel-1. ¿Sigue la duda? Pide una revisión experta: un analista revisa la alerta y, si hace falta, conseguimos imagen de 15 a 50 cm. Te cotizamos antes y solo compramos si aceptas.</p></div>
+    </div>
   </div>
 </section>
 
@@ -553,10 +556,11 @@ footer nav a:hover{color:var(--ochre-2)}
         <details><summary>¿Necesito internet en la parcela?</summary><p>No. El técnico captura todo en el celular —GPS y foto— sin señal, y las parcelas se envían solas cuando vuelve la conexión.</p></details>
         <details><summary>¿Qué pasa si una parcela tiene deforestación?</summary><p>Se marca como «revisar» o «deforestación» para que la verifiques antes de enviarla a tu comprador. Origen es la herramienta de detección; la decisión final es tuya y del operador europeo.</p></details>
         <details><summary>¿Quién presenta la declaración en la UE?</summary><p>El operador europeo (tu comprador/importador) la presenta en el sistema de la UE. Origen le entrega el paquete de datos listo para que pueda hacerlo.</p></details>
-        <details><summary>¿Sirve para productores de cualquier país?</summary><p>Sí. Origen registra y verifica parcelas en cualquier país productor, y el dossier y el GeoJSON llevan el país de cada parcela. Lo que cambia es el riesgo del país: si es de riesgo estándar, como el Perú, Colombia, Brasil, Indonesia o Malasia, el comprador europeo hace la diligencia debida completa y necesita las coordenadas de cada parcela.</p></details>
         <details><summary>¿Sirve para palma, madera u otros productos?</summary><p>Sí. Origen cubre los 7 productos del EUDR —café, cacao, palma aceitera, soya, caucho, madera y ganado bovino— y sus derivados. En madera registras la especie; en ganado, un punto por establecimiento. Para el café, mira la <a href="/eudr-cafe-peru">guía EUDR para el café peruano</a>, y para el cacao, la <a href="/eudr-cacao-peru">guía EUDR para el cacao peruano</a>.</p></details>
       </div>
       <div>
+        <details><summary>¿Sirve para productores de cualquier país?</summary><p>Sí. Origen registra y verifica parcelas en cualquier país productor, y el dossier y el GeoJSON llevan el país de cada parcela. Lo que cambia es el riesgo del país: si es de riesgo estándar, como el Perú, Colombia, Brasil, Indonesia o Malasia, el comprador europeo hace la diligencia debida completa y necesita las coordenadas de cada parcela.</p></details>
+        <details><summary>¿En qué formato tengo que tener mis parcelas?</summary><p>En el que ya uses: Excel, CSV, GeoJSON, KML o KMZ de Google Earth, GPX del GPS o Shapefile. Y las descargas en GeoJSON, KML o KMZ, Shapefile o Excel.</p></details>
         <details><summary>¿Y las parcelas grandes (más de 4 ha)?</summary><p>La app deja caminar el perímetro y registrar el polígono de límites con el GPS — el formato que la UE exige para predios de más de 4 hectáreas. Las parcelas chicas se registran con un punto.</p></details>
         <details><summary>¿Origen certifica el cumplimiento?</summary><p>No. Origen entrega evidencia verificada, lista para sustentar la declaración; el responsable legal es el operador europeo que la presenta, y los sellos son complementarios. Nuestro trabajo es darte datos confiables que tu comprador acepte, no un sello.</p></details>
         <details><summary>¿Cómo sé que un dossier es auténtico?</summary><p>Cada dossier lleva un código QR y una huella digital (SHA-256). Cualquiera puede entrar a <a href="/verificar">la página de verificación</a>, subir el archivo y confirmar al instante que es auténtico y desde cuándo existe — sin que el archivo salga de su equipo.</p></details>

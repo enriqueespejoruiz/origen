@@ -936,7 +936,11 @@
   "Si el país es de riesgo estándar, como el Perú, Colombia o Brasil, tu comprador necesita todo esto para cada envío, sin versión simplificada.": "Om landet har normal risk, som Peru, Colombia eller Brasilien, behöver du allt detta för varje sändning, utan förenklad variant.",
   "Si importas:": "Om du importerar:",
   "¿Importas a la UE?": "Importerar du till EU?",
-  "Más guías por producto:": "Fler guider per råvara:"
+  "Más guías por producto:": "Fler guider per råvara:",
+  "Evidencia propia de cada parcela": "Egna bevis för varje odling",
+  "Además de las 4 fuentes, Origen arma su propia imagen Sentinel-2 de 2020 y la compara con la más reciente. Si hay nubes, mira con el radar Sentinel-1. ¿Sigue la duda? Pide una revisión experta: un analista revisa la alerta y, si hace falta, conseguimos imagen de 15 a 50 cm. Te cotizamos antes y solo compramos si aceptas.": "Utöver de 4 källorna tar Origen fram en egen Sentinel-2-bild från 2020 och jämför den med den senaste. Vid moln används Sentinel-1-radarn. Fortfarande osäker? Begär en expertgranskning: en analytiker granskar varningen och skaffar vid behov bilder med 15–50 cm upplösning. Du får en offert först, och vi köper bara om du godkänner.",
+  "¿En qué formato tengo que tener mis parcelas?": "I vilket format måste odlingarna finnas?",
+  "En el que ya uses: Excel, CSV, GeoJSON, KML o KMZ de Google Earth, GPX del GPS o Shapefile. Y las descargas en GeoJSON, KML o KMZ, Shapefile o Excel.": "I det format som redan används: Excel, CSV, GeoJSON, KML/KMZ från Google Earth, GPX från GPS eller Shapefile. Och du kan ladda ner dem som GeoJSON, KML/KMZ, Shapefile eller Excel."
  },
  "dyn": {
   "Buscando…": "Söker…",

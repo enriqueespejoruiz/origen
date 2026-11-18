@@ -2,6 +2,13 @@
 
 Formato: cambios agrupados por fecha. El proyecto sigue el espíritu *build-in-public* del XPRIZE.
 
+## 2026-11-18 (5) — Web: evidencia propia, revisión experta y formatos (traspaso del chat de la app)
+- Portada (22 idiomas): bloque «Evidencia propia de cada parcela» en Tecnología (Sentinel-2 2020 frente a lo más reciente,
+  radar Sentinel-1 con nubes, revisión experta e imagen de 15–50 cm cotizada antes) y FAQ de formatos (importa Excel, CSV,
+  GeoJSON, KML/KMZ, GPX y Shapefile; exporta GeoJSON, KML/KMZ, Shapefile y Excel; GPX solo se importa).
+- /eudr-software-importadores (7 idiomas): formatos, y revisión experta con alta resolución bajo pedido.
+- llms.txt y featureList (es, en): evidencia propia, revisión experta, alta resolución, formatos y país por lote.
+
 ## 2026-11-18 (4) — Revisión de UX por usuario (gerente, técnico de campo, comprador)
 - **Panel (gerente)**: el título es el nombre de la organización; **resumen** arriba (lotes, en orden, a revisar,
   observados, sin verificar) que filtra la lista al tocarlo, y un aviso de **siguiente paso**. Cada fila tiene dos

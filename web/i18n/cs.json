@@ -936,7 +936,11 @@
   "Si el país es de riesgo estándar, como el Perú, Colombia o Brasil, tu comprador necesita todo esto para cada envío, sin versión simplificada.": "Pokud je země se standardním rizikem, jako Peru, Kolumbie nebo Brazílie, potřebujete to vše pro každou zásilku, bez zjednodušené verze.",
   "Si importas:": "Pokud dovážíte:",
   "¿Importas a la UE?": "Dovážíte do EU?",
-  "Más guías por producto:": "Další průvodce podle komodity:"
+  "Más guías por producto:": "Další průvodce podle komodity:",
+  "Evidencia propia de cada parcela": "Vlastní důkazy ke každému pozemku",
+  "Además de las 4 fuentes, Origen arma su propia imagen Sentinel-2 de 2020 y la compara con la más reciente. Si hay nubes, mira con el radar Sentinel-1. ¿Sigue la duda? Pide una revisión experta: un analista revisa la alerta y, si hace falta, conseguimos imagen de 15 a 50 cm. Te cotizamos antes y solo compramos si aceptas.": "Kromě 4 zdrojů si Origen vytváří vlastní snímek Sentinel-2 z roku 2020 a porovnává ho s nejnovějším. Při oblačnosti použije radar Sentinel-1. Stále pochybnosti? Vyžádejte si odbornou kontrolu: analytik prověří upozornění a v případě potřeby obstaráme snímek s rozlišením 15–50 cm. Nejdřív dostanete cenovou nabídku a kupujeme, jen když souhlasíte.",
+  "¿En qué formato tengo que tener mis parcelas?": "V jakém formátu musí pozemky být?",
+  "En el que ya uses: Excel, CSV, GeoJSON, KML o KMZ de Google Earth, GPX del GPS o Shapefile. Y las descargas en GeoJSON, KML o KMZ, Shapefile o Excel.": "V tom, který už se používá: Excel, CSV, GeoJSON, KML/KMZ z Google Earth, GPX z GPS nebo Shapefile. A stáhnete si je jako GeoJSON, KML/KMZ, Shapefile nebo Excel."
  },
  "dyn": {
   "Buscando…": "Vyhledávání…",

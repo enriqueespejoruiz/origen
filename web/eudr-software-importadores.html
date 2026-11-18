@@ -92,7 +92,7 @@ nav svg path[stroke]{stroke:#fff}
   <section>
     <h2>Cómo funciona</h2>
     <ol class="req">
-      <li><b>Invitas a tus proveedores.</b> La cooperativa, el exportador o el productor registra sus parcelas desde el celular, aunque no haya señal, o sube el Excel, CSV o GeoJSON que ya tiene.</li>
+      <li><b>Invitas a tus proveedores.</b> La cooperativa, el exportador o el productor registra sus parcelas desde el celular, aunque no haya señal, o sube el archivo que ya tiene: Excel, CSV, GeoJSON, KML o KMZ, GPX o Shapefile.</li>
       <li><b>Origen verifica cada parcela.</b> La cruza con la pérdida de bosque de Hansen, las alertas GLAD y RADD, las áreas protegidas (WDPA) y el mapa de bosque 2020 de la UE (JRC), y la marca como limpia, por revisar o con deforestación, con la razón.</li>
       <li><b>Recibes un dossier por envío.</b> Con las parcelas de todos los productores que hay detrás de ese envío, el GeoJSON listo para TRACES y una huella SHA-256 sellada en Bitcoin que cualquiera puede verificar.</li>
     </ol>
@@ -103,6 +103,7 @@ nav svg path[stroke]{stroke:#fff}
     <ul>
       <li>El GeoJSON sale con las reglas de TRACES: seis decimales, polígonos cerrados y puntos solo hasta 4 hectáreas.</li>
       <li>El EUDR no permite mezclar: si una parcela sale observada, Origen te dice cuál excluir o sustentar antes de declarar.</li>
+      <li>Si una alerta deja dudas, pides una revisión experta y, si hace falta, imagen de alta resolución (15 a 50 cm), cotizada antes de comprarla.</li>
       <li>Los 7 productos con su partida SA; en la madera, la especie, y en el ganado, un punto por establecimiento.</li>
       <li>Proveedores de cualquier país en un solo lugar: cada parcela lleva su país en el dossier y en el GeoJSON.</li>
       <li>Monitoreo continuo: si una parcela empeora después, recibes una alerta.</li>
@@ -126,7 +127,7 @@ nav svg path[stroke]{stroke:#fff}
   <section class="faqx">
     <h2>Preguntas frecuentes</h2>
     <details><summary>¿Sirve si compro a exportadores o traders y no directamente a productores?</summary><p>Sí. Basta con que alguien en la cadena llegue al productor: el exportador o la cooperativa registra las parcelas y Origen junta todas las que van en cada envío.</p></details>
-    <details><summary>¿Y si mi proveedor ya tiene sus parcelas mapeadas?</summary><p>Las sube desde Excel, CSV o GeoJSON y pasan por la misma verificación y el mismo dossier que las que se registran en el campo.</p></details>
+    <details><summary>¿Y si mi proveedor ya tiene sus parcelas mapeadas?</summary><p>Las sube en el formato que ya usa (Excel, CSV, GeoJSON, KML o KMZ, GPX o Shapefile) y pasan por la misma verificación y el mismo dossier que las que se registran en el campo.</p></details>
     <details><summary>¿Cómo sé que un dossier no fue alterado?</summary><p>Cada dossier lleva una huella SHA-256 y un sello en Bitcoin (OpenTimestamps). Se comprueba en la página de verificación sin que el archivo salga de tu equipo.</p></details>
     <details><summary>¿Origen presenta la declaración en TRACES?</summary><p>No. La presentas tú, como operador, o tu representante autorizado. Origen te da el GeoJSON y la evidencia para hacerlo.</p></details>
   </section>

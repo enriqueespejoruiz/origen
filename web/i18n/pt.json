@@ -936,7 +936,11 @@
   "Si el país es de riesgo estándar, como el Perú, Colombia o Brasil, tu comprador necesita todo esto para cada envío, sin versión simplificada.": "Se o país for de risco padrão, como o Peru, a Colômbia ou o Brasil, precisa de tudo isto para cada remessa, sem versão simplificada.",
   "Si importas:": "Se importa:",
   "¿Importas a la UE?": "Importa para a UE?",
-  "Más guías por producto:": "Mais guias por produto:"
+  "Más guías por producto:": "Mais guias por produto:",
+  "Evidencia propia de cada parcela": "Provas próprias de cada parcela",
+  "Además de las 4 fuentes, Origen arma su propia imagen Sentinel-2 de 2020 y la compara con la más reciente. Si hay nubes, mira con el radar Sentinel-1. ¿Sigue la duda? Pide una revisión experta: un analista revisa la alerta y, si hace falta, conseguimos imagen de 15 a 50 cm. Te cotizamos antes y solo compramos si aceptas.": "Além das 4 fontes, o Origen cria a sua própria imagem Sentinel-2 de 2020 e compara-a com a mais recente. Com nuvens, usa o radar Sentinel-1. Ainda há dúvidas? Peça uma revisão especializada: um analista revê o alerta e, se for preciso, obtemos imagem de 15 a 50 cm. Recebe primeiro um orçamento e só compramos se aceitar.",
+  "¿En qué formato tengo que tener mis parcelas?": "Em que formato têm de estar as parcelas?",
+  "En el que ya uses: Excel, CSV, GeoJSON, KML o KMZ de Google Earth, GPX del GPS o Shapefile. Y las descargas en GeoJSON, KML o KMZ, Shapefile o Excel.": "No que já se usa: Excel, CSV, GeoJSON, KML/KMZ do Google Earth, GPX do GPS ou Shapefile. E pode descarregá-las em GeoJSON, KML/KMZ, Shapefile ou Excel."
  },
  "dyn": {
   "Buscando…": "A pesquisar…",

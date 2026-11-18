@@ -183,7 +183,10 @@ _APP_DESC_ES = ("Geolocalización de parcelas en cualquier país, verificación 
 _APP_FEATURES_ES = [
     "Los 7 productos del EUDR con su partida SA: café, cacao, palma aceitera, soya, caucho, madera (con especie) y ganado bovino",
     "Captura de parcelas desde el celular, sin señal: punto o polígono para predios de más de 4 ha, en cualquier país",
-    "Importación masiva de parcelas desde Excel, CSV o GeoJSON",
+    "Importación de parcelas desde Excel, CSV, GeoJSON, KML/KMZ, GPX y Shapefile; exportación a GeoJSON, KML/KMZ, Shapefile y Excel",
+    "Evidencia propia por parcela: Sentinel-2 de 2020 frente a la imagen más reciente y radar Sentinel-1 bajo nubes",
+    "Revisión experta a pedido e imagen de alta resolución (15 a 50 cm) bajo pedido, con cotización previa",
+    "País de producción por lote (ISO 3166-1)",
     "Verificación con Hansen/Global Forest Watch, alertas GLAD y RADD (Landsat, Sentinel-2 y Sentinel-1), WDPA y el mapa JRC 2020 de la UE",
     "Dossier por envío con GeoJSON listo para TRACES, huella SHA-256, código QR y sello en Bitcoin (OpenTimestamps)",
     "Simulador de segregación y puntaje de confianza del lote",
@@ -248,10 +251,12 @@ def llms_txt():
 
 ## Qué hace
 - Los 7 productos del EUDR, con su partida SA y nombre científico; en madera registra la especie y en ganado un punto por establecimiento.
-- Captura de parcelas desde el celular, incluso sin señal; polígono para predios de más de 4 ha. Importación masiva desde Excel, CSV o GeoJSON para quien ya tiene sus parcelas georreferenciadas.
+- Captura de parcelas desde el celular, incluso sin señal; polígono para predios de más de 4 ha. Importación masiva desde Excel, CSV, GeoJSON, KML o KMZ (Google Earth), GPX o Shapefile para quien ya tiene sus parcelas georreferenciadas; exportación a GeoJSON, KML o KMZ, Shapefile y Excel.
 - Verificación contra Hansen/Global Forest Watch (pérdida de cobertura), alertas GLAD y RADD (Landsat, Sentinel-2 y radar Sentinel-1, 10 m), áreas protegidas (WDPA de UNEP-WCMC y UICN) y el mapa de referencia JRC 2020 de la UE; imágenes Esri World Imagery en el dossier.
+- Evidencia propia de cada parcela: imagen Sentinel-2 de 2020 frente a la más reciente (cambio de vegetación) y radar Sentinel-1 cuando hay nubes. Solo puede subir una parcela a «revisar», nunca bajarla.
+- Revisión experta a pedido: un analista revisa la alerta y deja su conclusión en el dossier; si hace falta, imagen de satélites comerciales de 15 a 50 cm, cotizada antes y comprada solo si el cliente acepta.
 - Simulador de segregación: dice qué parcela excluir o sustentar, porque el EUDR no permite compensar con otras parcelas.
-- Un solo dossier por envío aunque junte muchas parcelas, productores y países.
+- País de producción por lote (ISO 3166-1): el dossier y el GeoJSON usan el del lote, y un solo dossier por envío puede juntar muchas parcelas, productores y países.
 - Cada dossier lleva huella SHA-256, código QR y sello en Bitcoin (OpenTimestamps) verificable en {base}/verificar
 - Monitoreo continuo: alerta si una parcela empeora, con avisos por WhatsApp.
 - Los datos son del productor: se exportan completos en formatos abiertos (CSV, GeoJSON y dossiers).

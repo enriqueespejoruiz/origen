@@ -936,7 +936,11 @@
   "Si el país es de riesgo estándar, como el Perú, Colombia o Brasil, tu comprador necesita todo esto para cada envío, sin versión simplificada.": "Ja valsts ir standarta riska valsts, piemēram, Peru, Kolumbija vai Brazīlija, jums tas viss ir vajadzīgs katram sūtījumam, bez vienkāršotas versijas.",
   "Si importas:": "Ja importējat:",
   "¿Importas a la UE?": "Importējat ES?",
-  "Más guías por producto:": "Vairāk ceļvežu pa precēm:"
+  "Más guías por producto:": "Vairāk ceļvežu pa precēm:",
+  "Evidencia propia de cada parcela": "Pašu pierādījumi par katru zemes gabalu",
+  "Además de las 4 fuentes, Origen arma su propia imagen Sentinel-2 de 2020 y la compara con la más reciente. Si hay nubes, mira con el radar Sentinel-1. ¿Sigue la duda? Pide una revisión experta: un analista revisa la alerta y, si hace falta, conseguimos imagen de 15 a 50 cm. Te cotizamos antes y solo compramos si aceptas.": "Papildus 4 avotiem Origen izveido savu Sentinel-2 attēlu no 2020. gada un salīdzina to ar jaunāko. Mākoņainā laikā tas izmanto Sentinel-1 radaru. Vēl ir šaubas? Pieprasiet eksperta pārbaudi: analītiķis izskata brīdinājumu un, ja vajag, mēs sagādājam 15–50 cm izšķirtspējas attēlu. Vispirms saņemat piedāvājumu, un pērkam tikai tad, ja piekrītat.",
+  "¿En qué formato tengo que tener mis parcelas?": "Kādā formātā jābūt zemes gabaliem?",
+  "En el que ya uses: Excel, CSV, GeoJSON, KML o KMZ de Google Earth, GPX del GPS o Shapefile. Y las descargas en GeoJSON, KML o KMZ, Shapefile o Excel.": "Tajā, ko jau izmanto: Excel, CSV, GeoJSON, Google Earth KML/KMZ, GPS GPX vai Shapefile. Lejupielādēt tos var kā GeoJSON, KML/KMZ, Shapefile vai Excel."
  },
  "dyn": {
   "Buscando…": "Meklē…",

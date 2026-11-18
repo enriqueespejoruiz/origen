@@ -936,7 +936,11 @@
   "Si el país es de riesgo estándar, como el Perú, Colombia o Brasil, tu comprador necesita todo esto para cada envío, sin versión simplificada.": "Ако държавата е със стандартен риск, като Перу, Колумбия или Бразилия, имате нужда от всичко това за всяка пратка, без опростен вариант.",
   "Si importas:": "Ако внасяте:",
   "¿Importas a la UE?": "Внасяте ли в ЕС?",
-  "Más guías por producto:": "Още ръководства по стока:"
+  "Más guías por producto:": "Още ръководства по стока:",
+  "Evidencia propia de cada parcela": "Собствени доказателства за всеки парцел",
+  "Además de las 4 fuentes, Origen arma su propia imagen Sentinel-2 de 2020 y la compara con la más reciente. Si hay nubes, mira con el radar Sentinel-1. ¿Sigue la duda? Pide una revisión experta: un analista revisa la alerta y, si hace falta, conseguimos imagen de 15 a 50 cm. Te cotizamos antes y solo compramos si aceptas.": "Освен 4-те източника Origen създава собствено изображение от Sentinel-2 за 2020 г. и го сравнява с най-новото. При облаци използва радара Sentinel-1. Още имате съмнения? Поискайте експертен преглед: анализатор проверява сигнала и при нужда осигуряваме изображение с резолюция 15–50 см. Първо получавате оферта и купуваме само ако приемете.",
+  "¿En qué formato tengo que tener mis parcelas?": "В какъв формат трябва да са парцелите?",
+  "En el que ya uses: Excel, CSV, GeoJSON, KML o KMZ de Google Earth, GPX del GPS o Shapefile. Y las descargas en GeoJSON, KML o KMZ, Shapefile o Excel.": "Във формата, който вече се ползва: Excel, CSV, GeoJSON, KML/KMZ от Google Earth, GPX от GPS или Shapefile. И можете да ги изтеглите като GeoJSON, KML/KMZ, Shapefile или Excel."
  },
  "dyn": {
   "Buscando…": "Търсене…",

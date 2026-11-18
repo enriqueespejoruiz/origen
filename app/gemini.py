@@ -71,36 +71,40 @@ def extract_lot(text: str, image_paths=None, lot_id="LOT-DEMO") -> Lot:
     return _to_lot(json.loads(resp.text), lot_id, text)
 
 def generate_dossier_narrative(lot: Lot, findings) -> str:
+    from . import countries as _ct
+    pais = _ct.name(_ct.of_lot(lot), "es")
     risks = ", ".join(f"{f.plot_id}:{f.risk}" for f in findings)
     if not config.gemini_ready():
         return (f"Dossier de diligencia debida (EUDR) para el lote {lot.lot_id} "
-                f"({lot.commodity}, {lot.region}, Peru). Riesgo por parcela: {risks}. "
+                f"({lot.commodity}, {lot.region}, {pais}). Riesgo por parcela: {risks}. "
                 f"Geolocalizacion adjunta en GeoJSON para carga en TRACES NT por el operador importador.")
     resp = generate(
         (f"Redacta el resumen de un dossier de diligencia debida EUDR para el lote "
-                  f"{lot.lot_id} ({lot.commodity}, {lot.region}, Peru). Hallazgos por parcela: {risks}. "
+                  f"{lot.lot_id} ({lot.commodity}, {lot.region}, {pais}). Hallazgos por parcela: {risks}. "
                   f"Tono formal, ~150 palabras, en espanol."))
     return resp.text
 
 def generate_buyer_profile(lot: Lot) -> str:
+    from . import countries as _ct
     if not config.gemini_ready():
-        return (f"{lot.commodity.title()} de {lot.region}, Peru - productor {lot.producer_name} "
+        return (f"{lot.commodity.title()} de {lot.region}, {_ct.name(_ct.of_lot(lot), 'es')} - productor {lot.producer_name} "
                 f"({lot.cooperative}). {len(lot.plots)} parcelas con trazabilidad a nivel de parcela, "
                 f"lista para EUDR.")
     resp = generate(
         (f"Escribe un perfil comercial breve (en ingles y espanol, ~120 palabras) para un "
                   f"comprador europeo de este lote de {lot.commodity}: productor {lot.producer_name}, "
-                  f"cooperativa {lot.cooperative}, region {lot.region}, {len(lot.plots)} parcelas. "
+                  f"cooperativa {lot.cooperative}, region {lot.region}, pais {_ct.name(_ct.of_lot(lot), 'es')}, {len(lot.plots)} parcelas. "
                   f"Resalta origen, trazabilidad EUDR y calidad."))
     return resp.text
 
 def _to_lot(d, lot_id, raw) -> Lot:
+    from . import countries as _ct
     plots = []
     for i, p in enumerate(d.get("plots", [])):
         pts = [GeoPoint(float(pt["lat"]), float(pt["lon"])) for pt in p.get("points", []) if "lat" in pt]
         plots.append(Plot(p.get("plot_id") or f"P{i+1}", pts, p.get("area_ha")))
     return Lot(lot_id, d.get("producer_name", ""), d.get("cooperative", ""),
-               _cm.norm(d.get("commodity", "coffee")), "PE", d.get("region", ""), plots,
+               _cm.norm(d.get("commodity", "coffee")), _ct.norm(d.get("country")) or _ct.DEFAULT, d.get("region", ""), plots,
                d.get("harvest_season", ""), raw)
 
 def _stub_extract(text, lot_id) -> Lot:

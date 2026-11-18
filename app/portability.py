@@ -2,6 +2,7 @@
 Genera un ZIP (CSV + GeoJSON TRACES + manifest JSON + dossiers). Es lo contrario a los
 portales de traders que retienen la data del productor: aquí la coop es dueña y la exporta."""
 import io, csv, json, zipfile, datetime
+from . import countries as _ct
 from . import storage, geo, config
 from .models import Lot, Plot, GeoPoint
 
@@ -10,7 +11,7 @@ def _to_lot(d):
     plots = [Plot(p["plot_id"], [GeoPoint(**pt) for pt in p.get("points", [])], p.get("area_ha"))
              for p in d.get("plots", [])]
     return Lot(d.get("lot_id", ""), d.get("producer_name", ""), d.get("cooperative", ""),
-               d.get("commodity", ""), d.get("country", "PE"), d.get("region", ""), plots,
+               d.get("commodity", ""), _ct.of_lot(d), d.get("region", ""), plots,
                d.get("harvest_season", ""), d.get("raw_notes", ""), d.get("quantity", ""),
                d.get("coop_id", ""), d.get("captured_by", ""), d.get("created_at", ""), d.get("extra", {}))
 

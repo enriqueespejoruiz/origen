@@ -8,12 +8,15 @@ import csv, io, json, re, uuid, datetime
 from .models import Lot, Plot, GeoPoint
 from . import storage
 from . import commodities as _cm
+from . import countries as _ct
 
 MAX_ROWS = 1000
 
 _H = {
     "productor": "producer", "producer": "producer", "nombre": "producer", "asociado": "producer",
     "producto": "commodity", "commodity": "commodity", "cultivo": "commodity",
+    "pais": "country", "país": "country", "country": "country", "pais_produccion": "country",
+    "country_of_production": "country", "iso": "country",
     "region": "region", "región": "region", "zona": "region", "provincia": "region",
     "lote": "lot_key", "lot": "lot_key", "lot_id": "lot_key", "codigo_lote": "lot_key",
     "parcela": "plot_id", "plot": "plot_id", "plot_id": "plot_id", "codigo": "plot_id", "código": "plot_id",
@@ -79,6 +82,7 @@ def _rows_from_geojson(data: bytes):
         geom = f.get("geometry") or {}
         row = {"producer": props.get("producername") or props.get("productor") or props.get("producer") or "",
                "region": props.get("productionplace") or props.get("region") or "",
+               "country": str(props.get("producercountry") or props.get("country") or props.get("pais") or props.get("país") or ""),
                "area_ha": _f(props.get("area")), "quantity": str(props.get("cantidad") or props.get("quantity") or ""),
                "commodity": str(props.get("producto") or props.get("commodity") or ""),
                "lot_key": str(props.get("lote") or props.get("lot_id") or ""),
@@ -87,10 +91,157 @@ def _rows_from_geojson(data: bytes):
             c = geom.get("coordinates") or []
             if len(c) >= 2:
                 row["lon"], row["lat"] = float(c[0]), float(c[1])
-        elif geom.get("type") == "Polygon":
-            ring = (geom.get("coordinates") or [[]])[0]
+        elif geom.get("type") in ("Polygon", "MultiPolygon"):
+            co = geom.get("coordinates") or [[]]
+            ring = (co[0][0] if geom["type"] == "MultiPolygon" and co and co[0] else co[0]) or []
             row["polygon"] = [GeoPoint(float(pt[1]), float(pt[0])) for pt in ring if len(pt) >= 2]
         out.append(row)
+    return out
+
+
+def _geo_row(name="", props=None, pts=None, point=None):
+    """Fila normalizada desde una geometría (KML/GPX/Shapefile)."""
+    props = {str(k).lower(): v for k, v in (props or {}).items()}
+    row = {"producer": str(props.get("productor") or props.get("producer") or props.get("producername")
+                           or props.get("nombre") or name or "").strip(),
+           "region": str(props.get("region") or props.get("región") or props.get("distrito") or "").strip(),
+           "country": str(props.get("producercountry") or props.get("country") or props.get("pais") or props.get("país") or "").strip(),
+           "area_ha": _f(props.get("area_ha") or props.get("area") or props.get("hectareas")),
+           "quantity": str(props.get("cantidad") or props.get("quantity") or ""),
+           "commodity": str(props.get("producto") or props.get("commodity") or props.get("cultivo") or ""),
+           "lot_key": str(props.get("lote") or props.get("lot_id") or ""),
+           "plot_id": str(props.get("parcela") or props.get("plot_id") or props.get("codigo") or ""),
+           "lat": None, "lon": None, "polygon": None}
+    if pts and len(pts) >= 3:
+        row["polygon"] = pts
+    elif point:
+        row["lat"], row["lon"] = point
+    elif pts:
+        row["lat"], row["lon"] = pts[0].lat, pts[0].lon
+    return row
+
+
+def _kml_coords(txt):
+    out = []
+    for tok in (txt or "").split():
+        parts = tok.split(",")
+        if len(parts) >= 2:
+            try:
+                out.append(GeoPoint(float(parts[1]), float(parts[0])))
+            except ValueError:
+                continue
+    return out
+
+
+def _rows_from_kml(data: bytes):
+    """KML de Google Earth/Maps: un Placemark = una parcela (Polygon o Point). Lee name y ExtendedData."""
+    import xml.etree.ElementTree as ET
+    root = ET.fromstring(data)
+    ln = lambda el: el.tag.rsplit("}", 1)[-1]
+    out = []
+    for pm in root.iter():
+        if ln(pm) != "Placemark":
+            continue
+        name, props, poly, pt = "", {}, None, None
+        for el in pm.iter():
+            t = ln(el)
+            if t == "name" and not name:
+                name = (el.text or "").strip()
+            elif t in ("Data", "SimpleData"):
+                key = el.get("name") or ""
+                val = el.text if t == "SimpleData" else next((c.text for c in el if ln(c) == "value"), "")
+                if key:
+                    props[key] = (val or "").strip()
+            elif t == "outerBoundaryIs" and poly is None:
+                for c in el.iter():
+                    if ln(c) == "coordinates":
+                        poly = _kml_coords(c.text)
+            elif t == "Point" and pt is None:
+                for c in el.iter():
+                    if ln(c) == "coordinates":
+                        cc = _kml_coords(c.text)
+                        if cc:
+                            pt = (cc[0].lat, cc[0].lon)
+        if poly is None:   # polígono sin outerBoundaryIs (LineString cerrado)
+            for el in pm.iter():
+                if ln(el) == "LineString":
+                    for c in el.iter():
+                        if ln(c) == "coordinates":
+                            poly = _kml_coords(c.text)
+        if poly or pt:
+            out.append(_geo_row(name, props, poly, pt))
+        if len(out) >= MAX_ROWS:
+            break
+    return out
+
+
+def _rows_from_kmz(data: bytes):
+    import zipfile
+    z = zipfile.ZipFile(io.BytesIO(data))
+    kml = next((n for n in z.namelist() if n.lower().endswith(".kml")), None)
+    if not kml:
+        raise ValueError("el KMZ no contiene un archivo .kml")
+    return _rows_from_kml(z.read(kml))
+
+
+def _rows_from_gpx(data: bytes):
+    """GPX de un GPS de mano: cada track (recorrido del perímetro) = polígono; cada waypoint = punto."""
+    import xml.etree.ElementTree as ET
+    root = ET.fromstring(data)
+    ln = lambda el: el.tag.rsplit("}", 1)[-1]
+    out = []
+    for el in root:
+        t = ln(el)
+        name = next((c.text or "" for c in el if ln(c) == "name"), "").strip()
+        if t == "trk":
+            pts = [GeoPoint(float(p.get("lat")), float(p.get("lon"))) for p in el.iter() if ln(p) == "trkpt"]
+            if pts:
+                out.append(_geo_row(name, {}, pts))
+        elif t == "rte":
+            pts = [GeoPoint(float(p.get("lat")), float(p.get("lon"))) for p in el.iter() if ln(p) == "rtept"]
+            if pts:
+                out.append(_geo_row(name, {}, pts))
+        elif t == "wpt":
+            out.append(_geo_row(name, {}, None, (float(el.get("lat")), float(el.get("lon")))))
+    return out[:MAX_ROWS]
+
+
+def _rows_from_shapefile_zip(data: bytes):
+    """Shapefile comprimido (.zip con .shp, .dbf y .prj). Reproyecta a WGS84 si el .prj trae otro sistema."""
+    import zipfile, shapefile
+    z = zipfile.ZipFile(io.BytesIO(data))
+    names = z.namelist()
+    shp = next((n for n in names if n.lower().endswith(".shp")), None)
+    if not shp:
+        raise ValueError("el ZIP no contiene un .shp")
+    base = shp[:-4]
+    get = lambda ext: next((z.read(n) for n in names if n.lower() == (base + ext).lower()), None)
+    r = shapefile.Reader(shp=io.BytesIO(z.read(shp)), dbf=io.BytesIO(get(".dbf")) if get(".dbf") else None,
+                         shx=io.BytesIO(get(".shx")) if get(".shx") else None)
+    prj = get(".prj")
+    to_ll = None
+    if prj:
+        from rasterio.crs import CRS
+        from rasterio.warp import transform as _tf
+        crs = CRS.from_wkt(prj.decode("utf-8", errors="replace"))
+        if not crs.is_geographic:
+            to_ll = lambda xs, ys: _tf(crs, "EPSG:4326", xs, ys)
+    fields = [f[0] for f in r.fields[1:]]
+    out = []
+    for sr in r.iterShapeRecords():
+        props = dict(zip(fields, list(sr.record)))
+        geom = sr.shape
+        if not geom.points:
+            continue
+        ring = geom.points[: (geom.parts[1] if len(geom.parts) > 1 else len(geom.points))]
+        xs, ys = [p[0] for p in ring], [p[1] for p in ring]
+        if to_ll:
+            xs, ys = to_ll(xs, ys)
+        pts = [GeoPoint(float(y), float(x)) for x, y in zip(xs, ys)]
+        out.append(_geo_row("", props, pts if len(pts) >= 3 else None,
+                            (pts[0].lat, pts[0].lon) if len(pts) < 3 else None))
+        if len(out) >= MAX_ROWS:
+            break
     return out
 
 
@@ -102,6 +253,15 @@ def parse(data: bytes, filename: str):
             return _rows_from_geojson(data), []
         except Exception as e:
             return [], [f"GeoJSON inválido: {e}"]
+    geo = {".kml": (_rows_from_kml, "KML"), ".kmz": (_rows_from_kmz, "KMZ"), ".gpx": (_rows_from_gpx, "GPX"),
+           ".zip": (_rows_from_shapefile_zip, "Shapefile (.zip)")}
+    for ext, (fn, label) in geo.items():
+        if name.endswith(ext):
+            try:
+                rows = fn(data)
+            except Exception as e:
+                return [], [f"{label} inválido: {e}"]
+            return (rows, []) if rows else ([], [f"No encontré parcelas en el {label}."])
     raw = _rows_from_xlsx(data) if name.endswith((".xlsx", ".xlsm")) else _rows_from_csv(data)
     if not raw:
         return [], ["Archivo vacío"]
@@ -118,6 +278,7 @@ def parse(data: bytes, filename: str):
         row = {"producer": str(d.get("producer") or "").strip(),
                "commodity": str(d.get("commodity") or "").strip(),
                "region": str(d.get("region") or "").strip(),
+               "country": str(d.get("country") or "").strip(),
                "lot_key": str(d.get("lot_key") or "").strip(),
                "plot_id": str(d.get("plot_id") or "").strip(),
                "lat": _f(d.get("lat")), "lon": _f(d.get("lon")),
@@ -126,6 +287,8 @@ def parse(data: bytes, filename: str):
                "polygon": _parse_polygon(d.get("polygon"))}
         if not row["polygon"] and (row["lat"] is None or row["lon"] is None):
             errs.append(f"Fila {i}: sin coordenadas"); continue
+        if row["country"] and not _ct.valid(row["country"]):
+            errs.append(f"Fila {i}: país «{row['country']}» no reconocido (usa el código ISO de 2 letras, ej. CO)"); continue
         if row["lat"] is not None and not (-90 <= row["lat"] <= 90 and -180 <= row["lon"] <= 180):
             errs.append(f"Fila {i}: lat/lon fuera de rango"); continue
         rows.append(row)
@@ -134,7 +297,7 @@ def parse(data: bytes, filename: str):
     return rows, errs
 
 
-def create_lots(rows, coop_id, coop_name, captured_by):
+def create_lots(rows, coop_id, coop_name, captured_by, default_country=""):
     """Agrupa filas en lotes (por `lote` o por productor) y los guarda. Devuelve resumen."""
     now = datetime.datetime.utcnow().isoformat() + "Z"
     groups = {}
@@ -154,7 +317,8 @@ def create_lots(rows, coop_id, coop_name, captured_by):
             if q:
                 total_kg += q
         lot_id = "LOT-" + uuid.uuid4().hex[:8].upper()
-        lot = Lot(lot_id, first["producer"] or key, coop_name, commodity, "PE",
+        country = _ct.norm(first.get("country")) or _ct.norm(default_country) or _ct.DEFAULT
+        lot = Lot(lot_id, first["producer"] or key, coop_name, commodity, country,
                   first["region"], plots, "", "", (f"{total_kg:.0f} kg" if total_kg else ""),
                   coop_id, captured_by, now, {"imported": True})
         storage.save_lot(lot)
@@ -163,10 +327,10 @@ def create_lots(rows, coop_id, coop_name, captured_by):
 
 
 TEMPLATE_CSV = (
-    "productor,producto,region,lote,parcela,lat,lon,area_ha,cantidad_kg,poligono\n"
-    "Ana Quispe,cafe,San Martin,LOTE-A,P1,-6.4781,-76.3720,2.5,900,\n"
-    "Ana Quispe,cafe,San Martin,LOTE-A,P2,-6.4760,-76.3705,1.8,600,\n"
-    "Beto Rios,cacao,Cusco,,P1,,,5.2,1800,\"-12.869,-72.941; -12.869,-72.938; -12.866,-72.938; -12.866,-72.941\"\n"
+    "productor,producto,pais,region,lote,parcela,lat,lon,area_ha,cantidad_kg,poligono\n"
+    "Ana Quispe,cafe,PE,San Martin,LOTE-A,P1,-6.4781,-76.3720,2.5,900,\n"
+    "Ana Quispe,cafe,PE,San Martin,LOTE-A,P2,-6.4760,-76.3705,1.8,600,\n"
+    "Beto Rios,cacao,CO,Huila,,P1,,,5.2,1800,\"2.195,-75.631; 2.195,-75.628; 2.198,-75.628; 2.198,-75.631\"\n"
 )
 
 
@@ -185,14 +349,16 @@ def template_xlsx_bytes():
     hf = Font(bold=True, color="FFFFFF")
     for c in ws[1]:
         c.font = hf; c.fill = PatternFill("solid", fgColor="1344B0")
-    for col, w in zip("ABCDEFGHIJ", (16, 10, 12, 10, 9, 11, 11, 9, 12, 46)):
+    for col, w in zip("ABCDEFGHIJK", (16, 10, 7, 12, 10, 9, 11, 11, 9, 12, 46)):
         ws.column_dimensions[col].width = w
     notes = wb.create_sheet("Instrucciones")
     for t in (
         "Cómo usar esta plantilla (una fila = una parcela):",
-        "· productor: nombre del agricultor. · producto: cafe, cacao, palma, soya, caucho, madera o ganado. · region: departamento/zona.",
+        "· productor: nombre del agricultor. · producto: cafe, cacao, palma, soya, caucho, madera o ganado.",
+        "· pais: código ISO de 2 letras del país de producción (PE, CO, EC, BR, CI, ID…). Si se deja vacío, se usa el país de tu organización.",
+        "· region: departamento, estado o provincia donde está la parcela.",
         "· lote (opcional): filas con el mismo lote se agrupan en un solo lote. Si se deja vacío, se agrupa por productor.",
-        "· lat / lon: coordenadas decimales con al menos 5 decimales (en Perú lat es negativa, ej. -6.478123).",
+        "· lat / lon: coordenadas decimales con al menos 5 decimales (al sur del ecuador la latitud es negativa, ej. -6.478123).",
         "· area_ha: hectáreas de la parcela. · cantidad_kg: kilos estimados de la parcela.",
         "· poligono (opcional, para parcelas >4 ha): vértices 'lat,lon; lat,lon; ...' (mínimo 3). Si se llena, lat/lon pueden quedar vacíos.",
         "Guarde el archivo y súbalo en 'Importar parcelas' (app o panel).",

@@ -18,7 +18,7 @@ class Lot:
     producer_name: str
     cooperative: str
     commodity: str                  # coffee | cocoa | oil_palm | soya | rubber | wood | cattle (ver commodities.py)
-    country: str = "PE"
+    country: str = ""               # ISO 3166-1 alfa-2 del país de producción (countries.py)
     region: str = ""
     plots: List[Plot] = field(default_factory=list)
     harvest_season: str = ""
@@ -51,3 +51,4 @@ class DeforestationFinding:
     loss_after_cutoff: bool
     detail: str = ""
     alert_points: list | None = None  # [{lat,lon,date}] pixeles de alerta (para ubicar en campo)
+    sat: dict | None = None           # evidencia propia Sentinel-2 / Sentinel-1 (satellite.py)

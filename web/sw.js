@@ -1,7 +1,7 @@
 /* Origen — service worker. Red primero para lo propio (los deploys se ven al instante);
    cache solo como respaldo offline para la captura en campo. */
-const CACHE = 'origen-v4';
-const SHELL = ['/capturar', '/manifest.webmanifest', '/static/icon-192.png'];
+const CACHE = 'origen-v5';
+const SHELL = ['/capturar', '/manifest.webmanifest', '/static/icon-192.png', '/static/countries.js'];
 const CANONICAL = 'https://eudrperu.com';
 // LEGACY: la URL antigua de Cloud Run. Durante la migración NO se autodestruye
 // (los teléfonos con colas pendientes deben poder sincronizar desde ahí), pero

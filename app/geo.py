@@ -1,4 +1,5 @@
 from .models import Lot, Plot
+from . import countries as _ct
 
 def _r6(v):
     """≥6 decimales como exige el sistema de la UE (TRACES trunca a 6)."""
@@ -18,7 +19,7 @@ def traces_properties(lot: Lot, plot: Plot, risk=None):
     ProducerName, ProducerCountry (ISO2), ProductionPlace y Area (ha; requerida para puntos)."""
     props = {
         "ProducerName": lot.producer_name or "",
-        "ProducerCountry": (lot.country or "PE"),
+        "ProducerCountry": _ct.of_lot(lot),
         "ProductionPlace": lot.region or lot.lot_id,
     }
     if len(plot.points) < 3 and plot.area_ha:   # punto: el área no se deriva de la geometría

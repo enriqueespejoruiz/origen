@@ -3,6 +3,7 @@ redacta legalidad y responde preguntas. Con fallbacks deterministas para no romp
 import json
 from . import config
 from . import commodities as _cm
+from . import countries as _ct
 
 _EUDR = (
     "Contexto EUDR (Reglamento UE 2023/1115): para café, cacao, palma aceitera, soya, caucho, madera y "
@@ -14,7 +15,7 @@ _EUDR = (
     "Diligencia Debida (DDS) la presenta el operador importador en la UE vía TRACES."
 )
 _ROLE = ("Eres el copiloto de cumplimiento EUDR de Origen: experto, honesto y claro. Hablas en español "
-         "sencillo para el gerente de una organización productora o exportadora del Perú. "
+         "sencillo para el gerente de una organización productora o exportadora (de cualquier país productor). "
          "No inventes datos ni cifras.")
 
 
@@ -111,7 +112,8 @@ def _fb_reco(findings):
 
 def _fb_legal(lot):
     return (f"La producción del lote {lot.lot_id} proviene de predios de "
-            f"{lot.cooperative or 'la cooperativa'} en {lot.region or 'la región'}, Perú, bajo tenencia "
+            f"{lot.cooperative or 'la cooperativa'} en {lot.region or 'la región'}, "
+            f"{_ct.name(_ct.of_lot(lot))}, bajo tenencia "
             "conforme a la legislación nacional. Adjuntar título o derecho de uso del predio y la "
             "conformidad ambiental, forestal y laboral por parcela.")
 

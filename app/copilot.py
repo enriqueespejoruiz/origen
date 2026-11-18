@@ -2,9 +2,11 @@
 redacta legalidad y responde preguntas. Con fallbacks deterministas para no romper la demo."""
 import json
 from . import config
+from . import commodities as _cm
 
 _EUDR = (
-    "Contexto EUDR (Reglamento UE 2023/1115): para café y cacao que entran a la UE hay que probar, "
+    "Contexto EUDR (Reglamento UE 2023/1115): para café, cacao, palma aceitera, soya, caucho, madera y "
+    "ganado bovino (y sus derivados) que entran a la UE hay que probar, "
     "parcela por parcela, que el producto no viene de tierra deforestada después del 31-dic-2020, "
     "además de legalidad. Obligatorio desde 30-dic-2026 (grandes/medianos) y 30-jun-2027 (pequeños). "
     "No se permite mezclar material conforme con no conforme (no hay mass-balance): una parcela "
@@ -12,13 +14,14 @@ _EUDR = (
     "Diligencia Debida (DDS) la presenta el operador importador en la UE vía TRACES."
 )
 _ROLE = ("Eres el copiloto de cumplimiento EUDR de Origen: experto, honesto y claro. Hablas en español "
-         "sencillo para el gerente de una cooperativa de café o cacao del Perú. No inventes datos ni cifras.")
+         "sencillo para el gerente de una organización productora o exportadora del Perú. "
+         "No inventes datos ni cifras.")
 
 
 def _gemini(prompt, json_mode=False):
     from . import gemini as g
     cfg = {"response_mime_type": "application/json"} if json_mode else None
-    resp = g._client().models.generate_content(model=config.GEMINI_MODEL, contents=prompt, config=cfg)
+    resp = g.generate(prompt, cfg)
     return resp.text
 
 
@@ -39,7 +42,7 @@ def analyze_lot(lot, findings):
         return base
     prompt = (
         _ROLE + " " + _EUDR + "\n\n"
-        f"Lote {lot.lot_id} ({lot.commodity}, región {lot.region or '—'}, productor {lot.producer_name or '—'}). "
+        f"Lote {lot.lot_id} ({_cm.label(lot.commodity)}, región {lot.region or '—'}, productor {lot.producer_name or '—'}). "
         f"Hallazgos por parcela:\n{_findings_text(findings)}\n\n"
         "Devuelve SOLO JSON con las claves exactas: "
         "resumen (1-2 frases del estado del lote), "
@@ -68,7 +71,7 @@ def chat(question, lot=None, findings=None):
         return _fb_chat()
     ctx = ""
     if lot is not None:
-        ctx = (f"\nLote en contexto: {lot.lot_id} ({lot.commodity}, {lot.region or '—'}). "
+        ctx = (f"\nLote en contexto: {lot.lot_id} ({_cm.label(lot.commodity)}, {lot.region or '—'}). "
                f"Hallazgos:\n{_findings_text(findings or [])}\n")
     prompt = (_ROLE + " " + _EUDR + ctx + f"\nPregunta del usuario: {question}\n"
               "Responde útil, honesto y breve (máx ~130 palabras). Si no lo sabes, dilo.")

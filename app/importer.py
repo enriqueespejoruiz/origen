@@ -7,6 +7,7 @@ Encabezados flexibles (ES/EN). Una fila = una parcela. Las filas se agrupan en l
 import csv, io, json, re, uuid, datetime
 from .models import Lot, Plot, GeoPoint
 from . import storage
+from . import commodities as _cm
 
 MAX_ROWS = 1000
 
@@ -143,7 +144,7 @@ def create_lots(rows, coop_id, coop_name, captured_by):
     created = []
     for key, rs in groups.items():
         first = rs[0]
-        commodity = _COMM.get(first["commodity"].lower(), first["commodity"].lower() or "coffee")
+        commodity = _cm.norm(first["commodity"])
         plots, total_kg = [], 0.0
         for n, r in enumerate(rs, start=1):
             pid = r["plot_id"] or f"P{n}"
@@ -189,7 +190,7 @@ def template_xlsx_bytes():
     notes = wb.create_sheet("Instrucciones")
     for t in (
         "Cómo usar esta plantilla (una fila = una parcela):",
-        "· productor: nombre del agricultor. · producto: cafe o cacao. · region: departamento/zona.",
+        "· productor: nombre del agricultor. · producto: cafe, cacao, palma, soya, caucho, madera o ganado. · region: departamento/zona.",
         "· lote (opcional): filas con el mismo lote se agrupan en un solo lote. Si se deja vacío, se agrupa por productor.",
         "· lat / lon: coordenadas decimales con al menos 5 decimales (en Perú lat es negativa, ej. -6.478123).",
         "· area_ha: hectáreas de la parcela. · cantidad_kg: kilos estimados de la parcela.",

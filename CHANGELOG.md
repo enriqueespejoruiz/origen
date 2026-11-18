@@ -2,6 +2,21 @@
 
 Formato: cambios agrupados por fecha. El proyecto sigue el espíritu *build-in-public* del XPRIZE.
 
+## 2026-11-04 — Los 7 productos del EUDR, Gemini vigente y tecnología en la landing
+- **Catálogo de productos** (`app/commodities.py`): café, cacao, palma aceitera, soya, caucho, madera y
+  ganado bovino, con alias (cacao→cocoa, palma→oil_palm, jebe→rubber…), partida SA por defecto,
+  nombre científico y reglas. El dossier muestra el producto en su idioma; `extra.hs` y `extra.species`
+  precisan la partida y la especie. Madera pide especie; ganado admite un punto por establecimiento.
+- El anti-fraude de volumen solo se aplica donde hay techo fiable (café y cacao); antes, un producto
+  desconocido caía en el techo del café. Los envíos comparan el producto normalizado (cacao = cocoa).
+- **Gemini**: modelo por defecto `gemini-3.5-flash-lite` (Google retira `gemini-2.5-flash`), con respaldo
+  automático `gemini-2.5-flash` → `gemini-3.8-flash` si un modelo no existe; `GOOGLE_CLOUD_LOCATION=global`.
+  `/api/health` informa el modelo activo y la cadena de respaldo.
+- **Landing**: sección de tecnología con las 4 fuentes (satélites, resolución, qué responde cada una),
+  reglas del veredicto y sello en Bitcoin; sección de los 7 productos; FAQ actualizada. Traducido a los
+  22 idiomas.
+- Tests: `tests/test_commodities.py` (389 en total).
+
 ## 2026-06-27 (2) — Demo por link + importación masiva
 - **Acceso demo** `GET /demo?key=…` (env `DEMO_KEY`): sesión de invitado sin login, coop sandbox
   precargada (3 lotes con veredictos distintos + envío "Contenedor Taipéi #1"). 404 sin la llave.

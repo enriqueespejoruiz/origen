@@ -17,7 +17,7 @@ class Lot:
     lot_id: str
     producer_name: str
     cooperative: str
-    commodity: str                  # coffee | cocoa
+    commodity: str                  # coffee | cocoa | oil_palm | soya | rubber | wood | cattle (ver commodities.py)
     country: str = "PE"
     region: str = ""
     plots: List[Plot] = field(default_factory=list)
@@ -36,7 +36,7 @@ class Consignment:
     consignment_id: str
     coop_id: str = ""
     name: str = ""                  # ej. "Contenedor Hamburgo #1"
-    commodity: str = ""             # coffee | cocoa
+    commodity: str = ""             # un solo producto por envío (ver commodities.py)
     destination: str = ""           # país / puerto de destino UE
     buyer: str = ""                 # operador importador (UE)
     lot_ids: List[str] = field(default_factory=list)

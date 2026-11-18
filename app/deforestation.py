@@ -3,7 +3,7 @@ from . import config
 from .models import Lot, DeforestationFinding
 
 GFW_BASE = "https://data-api.globalforestwatch.org"
-JRC_COG = "https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/FOREST/GFC2020/LATEST/single-cog/JRC_GFC2020_V3_COG.tif"
+JRC_COG = "https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/FOREST/GFC2020/LATEST/single-cog/JRC_GFC2020_V4_COG.tif"
 _VERSION = None
 
 def check_plots(lot: Lot):
@@ -18,6 +18,12 @@ def check_plots(lot: Lot):
     return _stub_check(lot)
 
 # ---------- Global Forest Watch (Hansen tree cover loss, licencia abierta CC-BY) ----------
+
+def _gfw_headers():
+    h = {"x-api-key": config.GFW_API_KEY, "Content-Type": "application/json"}
+    if config.GFW_ORIGIN:
+        h["Origin"] = config.GFW_ORIGIN
+    return h
 
 def _resolve_version():
     # Usamos la version configurada (estable y consultable). La "latest" puede
@@ -47,7 +53,7 @@ def _gfw_loss_ha(geometry):
     url = f"{GFW_BASE}/dataset/umd_tree_cover_loss/{_resolve_version()}/query/json"
     sql = f"SELECT SUM(area__ha) AS loss FROM results WHERE umd_tree_cover_loss__year > {config.CUTOFF_YEAR}"
     r = requests.post(url,
-                      headers={"x-api-key": config.GFW_API_KEY, "Content-Type": "application/json"},
+                      headers=_gfw_headers(),
                       json={"sql": sql, "geometry": geometry}, timeout=30)
     if not r.ok: raise RuntimeError(f"{r.status_code}: {r.text[:150]}")
     rows = r.json().get("data", [])
@@ -61,7 +67,7 @@ def _gfw_alerts(geometry):
     sql = ("SELECT SUM(area__ha) AS ha FROM results "
            f"WHERE gfw_integrated_alerts__date > '{cutoff}'")
     r = requests.post(url,
-                      headers={"x-api-key": config.GFW_API_KEY, "Content-Type": "application/json"},
+                      headers=_gfw_headers(),
                       json={"sql": sql, "geometry": geometry}, timeout=30)
     if not r.ok: raise RuntimeError(f"{r.status_code}: {r.text[:120]}")
     rows = r.json().get("data", [])
@@ -75,7 +81,7 @@ def _gfw_alert_points(geometry, limit=25):
     sql = ("SELECT latitude, longitude, gfw_integrated_alerts__date "
            f"FROM results WHERE gfw_integrated_alerts__date > '{cutoff}' LIMIT {limit}")
     r = requests.post(url,
-                      headers={"x-api-key": config.GFW_API_KEY, "Content-Type": "application/json"},
+                      headers=_gfw_headers(),
                       json={"sql": sql, "geometry": geometry}, timeout=30)
     if not r.ok: raise RuntimeError(f"{r.status_code}: {r.text[:120]}")
     out = []
@@ -93,7 +99,7 @@ def _gfw_protected(geometry):
     import requests
     url = f"{GFW_BASE}/dataset/wdpa_protected_areas/latest/query/json"
     r = requests.post(url,
-                      headers={"x-api-key": config.GFW_API_KEY, "Content-Type": "application/json"},
+                      headers=_gfw_headers(),
                       json={"sql": "SELECT count(*) AS n FROM results", "geometry": geometry}, timeout=30)
     if not r.ok: raise RuntimeError(f"{r.status_code}: {r.text[:120]}")
     rows = r.json().get("data", [])
@@ -127,7 +133,7 @@ def _jrc_sample_points(plot, max_pts=32):
 
 def _jrc_forest(plot):
     """Fraccion [0..1] de puntos muestreados que eran bosque en 2020 segun el mapa oficial de la UE
-    (JRC GFC2020 V3, COG). Muestrea centroide + vertices + rejilla interior (no un solo punto)."""
+    (JRC GFC2020 V4, COG). Muestrea centroide + vertices + rejilla interior (no un solo punto)."""
     import os as _os
     _os.environ.setdefault("GDAL_DISABLE_READDIR_ON_OPEN", "EMPTY_DIR")
     _os.environ.setdefault("CPL_VSIL_CURL_ALLOWED_EXTENSIONS", ".tif")

@@ -212,6 +212,14 @@ footer nav{display:flex;flex-wrap:wrap;gap:6px 20px}
 footer nav a{font:500 11.5px var(--m);letter-spacing:.06em;text-transform:uppercase;text-decoration:none;color:#C9D4EE}
 footer nav a:hover{color:var(--ochre-2)}
 
+.fuentes .item b{font-size:22px}
+.fuentes .meta{display:block;font:500 11.5px/1.5 var(--m);letter-spacing:.06em;text-transform:uppercase;color:var(--wing-2);margin-bottom:8px}
+.reglas{margin-top:48px}
+.reglas .col b{font-size:26px}
+.prods{display:grid;grid-template-columns:repeat(4,1fr);gap:0 32px}
+.prods .item{grid-template-columns:40px 1fr;gap:12px}
+.prods .item i{font-size:26px}
+.prods .item b{font-size:22px}
 /* ---------- responsive ---------- */
 @media(max-width:960px){
   .hero .wrap,.envio .wrap,.plazo .wrap{grid-template-columns:1fr;gap:44px}
@@ -219,6 +227,7 @@ footer nav a:hover{color:var(--ochre-2)}
   .ruta::before{top:28px;bottom:28px;left:27px;right:auto;border-top:0;border-left:3px dotted var(--wing)}
   .paso{padding-left:80px}.paso .n{position:absolute;left:0;top:0}.paso .k{margin-top:4px}
   .sellos,.cols,.indice,.faq{grid-template-columns:1fr}
+  .prods{grid-template-columns:repeat(2,1fr)}
   .col+.col{padding-left:0;border-left:0;border-top:1px solid var(--rule)}
   .cifras .wrap{grid-template-columns:repeat(2,1fr);gap:32px 0}
   .cifra:nth-child(3){padding-left:0;border-left:0}
@@ -227,6 +236,7 @@ footer nav a:hover{color:var(--ochre-2)}
 }
 @media(max-width:520px){
   .wrap{padding-inline:18px}
+  .prods{grid-template-columns:1fr}
   section{padding-block:72px}
   .hero .wrap{padding-block:52px 64px}
   .coords{display:none}
@@ -271,7 +281,7 @@ footer nav a:hover{color:var(--ochre-2)}
   <span class="coords" aria-hidden="true">13°31′S · 71°57′W</span>
   <div class="wrap">
     <div>
-      <span class="tag">Cumplimiento EUDR · café y cacao</span>
+      <span class="tag">Cumplimiento EUDR · café, cacao, palma y más</span>
       <h1 id="h1">Cumple el EUDR, o tu café se queda <span class="hl">fuera de Europa.</span></h1>
       <p class="sub">Tu comprador europeo ya está pidiendo la prueba. Origen la genera: geolocalización parcela por parcela, verificación contra 4 fuentes satelitales y el dossier + GeoJSON listo para TRACES. Y consolida decenas de parcelas, de muchos productores y regiones, en un solo dossier por envío — capturado desde el celular, en minutos.</p>
       <div class="cta-row">
@@ -385,6 +395,25 @@ footer nav a:hover{color:var(--ochre-2)}
   </div>
 </section>
 
+<section class="productos" aria-labelledby="h-prod">
+  <div class="wrap">
+    <div class="shead">
+      <span class="eye">Productos del EUDR</span>
+      <h2 id="h-prod">Los 7 productos del EUDR, en una sola plataforma.</h2>
+      <p class="lead">Origen verifica la parcela de origen de cualquier producto del EUDR y de sus derivados. La partida exacta la declara el operador en su declaración de diligencia debida.</p>
+    </div>
+    <div class="prods">
+      <div class="item"><i>1</i><div><b>Café</b><p>Verde, tostado o descafeinado.</p></div></div>
+      <div class="item"><i>2</i><div><b>Cacao</b><p>Grano, pasta, manteca, polvo y chocolate.</p></div></div>
+      <div class="item"><i>3</i><div><b>Palma aceitera</b><p>Aceite de palma y de palmiste, y sus tortas.</p></div></div>
+      <div class="item"><i>4</i><div><b>Soya</b><p>Grano, harina, aceite y torta.</p></div></div>
+      <div class="item"><i>5</i><div><b>Caucho natural</b><p>Caucho, neumáticos, guantes y otras manufacturas.</p></div></div>
+      <div class="item"><i>6</i><div><b>Madera</b><p>Aserrada, tableros, muebles, papel y cartón, con la especie de cada lote.</p></div></div>
+      <div class="item"><i>7</i><div><b>Ganado bovino</b><p>Animales vivos y carne, con un punto por cada establecimiento.</p></div></div>
+    </div>
+  </div>
+</section>
+
 <section aria-labelledby="h-why">
   <div class="wrap">
     <div class="shead">
@@ -405,13 +434,17 @@ footer nav a:hover{color:var(--ochre-2)}
     <div class="shead">
       <span class="eye">Tecnología transparente</span>
       <h2 id="h-tech">Potente por dentro, sin cajas negras.</h2>
-      <p class="lead">Todo lo que afirmamos se puede comprobar: datos abiertos, IA de Google y una huella digital que cualquiera verifica.</p>
+      <p class="lead">Cruzamos cada parcela con 4 fuentes públicas, construidas con tres familias de satélites: Landsat, Sentinel-2 y el radar Sentinel-1. Y sellamos cada dossier en Bitcoin.</p>
     </div>
-    <div class="indice">
-      <div class="item"><i>1</i><div><b>4 fuentes satelitales abiertas</b><p>Hansen, alertas GFW, áreas protegidas (WDPA) y el mapa de referencia JRC 2020 de la UE. De licencia abierta, sin candados.</p></div></div>
-      <div class="item"><i>2</i><div><b>IA de Google (Gemini)</b><p>Gemini, sobre Vertex AI, redacta el dictamen legible para tu comprador. El veredicto sale de los satélites, no del modelo: explicable y defendible.</p></div></div>
-      <div class="item"><i>3</i><div><b>Notarización en cadena (blockchain)</b><p>Cada dossier lleva una huella SHA-256 y un QR. Cualquiera escanea, sube el PDF y confirma que es auténtico y desde cuándo existe — sin que el archivo salga de su equipo.</p></div></div>
-      <div class="item"><i>4</i><div><b>Abierto y auditable</b><p>Sin mapas con licencia cerrada ni "confía en mí". Puedes ver y verificar cada fuente y cada dato — lo contrario de las cajas negras de los grandes.</p></div></div>
+    <div class="indice fuentes">
+      <div class="item"><i>1</i><div><b>Pérdida de cobertura arbórea</b><span class="meta">Universidad de Maryland · Landsat · 30 m</span><p>Cada año desde 2001. Responde si se perdieron árboles en la parcela después de 2020.</p></div></div>
+      <div class="item"><i>2</i><div><b>Alertas de deforestación</b><span class="meta">GLAD y RADD · Landsat, Sentinel-2 y radar Sentinel-1 · 10 m</span><p>Casi en tiempo real, y el radar ve a través de las nubes. Ubica el píxel y la fecha de cada alerta para verificarla en campo.</p></div></div>
+      <div class="item"><i>3</i><div><b>Mapa de bosque 2020 de la UE</b><span class="meta">Centro Común de Investigación (JRC) · 10 m</span><p>La referencia de la Comisión Europea. Muestreamos hasta 32 puntos por parcela para saber si era bosque en 2020.</p></div></div>
+      <div class="item"><i>4</i><div><b>Áreas protegidas</b><span class="meta">WDPA · UNEP-WCMC y UICN</span><p>Límites oficiales de áreas protegidas. Si la parcela invade una, la marcamos para revisar su legalidad.</p></div></div>
+    </div>
+    <div class="cols reglas">
+      <div class="col"><b>Reglas, no IA</b><p>Rojo: pérdida o alertas de 0,1 ha o más después de 2020. Ámbar: una señal menor, un área protegida o bosque 2020 en el 80% de la parcela. Verde: sin señales. Gemini solo redacta el resumen y explica cada hallazgo.</p></div>
+      <div class="col"><b>Sellado en Bitcoin</b><p>Calculamos la huella SHA-256 del PDF y la anclamos en la cadena de Bitcoin con OpenTimestamps. Tu comprador escanea el QR o usa las herramientas abiertas de OpenTimestamps: si cambia un solo carácter, la prueba falla.</p></div>
     </div>
   </div>
 </section>
@@ -509,7 +542,7 @@ footer nav a:hover{color:var(--ochre-2)}
         <details><summary>¿Necesito internet en la parcela?</summary><p>No. El técnico captura todo en el celular —GPS y foto— sin señal, y las parcelas se envían solas cuando vuelve la conexión.</p></details>
         <details><summary>¿Qué pasa si una parcela tiene deforestación?</summary><p>Se marca como «revisar» o «deforestación» para que la verifiques antes de enviarla a tu comprador. Origen es la herramienta de detección; la decisión final es tuya y del operador europeo.</p></details>
         <details><summary>¿Quién presenta la declaración en la UE?</summary><p>El operador europeo (tu comprador/importador) la presenta en el sistema de la UE. Origen le entrega el paquete de datos listo para que pueda hacerlo.</p></details>
-        <details><summary>¿Sirve para café y cacao?</summary><p>Sí, y para cualquier producto del EUDR cuyo origen sea una parcela. Hoy nos enfocamos en café y cacao; para el café, mira la <a href="/eudr-cafe-peru">guía EUDR para el café peruano</a>, y para el cacao, la <a href="/eudr-cacao-peru">guía EUDR para el cacao peruano</a>.</p></details>
+        <details><summary>¿Sirve para palma, madera u otros productos?</summary><p>Sí. Origen cubre los 7 productos del EUDR —café, cacao, palma aceitera, soya, caucho, madera y ganado bovino— y sus derivados. En madera registras la especie; en ganado, un punto por establecimiento. Para el café, mira la <a href="/eudr-cafe-peru">guía EUDR para el café peruano</a>, y para el cacao, la <a href="/eudr-cacao-peru">guía EUDR para el cacao peruano</a>.</p></details>
       </div>
       <div>
         <details><summary>¿Y las parcelas grandes (más de 4 ha)?</summary><p>La app deja caminar el perímetro y registrar el polígono de límites con el GPS — el formato que la UE exige para predios de más de 4 hectáreas. Las parcelas chicas se registran con un punto.</p></details>

@@ -3,7 +3,10 @@ import os
 def _b(v): return str(v).lower() in ("1", "true", "yes", "on")
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GEMINI_MODEL   = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_MODEL   = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+# Modelos de respaldo si el principal no existe o fue retirado (Google retira versiones cada año).
+GEMINI_FALLBACKS = [m.strip() for m in os.getenv(
+    "GEMINI_FALLBACKS", "gemini-3.5-flash-lite,gemini-2.5-flash,gemini-3.8-flash").split(",") if m.strip()]
 USE_VERTEX     = _b(os.getenv("GOOGLE_GENAI_USE_VERTEXAI", "0"))
 GCP_PROJECT    = os.getenv("GOOGLE_CLOUD_PROJECT", "")
 GCP_LOCATION   = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
@@ -12,11 +15,15 @@ HANSEN_ASSET   = os.getenv("HANSEN_ASSET", "UMD/hansen/global_forest_change_2023
 CUTOFF_YEAR    = int(os.getenv("DEFORESTATION_CUTOFF_YEAR", "2020"))
 GFW_API_KEY    = os.getenv("GFW_API_KEY", "")
 GFW_VERSION    = os.getenv("GFW_VERSION", "v1.11")
+# Dominio registrado en la API key de GFW: las keys con dominios exigen un header Origin que coincida.
+GFW_ORIGIN     = os.getenv("GFW_ORIGIN", "https://eudrperu.com")
+# ArcGIS Location Platform (imagen satelital del dossier, uso comercial con atribución "Powered by Esri").
+ESRI_API_KEY   = os.getenv("ESRI_API_KEY", "")
 LOSS_THRESHOLD_HA = float(os.getenv("LOSS_THRESHOLD_HA", "0.1"))
 ALERTS_THRESHOLD  = int(os.getenv("ALERTS_THRESHOLD", "3"))
 # Techos de rendimiento plausible (kg por ha) para el chequeo anti-fraude de volumen.
 # Generosos a propósito (rinde alto + margen) para evitar falsos positivos; sobre esto = revisar.
-YIELD_CEIL_KG_HA = {"coffee": 2500.0, "cafe": 2500.0, "cocoa": 2000.0, "cacao": 2000.0}
+YIELD_CEIL_KG_HA = {"coffee": 2500.0, "cafe": 2500.0, "cocoa": 2000.0, "cacao": 2000.0}  # ver commodities.py
 GCS_BUCKET     = os.getenv("GCS_BUCKET", "")
 DATA_DIR       = os.getenv("DATA_DIR", "./_data")
 # --- Login con Google ---

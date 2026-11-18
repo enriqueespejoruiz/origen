@@ -54,7 +54,10 @@ def volume_issues(lot):
         m = _re.search(r"[\d.]+", q)
         kg = float(m.group()) if m else 0.0
         if total_ha > 0 and kg > 0:
-            ceil = config.YIELD_CEIL_KG_HA.get((lot.commodity or "").lower(), 2500.0)
+            from . import commodities as _cm
+            ceil = _cm.yield_ceiling(lot.commodity)
+            if ceil is None:   # palma, soya, caucho, madera, ganado: sin techo fiable por unidad declarada
+                return issues
             yld = kg / total_ha
             if yld > ceil:
                 issues.append(

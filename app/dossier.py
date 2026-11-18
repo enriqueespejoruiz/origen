@@ -1,6 +1,7 @@
 import os, json, datetime
 from .geo import lot_to_geojson, traces_properties, plot_geometry, volume_issues
 from . import config
+from . import commodities as _cm
 
 def _ensure(d): os.makedirs(d, exist_ok=True)
 
@@ -62,10 +63,11 @@ _STR = {
         "h_plots": "Parcelas y verificación",
         "th": ["Parcela", "Latitud", "Longitud", "Área (ha)", "Riesgo", "Detalle / fuente"],
         "poly": "polígono", "verts": "vért.",
-        "geom_note": ("Geometría: las parcelas mayores a 4 ha se registran como polígono de límites (vértices GPS); "
+        "geom_note": ("Geometría: las parcelas mayores a 4 ha se registran como polígono de límites (vértices GPS), "
+                      "salvo establecimientos ganaderos, que admiten un punto; "
                       "las coordenadas mostradas corresponden al centroide. "
                       "Fecha de corte de deforestación: 31 de diciembre de 2020."),
-        "map_cap": "Ubicación de la parcela sobre imagen satelital (Esri World Imagery).",
+        "map_cap": "Ubicación de la parcela sobre imagen satelital. Powered by Esri · Fuente: Esri y sus proveedores de imagen.",
         "h_photo": "Foto del predio", "photo_cap": "Fotografía tomada en campo durante la captura (evidencia de origen).",
         "dq": "Calidad de datos: ", "dq_ok": "Calidad de datos: geometría válida (sin auto-intersecciones; área plausible).",
         "h_eval": "Evaluación de diligencia debida",
@@ -95,9 +97,10 @@ _STR = {
         "h_plots": "Plots & verification",
         "th": ["Plot", "Latitude", "Longitude", "Area (ha)", "Risk", "Detail / source"],
         "poly": "polygon", "verts": "verts.",
-        "geom_note": ("Geometry: plots larger than 4 ha are recorded as a boundary polygon (GPS vertices); "
+        "geom_note": ("Geometry: plots larger than 4 ha are recorded as a boundary polygon (GPS vertices), "
+                      "except cattle establishments, which may be a single point; "
                       "coordinates shown are the centroid. Deforestation cut-off date: 31 December 2020."),
-        "map_cap": "Plot location over satellite imagery (Esri World Imagery).",
+        "map_cap": "Plot location over satellite imagery. Powered by Esri · Source: Esri and its imagery providers.",
         "h_photo": "Field photo", "photo_cap": "Photograph taken in the field during capture (origin evidence).",
         "dq": "Data quality: ", "dq_ok": "Data quality: valid geometry (no self-intersections; plausible area).",
         "h_eval": "Due diligence assessment",
@@ -124,8 +127,14 @@ def plot_map_png(plot, out_path, size=(1000, 460), alerts=None):
     except Exception:
         return None
     try:
-        url = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-        m = StaticMap(size[0], size[1], url_template=url, padding_x=50, padding_y=50)
+        if config.ESRI_API_KEY:   # ArcGIS Location Platform: licencia comercial
+            # World Imagery autenticado (el servicio de teselas estáticas no ofrece imagen satelital)
+            url = ("https://ibasemaps-api.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                   "?token=" + config.ESRI_API_KEY)
+            m = StaticMap(size[0], size[1], url_template=url, padding_x=50, padding_y=50)
+        else:
+            url = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            m = StaticMap(size[0], size[1], url_template=url, padding_x=50, padding_y=50)
         pts = plot.points
         poly = len(pts) >= 3
         if poly:
@@ -145,7 +154,8 @@ def plot_map_png(plot, out_path, size=(1000, 460), alerts=None):
         img.convert("RGB").save(out_path, "JPEG", quality=82)
         return out_path
     except Exception as e:
-        print("map render error:", repr(e))
+        import re as _re_tok
+        print("map render error:", _re_tok.sub(r"token=[^'\"&) ]+", "token=***", repr(e))[:400])
         return None
 
 def _img_dims(path, max_w, max_h):
@@ -189,7 +199,7 @@ def build_pdf(lot, findings, narrative, profile, out_dir, lang=None, photo_path=
     RC = {"negligible": colors.HexColor("#2F8F4E"), "review": GOLD, "high": colors.HexColor("#C0392B")}
 
     risk = overall_risk(findings)
-    hs = _HS.get((lot.commodity or "").lower(), ("—", "—", lot.commodity or "—"))
+    hs = _cm.info(lot.commodity, lang, lot.extra)
     today = datetime.date.today().isoformat()
 
     P  = ParagraphStyle("P",  textColor=INK, fontName="Helvetica", fontSize=9.5, leading=13)
@@ -513,7 +523,7 @@ def build_consignment_pdf(cons, items, out_dir, lang=None):
 
     verdict = consignment_verdict(items)
     commodity = cons.get("commodity") or (items[0][0].commodity if items else "")
-    hs = _HS.get((commodity or "").lower(), ("—", "—", commodity or "—"))
+    hs = _cm.info(commodity, lang, cons.get("extra"))
     today = datetime.date.today().isoformat()
 
     n_plots = sum(len(lot.plots) for lot, _ in items)

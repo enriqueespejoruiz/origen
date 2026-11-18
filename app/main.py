@@ -4,6 +4,7 @@ from fastapi.responses import FileResponse, Response, RedirectResponse
 from pydantic import BaseModel
 from . import gemini, deforestation, dossier, storage, config, auth, geo, notarize, copilot, scoring, portability, whatsapp, monitor, importer
 from . import i18n_pages
+from . import commodities as _cm
 from .models import Lot, Plot, GeoPoint, Consignment, DeforestationFinding
 
 app = FastAPI(title="Origen - EUDR + Export Copilot")
@@ -21,6 +22,9 @@ _CANONICAL_HOST = config.PUBLIC_BASE_URL.split("://", 1)[-1].strip("/")
 _NO_REDIRECT = ("/capturar", "/capture", "/api", "/lots", "/consignments", "/auth",
                 "/healthz", "/sw.js", "/manifest", "/static", "/cron", "/webhooks", "/admin")
 
+_PRIVATE_PATHS = ("/lots", "/consignments", "/api", "/share", "/s/", "/admin", "/auth", "/cron",
+                  "/copilot", "/capture", "/demo", "/webhooks")
+
 @app.middleware("http")
 async def _canonical_host(request, call_next):
     host = (request.headers.get("host") or "").split(":")[0]
@@ -35,6 +39,11 @@ async def _canonical_host(request, call_next):
     response = await call_next(request)
     if request.url.path.startswith("/static/") and request.url.path.endswith(".html"):
         response.headers["X-Robots-Tag"] = "noindex, nofollow"   # copia cruda: la página real es su ruta pública
+    # Datos de clientes: nunca en la caché de Cloudflare ni de navegadores compartidos.
+    if request.url.path.startswith(_PRIVATE_PATHS):
+        response.headers["Cache-Control"] = "private, no-store, max-age=0"
+        response.headers["CDN-Cache-Control"] = "no-store"
+        response.headers["Cloudflare-CDN-Cache-Control"] = "no-store"
     return response
 
 from fastapi.staticfiles import StaticFiles
@@ -318,7 +327,7 @@ def healthz():
         except Exception as e:
             print("HEALTHZ-FIRESTORE:", repr(e)[:200])
             fs_ok = False
-    return {"ok": True, "model": config.GEMINI_MODEL, "firestore_ok": fs_ok,
+    return {"ok": True, "model": gemini.active_model(), "models": gemini.models_chain(), "firestore_ok": fs_ok,
             "gemini_ready": config.gemini_ready(), "auth_ready": config.auth_ready()}
 
 @app.get("/panel")
@@ -452,15 +461,15 @@ def create_consignment(c: ConsignmentIn, request: Request):
     commodities = set(); countries = set()
     for lid in ids:
         lot = _load_owned(lid, ctx)      # valida que el lote sea de esta cooperativa
-        if lot.commodity: commodities.add(lot.commodity.lower())
+        if lot.commodity: commodities.add(_cm.norm(lot.commodity))
         countries.add(lot.country or "PE")
     # La DDS es por operador / producto / país: no se pueden mezclar en un mismo envío.
     if len(commodities) > 1:
         raise HTTPException(400, "Un envío debe ser de un solo producto (la DDS es por producto). "
-                                 "Separa café y cacao en envíos distintos.")
+                                 "Separa cada producto en un envío distinto.")
     if len(countries) > 1:
         raise HTTPException(400, "Un envío debe ser de un solo país de producción.")
-    commodity = c.commodity or (next(iter(commodities)) if len(commodities) == 1 else "")
+    commodity = _cm.norm(c.commodity, "") if c.commodity else (next(iter(commodities)) if len(commodities) == 1 else "")
     # Plan Cooperativa: respeta los embarques incluidos del periodo vigente
     _coop_doc = storage.get_coop(ctx["coop"]["id"]) or {}
     if _coop_doc.get("plan") == "coop" and _coop_doc.get("shipments_included") is not None:
@@ -1336,7 +1345,7 @@ def capture(c: CaptureIn, request: Request):
                 continue
         if metas:
             ex["field_photos"] = metas
-    lot = Lot(lot_id, c.producer, ctx["coop"]["name"], c.commodity, "PE", c.region, [plot], "", "", c.quantity,
+    lot = Lot(lot_id, c.producer, ctx["coop"]["name"], _cm.norm(c.commodity), "PE", c.region, [plot], "", "", c.quantity,
               ctx["coop"]["id"], ctx["user"]["email"], _now(), ex)
     if c.photo_base64:
         try:
@@ -1489,13 +1498,14 @@ def _ensure_outputs(lot_id: str):
 @app.get("/lots/{lot_id}/dossier")
 def get_dossier(lot_id: str, request: Request):
     _load_owned(lot_id, auth.require_coop(request))
-    p = os.path.join(config.DATA_DIR, "dossiers", f"{lot_id}_dossier.pdf")
-    if os.path.exists(p):
-        return FileResponse(p, media_type="application/pdf", filename=f"{lot_id}_dossier.pdf")
+    # Primero la copia durable: con varias instancias, el /tmp local puede tener un dossier viejo.
     blob = storage.load_blob(lot_id, "dossier.pdf")
     if blob:
         return Response(blob, media_type="application/pdf",
                         headers={"Content-Disposition": f'inline; filename="{lot_id}_dossier.pdf"'})
+    p = os.path.join(config.DATA_DIR, "dossiers", f"{lot_id}_dossier.pdf")
+    if os.path.exists(p):
+        return FileResponse(p, media_type="application/pdf", filename=f"{lot_id}_dossier.pdf")
     try:
         p, _ = _ensure_outputs(lot_id)
     except HTTPException:

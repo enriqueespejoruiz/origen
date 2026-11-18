@@ -172,13 +172,15 @@ button:hover{background:#0B0D12}
     <input id="prod" placeholder="Nombre del productor" autocomplete="name">
     <div class="row">
       <div><label for="com">Producto</label>
-        <select id="com"><option value="coffee">Café</option><option value="cacao">Cacao</option></select></div>
+        <select id="com"><option value="coffee">Café</option><option value="cacao">Cacao</option><option value="oil_palm">Palma aceitera</option><option value="soya">Soya</option><option value="rubber">Caucho natural</option><option value="wood">Madera</option><option value="cattle">Ganado bovino</option></select></div>
       <div><label for="area">Área (ha)</label><input id="area" type="number" inputmode="decimal" placeholder="ej. 2"></div>
     </div>
     <div class="row">
       <div><label for="region">Región</label><input id="region" placeholder="ej. Cusco" autocomplete="off"></div>
       <div><label for="cantidad">Cantidad (kg, aprox.)</label><input id="cantidad" inputmode="decimal" placeholder="ej. 1200"></div>
     </div>
+    <div id="speciesBox" style="display:none"><label for="species">Especie (nombre común y científico)</label><input id="species" placeholder="ej. Tornillo — Cedrelinga cateniformis" autocomplete="off"></div>
+    <p class="muted" id="cattleNote" style="display:none;margin:6px 0 0">Ganado: un punto por cada establecimiento donde estuvo el animal (no se exige polígono).</p>
     <label for="lang">Idioma del dossier</label>
     <select id="lang"><option value="es">Español</option><option value="en">English</option></select>
     <div class="seg" id="seg">
@@ -433,8 +435,12 @@ document.querySelectorAll('.segb').forEach(b=>b.onclick=()=>{
   $('polyBox').style.display  = mode==='poly'?'block':'none';
   if(mode==='poly')surveyStart(); else surveyStop();
 });
+function comUI(){ var v=$('com').value;
+  $('speciesBox').style.display = v==='wood'?'block':'none';
+  $('cattleNote').style.display = v==='cattle'?'block':'none'; }
+$('com').addEventListener('change',comUI); comUI();
 $('area').addEventListener('input',()=>{
-  if((parseFloat($('area').value)||0)>4 && mode==='point') document.querySelector('.segb[data-m="poly"]').click();
+  if((parseFloat($('area').value)||0)>4 && mode==='point' && $('com').value!=='cattle') document.querySelector('.segb[data-m="poly"]').click();
 });
 function polyAreaHa(v){ if(v.length<3)return 0; const R=6378137,toR=Math.PI/180; let a=0;
   for(let i=0;i<v.length;i++){const p1=v[i],p2=v[(i+1)%v.length]; a+=(p2.lon-p1.lon)*toR*(2+Math.sin(p1.lat*toR)+Math.sin(p2.lat*toR));}
@@ -827,8 +833,9 @@ $('save').onclick=()=>{
   (function(){
     var _area=parseFloat($('area').value)||0;
     var _kg=parseFloat(($('cantidad').value||'').replace(/[^\d.]/g,''))||0;
-    if(_area>0 && _kg>0){
-      var _ceil=($('com').value==='cacao')?2000:2500;
+    // techo plausible solo para café y cacao; en palma, soya, caucho, madera y ganado la unidad varía
+    var _ceil={coffee:2500,cacao:2000,cocoa:2000}[$('com').value];
+    if(_ceil && _area>0 && _kg>0){
       if(_kg/_area>_ceil){
         window._volWarn='El volumen declarado ('+_kg.toLocaleString()+' kg) es inverosímil para '+_area+' ha (~'+Math.round(_kg/_area).toLocaleString()+' kg/ha; máximo plausible ~'+_ceil.toLocaleString()+' kg/ha).\n\nEsto suele indicar mezcla de origen no declarada, que el EUDR no permite. ¿Guardar de todos modos?';
       } else { window._volWarn=''; }
@@ -838,7 +845,7 @@ $('save').onclick=()=>{
   let item={id:Date.now(),producer:$('prod').value.trim(),cooperative:$('coop').value.trim(),
     commodity:$('com').value,area_ha:parseFloat($('area').value)||null,
     region:$('region').value.trim(),quantity:$('cantidad').value.trim(),
-    extra:{lang:$('lang').value,
+    extra:{lang:$('lang').value,species:($('species')?$('species').value.trim():''),
            legality:{title:$('legtitle').value.trim(),env:$('legenv').value.trim(),labor:$('leglabor').value.trim()},
            buyer:{name:$('buyername').value.trim(),country:$('buyercountry').value.trim(),eori:$('buyereori').value.trim()}},
     photo_base64:(photos.length?photos[0].data:photo),field_photos:photos.slice(),status:'pendiente'};

@@ -1,11 +1,12 @@
 import json
 from . import config
 from .models import Lot, Plot, GeoPoint
+from . import commodities as _cm
 
 EXTRACT_PROMPT = (
     "Eres un asistente de trazabilidad agricola. A partir del texto y las imagenes, "
     "extrae los datos del lote para EUDR. Devuelve SOLO JSON con las claves: "
-    "producer_name, cooperative, commodity (coffee|cocoa), region, harvest_season, "
+    "producer_name, cooperative, commodity (coffee|cocoa|oil_palm|soya|rubber|wood|cattle), region, harvest_season, "
     "plots (lista de {plot_id, points:[{lat,lon}], area_ha}). "
     "Si un dato no aparece, usa cadena vacia o lista vacia."
 )
@@ -22,6 +23,40 @@ def _client():
             _CLIENT = genai.Client(api_key=config.GEMINI_API_KEY)
     return _CLIENT
 
+_ACTIVE = None   # último modelo que respondió bien (evita reintentar uno retirado en cada llamada)
+
+def _unavailable(e):
+    """True si el error indica modelo inexistente/retirado (404, NOT_FOUND, no soportado)."""
+    m = (repr(e) + " " + str(getattr(e, "message", ""))).lower()
+    return any(k in m for k in ("404", "not_found", "not found", "is not supported", "retired",
+                                 "no longer available", "deprecated", "does not have access"))
+
+def models_chain():
+    chain = [_ACTIVE] if _ACTIVE else []
+    for m in [config.GEMINI_MODEL] + list(config.GEMINI_FALLBACKS):
+        if m and m not in chain:
+            chain.append(m)
+    return chain
+
+def generate(contents, cfg=None):
+    """generate_content con respaldo: si el modelo fue retirado, prueba el siguiente de la lista."""
+    global _ACTIVE
+    last = None
+    for m in models_chain():
+        try:
+            resp = _client().models.generate_content(model=m, contents=contents, config=cfg)
+            _ACTIVE = m
+            return resp
+        except Exception as e:
+            last = e
+            if not _unavailable(e):
+                raise
+            print("gemini model unavailable:", m, repr(e)[:160])
+    raise last if last else RuntimeError("Sin modelos Gemini configurados")
+
+def active_model():
+    return _ACTIVE or config.GEMINI_MODEL
+
 def extract_lot(text: str, image_paths=None, lot_id="LOT-DEMO") -> Lot:
     if not config.gemini_ready():
         return _stub_extract(text, lot_id)
@@ -32,10 +67,7 @@ def extract_lot(text: str, image_paths=None, lot_id="LOT-DEMO") -> Lot:
         for p in image_paths:
             with open(p, "rb") as f:
                 contents.append(types.Part.from_bytes(data=f.read(), mime_type="image/jpeg"))
-    resp = client.models.generate_content(
-        model=config.GEMINI_MODEL, contents=contents,
-        config={"response_mime_type": "application/json"},
-    )
+    resp = generate(contents, {"response_mime_type": "application/json"})
     return _to_lot(json.loads(resp.text), lot_id, text)
 
 def generate_dossier_narrative(lot: Lot, findings) -> str:
@@ -44,9 +76,8 @@ def generate_dossier_narrative(lot: Lot, findings) -> str:
         return (f"Dossier de diligencia debida (EUDR) para el lote {lot.lot_id} "
                 f"({lot.commodity}, {lot.region}, Peru). Riesgo por parcela: {risks}. "
                 f"Geolocalizacion adjunta en GeoJSON para carga en TRACES NT por el operador importador.")
-    resp = _client().models.generate_content(
-        model=config.GEMINI_MODEL,
-        contents=(f"Redacta el resumen de un dossier de diligencia debida EUDR para el lote "
+    resp = generate(
+        (f"Redacta el resumen de un dossier de diligencia debida EUDR para el lote "
                   f"{lot.lot_id} ({lot.commodity}, {lot.region}, Peru). Hallazgos por parcela: {risks}. "
                   f"Tono formal, ~150 palabras, en espanol."))
     return resp.text
@@ -56,9 +87,8 @@ def generate_buyer_profile(lot: Lot) -> str:
         return (f"{lot.commodity.title()} de {lot.region}, Peru - productor {lot.producer_name} "
                 f"({lot.cooperative}). {len(lot.plots)} parcelas con trazabilidad a nivel de parcela, "
                 f"lista para EUDR.")
-    resp = _client().models.generate_content(
-        model=config.GEMINI_MODEL,
-        contents=(f"Escribe un perfil comercial breve (en ingles y espanol, ~120 palabras) para un "
+    resp = generate(
+        (f"Escribe un perfil comercial breve (en ingles y espanol, ~120 palabras) para un "
                   f"comprador europeo de este lote de {lot.commodity}: productor {lot.producer_name}, "
                   f"cooperativa {lot.cooperative}, region {lot.region}, {len(lot.plots)} parcelas. "
                   f"Resalta origen, trazabilidad EUDR y calidad."))
@@ -70,7 +100,7 @@ def _to_lot(d, lot_id, raw) -> Lot:
         pts = [GeoPoint(float(pt["lat"]), float(pt["lon"])) for pt in p.get("points", []) if "lat" in pt]
         plots.append(Plot(p.get("plot_id") or f"P{i+1}", pts, p.get("area_ha")))
     return Lot(lot_id, d.get("producer_name", ""), d.get("cooperative", ""),
-               d.get("commodity", "coffee"), "PE", d.get("region", ""), plots,
+               _cm.norm(d.get("commodity", "coffee")), "PE", d.get("region", ""), plots,
                d.get("harvest_season", ""), raw)
 
 def _stub_extract(text, lot_id) -> Lot:

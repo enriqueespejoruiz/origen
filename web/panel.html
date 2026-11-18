@@ -443,10 +443,14 @@ async function showApp(s){
   loadLots(); loadCons(); loadTeam(); loadAlerts();
   $('copBtn').style.display='inline-flex';
 }
+var COMK={cafe:'coffee','café':'coffee',coffee:'coffee',cacao:'cocoa',cocoa:'cocoa',palma:'oil_palm',oil_palm:'oil_palm',soya:'soya',soja:'soya',caucho:'rubber',rubber:'rubber',madera:'wood',wood:'wood',ganado:'cattle',cattle:'cattle'};
+var COML={coffee:'Café',cocoa:'Cacao',oil_palm:'Palma aceitera',soya:'Soya',rubber:'Caucho natural',wood:'Madera',cattle:'Ganado bovino'};
+function comKey(c){c=(c||'').toLowerCase().trim();return COMK[c]||c;}
+function comLabel(c){return COML[comKey(c)]||(c||'');}
 function lotMatches(l){
   const q=($('lotSearch')?$('lotSearch').value:'').trim().toLowerCase();
   const rf=$('lotRisk')?$('lotRisk').value:'';
-  if(q){ const hay=((l.lot_id||'')+' '+(l.producer||'')+' '+(l.commodity||'')+' '+(l.captured_by||'')).toLowerCase();
+  if(q){ const hay=((l.lot_id||'')+' '+(l.producer||'')+' '+(l.commodity||'')+' '+comLabel(l.commodity)+' '+(l.captured_by||'')).toLowerCase();
     if(hay.indexOf(q)<0) return false; }
   if(rf==='none'){ if(l.overall_risk) return false; }
   else if(rf){ if(l.overall_risk!==rf) return false; }
@@ -459,7 +463,7 @@ function lotRowHTML(l){
   const ck=SEL.has(l.lot_id)?' checked':'';
   return '<tr><td class="sel"><input type="checkbox" class="lotck" data-id="'+l.lot_id+'"'+ck+'></td>'+
     '<td><b>'+l.lot_id+'</b></td><td>'+(l.producer||'—')+
-    '<div class="who">'+(l.captured_by||'')+'</div></td><td>'+(l.commodity||'')+'</td><td>'+badge+vflag+'</td>'+
+    '<div class="who">'+(l.captured_by||'')+'</div></td><td>'+comLabel(l.commodity)+'</td><td>'+badge+vflag+'</td>'+
     '<td>'+date+'</td><td class="dl"><a href="#" data-cop="'+l.lot_id+'">Copiloto</a>'+
     '<a href="#" data-sim="'+l.lot_id+'">Simular</a>'+
     '<a href="#" data-share="'+l.lot_id+'">Compartir</a>'+
@@ -575,8 +579,8 @@ $('selAll').addEventListener('change',function(){
 $('selclear').onclick=function(){ SEL.clear(); updateSel(); };
 $('selcreate').onclick=function(){
   if(!SEL.size)return;
-  const coms=new Set(LOTS.filter(function(l){return SEL.has(l.lot_id);}).map(function(l){return (l.commodity||'').toLowerCase();}).filter(Boolean));
-  if(coms.size>1){ alert('Un envío debe ser de un solo producto (café o cacao). La DDS es por producto: separa los lotes.'); return; }
+  const coms=new Set(LOTS.filter(function(l){return SEL.has(l.lot_id);}).map(function(l){return comKey(l.commodity);}).filter(Boolean));
+  if(coms.size>1){ alert('Un envío debe ser de un solo producto. La DDS es por producto: separa los lotes.'); return; }
   $('csub').textContent='Consolida '+SEL.size+' lote(s) seleccionado(s) en un solo dossier EUDR.';
   $('cmodal').style.display='grid';
 };

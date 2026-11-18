@@ -2,6 +2,13 @@
 
 Formato: cambios agrupados por fecha. El proyecto sigue el espíritu *build-in-public* del XPRIZE.
 
+## 2026-11-18 (5) — Arreglo: el radar Sentinel-1 no corría en producción
+- El chequeo del mapa JRC fijaba `CPL_VSIL_CURL_ALLOWED_EXTENSIONS=.tif` para todo el proceso y GDAL rechazaba
+  los archivos del radar (terminan en `.tiff` y llevan token SAS). Ahora la lectura satelital fija sus propias
+  opciones de GDAL (`.tif` y `.tiff`, reintentos HTTP) y el JRC acepta ambas extensiones.
+- El log de errores del radar muestra el final del mensaje (la causa) con el token oculto.
+- Test de regresión en `tests/test_satellite.py` (447 en total).
+
 ## 2026-11-18 (5) — Web: evidencia propia, revisión experta y formatos (traspaso del chat de la app)
 - Portada (22 idiomas): bloque «Evidencia propia de cada parcela» en Tecnología (Sentinel-2 2020 frente a lo más reciente,
   radar Sentinel-1 con nubes, revisión experta e imagen de 15–50 cm cotizada antes) y FAQ de formatos (importa Excel, CSV,

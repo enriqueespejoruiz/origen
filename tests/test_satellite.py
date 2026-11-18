@@ -46,3 +46,27 @@ def test_dossier_includes_satellite_section(tmp_path):
     for lang in ("es", "en"):
         pdf = dossier.build_pdf(_lot(), [f], "Resumen.", "", str(tmp_path), lang)
         assert os.path.getsize(pdf) > 4000
+
+
+def test_read_accepts_tiff_extension(monkeypatch):
+    """Regresión 18-nov: el chequeo JRC dejaba CPL_VSIL_CURL_ALLOWED_EXTENSIONS='.tif' y GDAL rechazaba
+    el radar Sentinel-1 (archivos .tiff con token SAS). _read debe aceptar .tiff siempre."""
+    import rasterio
+    from app import satellite
+    seen = {}
+
+    class Env:
+        def __init__(self, **kw): seen.update(kw)
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+
+    def boom(href):
+        raise RuntimeError("stop")
+    monkeypatch.setattr(rasterio, "Env", Env)
+    monkeypatch.setattr(rasterio, "open", boom)
+    monkeypatch.setenv("CPL_VSIL_CURL_ALLOWED_EXTENSIONS", ".tif")
+    try:
+        satellite._read("https://x.blob.core.windows.net/a/iw-vh.rtc.tiff?sig=1", (0, 0, 1, 1))
+    except RuntimeError:
+        pass
+    assert ".tiff" in seen["CPL_VSIL_CURL_ALLOWED_EXTENSIONS"]

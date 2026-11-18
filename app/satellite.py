@@ -59,19 +59,18 @@ def _search(url, body, timeout=40):
 
 def _read(href, bbox_ll, shape=None):
     """Lee la ventana del bbox (lon/lat) de un COG; devuelve (array, transform, crs)."""
-    import os
-    os.environ.setdefault("GDAL_DISABLE_READDIR_ON_OPEN", "EMPTY_DIR")
-    os.environ.setdefault("CPL_VSIL_CURL_ALLOWED_EXTENSIONS", ".tif,.TIF,.tiff")
-    os.environ.setdefault("GDAL_HTTP_TIMEOUT", "25")
-    os.environ.setdefault("GDAL_HTTP_MERGE_CONSECUTIVE_RANGES", "YES")
-    os.environ.setdefault("GDAL_HTTP_MULTIPLEX", "YES")
-    os.environ.setdefault("GDAL_HTTP_VERSION", "2")
-    os.environ.setdefault("GDAL_INGESTED_BYTES_AT_OPEN", "65536")
     import rasterio
     from rasterio.warp import transform_bounds
     from rasterio.windows import from_bounds
     from rasterio.enums import Resampling
-    with rasterio.open(href) as src:
+    opts = dict(GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR", GDAL_HTTP_TIMEOUT="25",
+                GDAL_HTTP_MERGE_CONSECUTIVE_RANGES="YES", GDAL_HTTP_MULTIPLEX="YES",
+                GDAL_HTTP_VERSION="2", GDAL_INGESTED_BYTES_AT_OPEN="65536", GDAL_HTTP_MAX_RETRY="2",
+                GDAL_HTTP_RETRY_DELAY="1")
+    # Sentinel-1 en Azure termina en «.tiff» (no «.tif»): el filtro debe aceptar ambos. Se fija aquí porque
+    # el chequeo del mapa JRC dejaba «.tif» solo en el entorno del proceso y GDAL rechazaba el radar.
+    opts["CPL_VSIL_CURL_ALLOWED_EXTENSIONS"] = ".tif,.TIF,.tiff,.TIFF"
+    with rasterio.Env(**opts), rasterio.open(href) as src:
         b = transform_bounds("EPSG:4326", src.crs, *bbox_ll)
         win = from_bounds(*b, transform=src.transform).round_offsets().round_lengths()
         out_shape = shape or (max(int(win.height), 1), max(int(win.width), 1))
@@ -268,7 +267,8 @@ def sentinel1_change(plot, today=None):
                     return None
                 return float(np.mean(10 * np.log10(arr[mk]))), f["properties"]["datetime"][:10]
             except Exception as e:
-                print("s1 scene error:", repr(e)[:160])
+                m = repr(e)
+                print("s1 scene error:", (m.replace(tok, "<sas>") if tok else m)[-240:])
                 return None
         from concurrent.futures import ThreadPoolExecutor
         with ThreadPoolExecutor(4) as ex:

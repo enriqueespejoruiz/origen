@@ -136,7 +136,7 @@ def _jrc_forest(plot):
     (JRC GFC2020 V4, COG). Muestrea centroide + vertices + rejilla interior (no un solo punto)."""
     import os as _os
     _os.environ.setdefault("GDAL_DISABLE_READDIR_ON_OPEN", "EMPTY_DIR")
-    _os.environ.setdefault("CPL_VSIL_CURL_ALLOWED_EXTENSIONS", ".tif")
+    _os.environ.setdefault("CPL_VSIL_CURL_ALLOWED_EXTENSIONS", ".tif,.TIF,.tiff,.TIFF")
     _os.environ.setdefault("GDAL_HTTP_TIMEOUT", "25")
     import rasterio
     from rasterio.warp import transform as _tf

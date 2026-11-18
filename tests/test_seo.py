@@ -16,7 +16,8 @@ client = TestClient(main.app)
 BASE = main._seo_base()
 PUBLIC = ["/", "/normativa", "/eudr-cafe-peru", "/eudr-cacao-peru", "/eudr-aplazamiento", "/eudr-traces-dds",
           "/eudr-anexo-1", "/eudr-preguntas-frecuentes", "/eudr-declaracion-simplificada", "/eudr-validador-geojson",
-          "/eudr-checklist-proveedor", "/eudr-software", "/empezar", "/verificar"]
+          "/eudr-checklist-proveedor", "/eudr-software", "/empezar", "/verificar", "/eudr-software-importadores", "/eudr-30-diciembre-2026",
+          "/eudr-caucho", "/eudr-palma", "/eudr-soya", "/eudr-madera", "/eudr-ganado"]
 
 
 def _jsonld(html_text):
@@ -92,7 +93,8 @@ def test_robots_and_sitemap():
     assert "Sitemap: " + BASE + "/sitemap.xml" in client.get("/robots.txt").text
     locs = re.findall(r"<loc>([^<]+)</loc>", client.get("/sitemap.xml").text)
     assert {BASE + p for p in PUBLIC} <= set(locs)
-    assert len(locs) == len(set(locs)) == len(PUBLIC) * len(main.i18n_pages.active())
+    I = main.i18n_pages
+    assert len(locs) == len(set(locs)) == sum(len(I.langs_for(k)) for k in I.PAGES)
 
 
 def test_i18n_js_respects_public_pages():

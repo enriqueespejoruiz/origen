@@ -15,7 +15,7 @@ client = TestClient(main.app)
 BASE = main._seo_base()
 LANGS = I.active()
 OTHER = [l for l in LANGS if l != "es"]
-CASES = [(l, k) for l in LANGS for k in I.PAGES]
+CASES = [(l, k) for k in I.PAGES for l in I.langs_for(k)]
 
 
 def _spanish_keys(key):
@@ -35,7 +35,8 @@ def test_dictionary_is_complete(lang):
     d = I.LANGS[lang]
     missing = set()
     for key in I.PAGES:
-        missing |= {k for k in _spanish_keys(key) if k not in d["strings"]}
+        if I.available(key, lang):
+            missing |= {k for k in _spanish_keys(key) if k not in d["strings"]}
     allowed = {"Origen", "Gemini · Vertex AI", "Google Cloud Run", "Hansen · WDPA · JRC", "GeoJSON + dossier",
                "Coop. Aurora · Cusco", "María Quispe", "José Mamani", "Rosa Huamán", "SHA-256", "LOT-XXXXXXXX",
                "EN", "A", "B", "C", "D", "Switch language", "dossier + GeoJSON", "13°31′S · 71°57′W", ".ots"}
@@ -57,8 +58,8 @@ def test_page_renders_with_hreflang_cluster(lang, key):
     assert len(re.findall(r"<h1[\s>]", t)) == 1
     assert re.findall(r'<link rel="canonical" href="([^"]+)"', t) == [BASE + path]
     alts = dict(re.findall(r'<link rel="alternate" hreflang="([^"]+)" href="([^"]+)"', t))
-    assert set(alts) == set(LANGS) | {"x-default"}
-    assert alts[lang] == BASE + path and alts["x-default"] == BASE + I.path_for(key, "en")
+    assert set(alts) == set(I.langs_for(key)) | {"x-default"}
+    assert alts[lang] == BASE + path and alts["x-default"] == BASE + I.path_for(key, I.x_default(key))
     assert '<meta name="i18n-server" content="%s">' % lang in t
     ld = re.findall(r'<script type="application/ld\+json">(.*?)</script>', t, re.S)
     assert len(ld) == 1
@@ -68,7 +69,7 @@ def test_page_renders_with_hreflang_cluster(lang, key):
             assert g["inLanguage"] == lang
     # selector con todos los idiomas y el actual marcado
     sel = re.search(r'<details class="og-lang".*?</details>', t, re.S).group(0)
-    assert sel.count("<li>") == len(LANGS) and 'aria-current="true"' in sel
+    assert sel.count("<li>") == len(I.langs_for(key)) and 'aria-current="true"' in sel
     # fuera del selector, los enlaces internos se quedan en el mismo idioma
     body = re.sub(r'<details class="og-lang".*?</details>', "", t[t.index("<body"):], flags=re.S)
     if lang != "es":
@@ -77,8 +78,8 @@ def test_page_renders_with_hreflang_cluster(lang, key):
 
 
 def test_hreflang_targets_all_resolve():
-    for lang in LANGS:
-        for key in I.PAGES:
+    for key in I.PAGES:
+        for lang in I.langs_for(key):
             assert client.get(I.path_for(key, lang)).status_code == 200
 
 
@@ -87,9 +88,10 @@ def test_sitemap_has_alternates():
     root = ET.fromstring(x)
     ns = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9", "x": "http://www.w3.org/1999/xhtml"}
     urls = root.findall("s:url", ns)
-    assert len(urls) == len(LANGS) * len(I.PAGES)
+    expected = {BASE + I.path_for(k, l): len(I.langs_for(k)) + 1 for k in I.PAGES for l in I.langs_for(k)}
+    assert len(urls) == len(expected)
     for u in urls:
-        assert len(u.findall("x:link", ns)) == len(LANGS) + 1
+        assert len(u.findall("x:link", ns)) == expected[u.find("s:loc", ns).text]
 
 
 def test_redirects_and_404():
@@ -140,7 +142,7 @@ def test_delay_page_links_and_dates():
     art = [g for g in json.loads(re.findall(r'<script type="application/ld\+json">(.*?)</script>', t, re.S)[0].replace("<\\/", "</"))["@graph"]
            if g["@type"] == "Article"][0]
     assert art["dateModified"] >= art["datePublished"] == "2026-09-23"
-    assert "Actualizado el 10 de octubre de 2026" in t
+    assert "Actualizado el 18 de noviembre de 2026" in t
 
 
 def test_simplified_declaration_page():

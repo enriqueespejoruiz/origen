@@ -2,6 +2,19 @@
 
 Formato: cambios agrupados por fecha. El proyecto sigue el espíritu *build-in-public* del XPRIZE.
 
+## 2026-11-18 — SEO global: 7 productos, cualquier país, importadores y estado de noviembre
+- **Mensaje**: portada y metas en 22 idiomas con «7 productos, cualquier país»; H1 «tu envío»; descriptor
+  «EUDR · 7 productos»; FAQ «¿Sirve para productores de cualquier país?»; bloque «¿Importas a la UE?»; los
+  nombres de producto enlazan a sus guías. Las versiones europeas dejan de decir «de Perú». Requiere que la app
+  ya no fije el país del productor en «PE» (lo hace el chat de la app).
+- **Páginas nuevas**: /eudr-software-importadores y /eudr-30-diciembre-2026 (es, en, de, fr, it, nl, pl);
+  /eudr-caucho, /eudr-palma, /eudr-soya, /eudr-madera y /eudr-ganado (es, en).
+- **i18n_pages**: una página puede existir solo en algunos idiomas (`available`, `langs_for`, `x_default`);
+  hreflang, selector, sitemap y enlaces internos lo respetan (donde no existe, el enlace va a la versión en inglés).
+- **Estado del EUDR**: novedades de noviembre (plan de contingencia, versión 8.2.2 con la interfaz 4, ley alemana
+  del 12-nov, Países Bajos), cronología y fuentes. La guía de TRACES, al día y sin «Perú» fijo.
+- **llms.txt y schema**: funciones nuevas (featureList en es y en) y páginas nuevas. Sitemap: 332 URL. Tests: 421.
+
 ## 2026-11-04 — Los 7 productos del EUDR, Gemini vigente y tecnología en la landing
 - **Catálogo de productos** (`app/commodities.py`): café, cacao, palma aceitera, soya, caucho, madera y
   ganado bovino, con alias (cacao→cocoa, palma→oil_palm, jebe→rubber…), partida SA por defecto,

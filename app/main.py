@@ -135,26 +135,44 @@ _NOINDEX = "noindex, nofollow"
 _SEO_ARTICLES = {          # páginas de contenido -> (publicada, modificada) para el schema Article
     "normativa.html": ("2026-06-09", "2026-10-10"),
     "eudr-cafe-peru.html": ("2026-09-21", "2026-09-21"),
-    "eudr-aplazamiento.html": ("2026-09-23", "2026-10-10"),   # se revisa cada mes: actualizar la fecha al editar
-    "eudr-traces-dds.html": ("2026-09-23", "2026-10-10"),
+    "eudr-aplazamiento.html": ("2026-09-23", "2026-11-18"),   # se revisa cada mes: actualizar la fecha al editar
+    "eudr-traces-dds.html": ("2026-09-23", "2026-11-18"),
     "eudr-cacao-peru.html": ("2026-09-23", "2026-09-23"),
     "eudr-anexo-1.html": ("2026-09-23", "2026-09-23"),               # revisar si la Comisión cambia el anexo I
     "eudr-preguntas-frecuentes.html": ("2026-09-23", "2026-09-23"),
     "eudr-declaracion-simplificada.html": ("2026-10-10", "2026-10-10"),
     "eudr-checklist-proveedor.html": ("2026-10-10", "2026-10-10"),
     "eudr-software.html": ("2026-10-10", "2026-10-10"),
+    "eudr-software-importadores.html": ("2026-11-18", "2026-11-18"),
+    "eudr-30-diciembre-2026.html": ("2026-11-18", "2026-11-18"),
+    "eudr-caucho.html": ("2026-11-18", "2026-11-18"),
+    "eudr-palma.html": ("2026-11-18", "2026-11-18"),
+    "eudr-soya.html": ("2026-11-18", "2026-11-18"),
+    "eudr-madera.html": ("2026-11-18", "2026-11-18"),
+    "eudr-ganado.html": ("2026-11-18", "2026-11-18"),
 }
 
 def _seo_base():
     return config.PUBLIC_BASE_URL.rstrip("/")
 
-_APP_DESC_ES = ("Geolocalización de parcelas, verificación contra 4 fuentes satelitales abiertas y dossier con GeoJSON "
-                "listo para TRACES para cumplir el Reglamento (UE) 2023/1115 (EUDR).")
+_APP_DESC_ES = ("Geolocalización de parcelas en cualquier país, verificación contra 4 fuentes satelitales abiertas y dossier "
+                "con GeoJSON listo para TRACES para cumplir el Reglamento (UE) 2023/1115 (EUDR) en sus 7 productos: café, "
+                "cacao, palma aceitera, soya, caucho, madera y ganado bovino.")
+_APP_FEATURES_ES = [
+    "Los 7 productos del EUDR con su partida SA: café, cacao, palma aceitera, soya, caucho, madera (con especie) y ganado bovino",
+    "Captura de parcelas desde el celular, sin señal: punto o polígono para predios de más de 4 ha, en cualquier país",
+    "Importación masiva de parcelas desde Excel, CSV o GeoJSON",
+    "Verificación con Hansen/Global Forest Watch, alertas GLAD y RADD (Landsat, Sentinel-2 y Sentinel-1), WDPA y el mapa JRC 2020 de la UE",
+    "Dossier por envío con GeoJSON listo para TRACES, huella SHA-256, código QR y sello en Bitcoin (OpenTimestamps)",
+    "Simulador de segregación y puntaje de confianza del lote",
+    "Monitoreo continuo con alertas por WhatsApp",
+    "Exportación de todos los datos en formatos abiertos",
+]
 
 def _public_page(key, lang):
     """Página pública (indexable) en `lang`: plantilla en español + diccionario (app/i18n_pages.py)."""
     articles = {i18n_pages.FILE_TO_KEY[f]: v for f, v in _SEO_ARTICLES.items()}
-    text = i18n_pages.render(key, lang, _seo_base(), _SEO_DESC, articles, _APP_DESC_ES)
+    text = i18n_pages.render(key, lang, _seo_base(), _SEO_DESC, articles, _APP_DESC_ES, _APP_FEATURES_ES)
     return Response(text, media_type="text/html; charset=utf-8")
 
 def _page(name):
@@ -204,25 +222,30 @@ def llms_txt():
     base = _seo_base()
     body = f"""# Origen
 
-> Origen genera la prueba que el Reglamento (UE) 2023/1115 contra la deforestación (EUDR) exige a café, cacao y otros productos que salen de una parcela: geolocalización (punto o polígono), verificación contra cuatro fuentes satelitales abiertas y un dossier en PDF con GeoJSON listo para el sistema TRACES de la UE. Lo construyó Selva Ecomarketing (SELVA MARKETING SOSTENIBLE S.A.C., RUC 20615597393, Lima, Perú).
+> Origen genera la prueba que el Reglamento (UE) 2023/1115 contra la deforestación (EUDR) exige a los 7 productos que salen de una parcela (café, cacao, palma aceitera, soya, caucho, madera y ganado bovino), en cualquier país productor: geolocalización (punto o polígono), verificación contra cuatro fuentes satelitales abiertas y un dossier en PDF con GeoJSON listo para el sistema TRACES de la UE. Sirve al productor o exportador que debe entregar la prueba y al comprador europeo que la necesita para su declaración. Lo construyó Selva Ecomarketing (SELVA MARKETING SOSTENIBLE S.A.C., RUC 20615597393, Lima, Perú).
 
 ## Qué hace
-- Captura de parcelas desde el celular, incluso sin señal; polígono para predios de más de 4 ha.
-- Verificación contra Hansen/Global Forest Watch (pérdida de cobertura), alertas recientes de deforestación de GFW, áreas protegidas (WDPA) y el mapa de referencia JRC 2020 de la UE.
-- Un solo dossier por envío aunque junte muchas parcelas y productores.
+- Los 7 productos del EUDR, con su partida SA y nombre científico; en madera registra la especie y en ganado un punto por establecimiento.
+- Captura de parcelas desde el celular, incluso sin señal; polígono para predios de más de 4 ha. Importación masiva desde Excel, CSV o GeoJSON para quien ya tiene sus parcelas georreferenciadas.
+- Verificación contra Hansen/Global Forest Watch (pérdida de cobertura), alertas GLAD y RADD (Landsat, Sentinel-2 y radar Sentinel-1, 10 m), áreas protegidas (WDPA de UNEP-WCMC y UICN) y el mapa de referencia JRC 2020 de la UE; imágenes Esri World Imagery en el dossier.
+- Simulador de segregación: dice qué parcela excluir o sustentar, porque el EUDR no permite compensar con otras parcelas.
+- Un solo dossier por envío aunque junte muchas parcelas, productores y países.
 - Cada dossier lleva huella SHA-256, código QR y sello en Bitcoin (OpenTimestamps) verificable en {base}/verificar
+- Monitoreo continuo: alerta si una parcela empeora, con avisos por WhatsApp.
+- Los datos son del productor: se exportan completos en formatos abiertos (CSV, GeoJSON y dossiers).
 - Origen no certifica: entrega evidencia verificable; la declaración de diligencia debida la presenta el operador europeo.
 
 ## Fechas del EUDR
 - 30 de diciembre de 2026: operadores grandes y medianos.
 - 30 de junio de 2027: micro y pequeñas empresas.
 - 30 de diciembre de 2027: productos que se suman (café soluble, algunos derivados de la palma).
+- Desde el 30 de diciembre de 2026 rige el plan de contingencia de la Comisión para caídas del sistema de información (números de contingencia).
 - Estado al día y cronología de los aplazamientos: {base}/eudr-aplazamiento
 
 ## Páginas
 - [Inicio]({base}/): qué es Origen y cómo funciona.
 - [Normativa EUDR]({base}/normativa): resumen del reglamento, productos, fechas y quién presenta la declaración.
-- [Aplazamiento del EUDR]({base}/eudr-aplazamiento): fechas vigentes, cronología y últimas novedades (se revisa cada mes).
+- [Aplazamiento del EUDR]({base}/eudr-aplazamiento): fechas vigentes, cronología y novedades de noviembre de 2026: plan de contingencia, versión 8.2.2 del sistema de información y ley alemana (se revisa cada mes).
 - [EUDR para el café peruano]({base}/eudr-cafe-peru): qué exige al café del Perú y qué le toca a la cooperativa.
 - [EUDR para el cacao peruano]({base}/eudr-cacao-peru): qué exige al cacao del Perú, del grano al chocolate, y el problema de los cacaotales bajo sombra en los mapas.
 - [Anexo I del EUDR]({base}/eudr-anexo-1): productos y códigos SA incluidos, lo que salió en 2025-2026 y lo que entra el 30 de diciembre de 2027.
@@ -231,7 +254,10 @@ def llms_txt():
 - [Validador GeoJSON para el EUDR]({base}/eudr-validador-geojson): herramienta gratuita que revisa en el navegador si un GeoJSON cumple las reglas de TRACES (geometrías, 6 decimales, polígonos cerrados sin huecos ni cruces, puntos de hasta 4 ha, propiedades y 25 MB).
 - [Checklist EUDR del proveedor]({base}/eudr-checklist-proveedor): los datos del artículo 9 que el comprador europeo pide por envío, qué cuenta como legalidad y una plantilla CSV gratuita para las parcelas.
 - [Cómo elegir un software EUDR]({base}/eudr-software): 12 preguntas sobre datos de origen, verificación, envío y evidencia, y cómo responde Origen.
-- [La declaración EUDR (DDS) en TRACES]({base}/eudr-traces-dds): cómo la presenta el importador, qué lleva, reglas del GeoJSON y qué datos necesita de la cooperativa.
+- [La declaración EUDR (DDS) en TRACES]({base}/eudr-traces-dds): cómo la presenta el importador, qué lleva, reglas del GeoJSON, plan de contingencia y qué datos necesita de sus proveedores.
+- [Software EUDR para importadores]({base}/eudr-software-importadores): cómo un importador pide a sus proveedores de cualquier país la geolocalización verificada de cada parcela y recibe el GeoJSON por envío.
+- [EUDR desde el 30 de diciembre de 2026]({base}/eudr-30-diciembre-2026): la lista de lo que un operador debe tener listo antes del plazo.
+- Guías por producto: [caucho]({base}/eudr-caucho), [palma aceitera]({base}/eudr-palma), [soya]({base}/eudr-soya), [madera]({base}/eudr-madera) y [ganado bovino]({base}/eudr-ganado): qué productos entran, qué salió en 2026 y qué datos pide la declaración.
 - [Verificar dossier]({base}/verificar): comprobar la autenticidad de un dossier.
 - [Empezar]({base}/empezar): solicitar acceso.
 - [Política de privacidad]({base}/privacidad) · [Privacy notice]({base}/en/privacy)
@@ -299,6 +325,34 @@ def eudr_checklist_proveedor():
 @app.get("/eudr-software")
 def eudr_software():
     return _page("eudr-software.html")
+
+@app.get("/eudr-software-importadores")
+def eudr_software_importadores():
+    return _page("eudr-software-importadores.html")
+
+@app.get("/eudr-30-diciembre-2026")
+def eudr_30_diciembre_2026():
+    return _page("eudr-30-diciembre-2026.html")
+
+@app.get("/eudr-caucho")
+def eudr_caucho():
+    return _page("eudr-caucho.html")
+
+@app.get("/eudr-palma")
+def eudr_palma():
+    return _page("eudr-palma.html")
+
+@app.get("/eudr-soya")
+def eudr_soya():
+    return _page("eudr-soya.html")
+
+@app.get("/eudr-madera")
+def eudr_madera():
+    return _page("eudr-madera.html")
+
+@app.get("/eudr-ganado")
+def eudr_ganado():
+    return _page("eudr-ganado.html")
 
 # Aviso legal: fuera del sistema de idiomas (noindex). En español para el Perú y en inglés para Europa (RGPD);
 # los pies de las páginas en otros idiomas enlazan la versión en inglés. Va antes de /{lang}/{slug}.

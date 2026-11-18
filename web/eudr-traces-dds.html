@@ -76,7 +76,7 @@ nav svg path[stroke]{stroke:#fff}
     <div class="eyebrow">EUDR · TRACES</div>
     <h1>La declaración EUDR (DDS) en TRACES: cómo se presenta y qué datos necesita tu comprador</h1>
     <p>La declaración de diligencia debida la presenta el importador europeo en el sistema de información de la UE, dentro de TRACES. Tú no la presentas, pero sin tus datos no puede hacerla. Este es el proceso paso a paso y lo que te va a pedir.</p>
-    <span class="upd">Actualizado el 23 de septiembre de 2026</span>
+    <span class="upd">Actualizado el 18 de noviembre de 2026</span>
   </div></div>
 </div>
 
@@ -111,7 +111,7 @@ nav svg path[stroke]{stroke:#fff}
     </ol>
     <div class="callout" style="margin-top:12px">Hay dos entornos: el de aceptación, para practicar, y el de producción, donde las declaraciones tienen valor legal. Cada uno pide su propio registro.</div>
     <p style="margin-top:12px">La declaración se puede corregir o retirar dentro de las 72 horas siguientes a la asignación del número de referencia, y nunca después de que el producto se puso en el mercado.</p>
-    <p>Desde julio de 2026 se pueden agrupar varias declaraciones en una nueva que las referencia. A más tardar el 30 de diciembre de 2026, la Comisión debe publicar el plan de contingencia para caídas del sistema de más de 60 minutos, con números de referencia de contingencia. Quien presenta muchas declaraciones puede usar la API para hacerlo de forma automática.</p>
+    <p>Desde julio de 2026 se pueden agrupar varias declaraciones en una nueva que las referencia. En noviembre de 2026 la Comisión publicó el plan de contingencia: desde el 30 de diciembre, si el sistema se cae más de 60 minutos, se usan números de referencia de contingencia. Quien presenta muchas declaraciones puede usar la API, que desde la versión 8.2.2 del sistema va por su versión 4 y valida el GeoJSON con más rigor.</p>
   </section>
 
   <section>
@@ -133,10 +133,10 @@ nav svg path[stroke]{stroke:#fff}
       <li>La geolocalización de cada parcela en GeoJSON: un punto o un polígono, según el tamaño.</li>
       <li>Qué parcelas entran en cada envío y cuánto aporta cada una.</li>
       <li>La evidencia de que ninguna se deforestó después del 31 de diciembre de 2020.</li>
-      <li>Las pruebas de legalidad que exigen las leyes del Perú, como la tenencia de la tierra.</li>
+      <li>Las pruebas de legalidad que exigen las leyes del país de producción, como la tenencia de la tierra.</li>
     </ol>
     <p style="margin-top:12px">La lista completa, con plantilla: <a href="/eudr-checklist-proveedor">checklist EUDR del proveedor</a>.</p>
-    <div class="callout" style="margin-top:12px">El Perú es país de riesgo estándar: tu comprador necesita todo esto para cada envío, sin versión simplificada.</div>
+    <div class="callout" style="margin-top:12px">Si el país es de riesgo estándar, como el Perú, Colombia o Brasil, tu comprador necesita todo esto para cada envío, sin versión simplificada.</div>
   </section>
 
   <section>
@@ -144,6 +144,7 @@ nav svg path[stroke]{stroke:#fff}
     <p>Origen registra cada parcela desde el celular, incluso sin señal, la verifica contra cuatro fuentes satelitales abiertas y entrega por cada envío un GeoJSON listo para subir a TRACES, junto con el dossier de evidencia. Tu comprador lo carga tal cual en su declaración.</p>
     <p style="margin-top:14px"><a class="cta2" href="/capturar">Empezar a capturar parcelas</a></p>
     <p>¿Se volverá a aplazar? Mira la <a href="/eudr-aplazamiento">cronología y las últimas novedades del EUDR</a>.</p>
+    <p>Si importas: <a href="/eudr-software-importadores">Origen para importadores</a> · <a href="/eudr-30-diciembre-2026">Lo que hay que tener listo para el 30 de diciembre</a></p>
   </section>
 
   <section class="src">
@@ -159,6 +160,6 @@ nav svg path[stroke]{stroke:#fff}
 
 </div></main>
 
-<div class="wrap"><footer>Origen · Trazabilidad de origen para café y cacao · <a href="/" style="color:var(--mut)">Inicio</a> · <a href="/normativa" style="color:var(--mut)">Normativa EUDR</a> · <a href="/eudr-preguntas-frecuentes" style="color:var(--mut)">Preguntas frecuentes</a> · <!--only:es--><a href="/privacidad" style="color:var(--mut)">Privacidad</a><!--/only:es--><!--except:es--><a href="/en/privacy" style="color:var(--mut)">Privacidad</a><!--/except:es--></footer></div>
+<div class="wrap"><footer>Origen · Trazabilidad de origen para los 7 productos del EUDR · <a href="/" style="color:var(--mut)">Inicio</a> · <a href="/normativa" style="color:var(--mut)">Normativa EUDR</a> · <a href="/eudr-preguntas-frecuentes" style="color:var(--mut)">Preguntas frecuentes</a> · <!--only:es--><a href="/privacidad" style="color:var(--mut)">Privacidad</a><!--/only:es--><!--except:es--><a href="/en/privacy" style="color:var(--mut)">Privacidad</a><!--/except:es--></footer></div>
 <script src="/static/i18n.js" defer></script>
 </body></html>

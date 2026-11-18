@@ -37,6 +37,13 @@ PAGES = {
     "eudr-validador-geojson": ("eudr-validador-geojson.html", "/eudr-validador-geojson"),
     "eudr-checklist-proveedor": ("eudr-checklist-proveedor.html", "/eudr-checklist-proveedor"),
     "eudr-software": ("eudr-software.html", "/eudr-software"),
+    "eudr-software-importadores": ("eudr-software-importadores.html", "/eudr-software-importadores"),
+    "eudr-30-diciembre-2026": ("eudr-30-diciembre-2026.html", "/eudr-30-diciembre-2026"),
+    "eudr-caucho": ("eudr-caucho.html", "/eudr-caucho"),
+    "eudr-palma": ("eudr-palma.html", "/eudr-palma"),
+    "eudr-soya": ("eudr-soya.html", "/eudr-soya"),
+    "eudr-madera": ("eudr-madera.html", "/eudr-madera"),
+    "eudr-ganado": ("eudr-ganado.html", "/eudr-ganado"),
     "empezar": ("empezar.html", "/empezar"),
     "verificar": ("verificar.html", "/verificar"),
 }
@@ -52,13 +59,17 @@ NATIVE = {"es": "Español", "en": "English", "de": "Deutsch", "fr": "Français",
           "lv": "Latviešu", "lt": "Lietuvių"}
 ES_LABELS = {"language": "Idioma"}
 FAQ_PAGES = ("landing", "eudr-preguntas-frecuentes", "eudr-declaracion-simplificada", "eudr-validador-geojson",
-             "eudr-checklist-proveedor", "eudr-software")   # páginas con FAQPage (<details><summary>P</summary><p>R</p>)
+             "eudr-checklist-proveedor", "eudr-software", "eudr-software-importadores")   # páginas con FAQPage (<details><summary>P</summary><p>R</p>)
 ES_CRUMB = {"landing": "Origen", "normativa": "Normativa EUDR", "eudr-cafe-peru": "EUDR para el café peruano",
             "eudr-cacao-peru": "EUDR para el cacao peruano",
             "eudr-aplazamiento": "Aplazamiento del EUDR", "eudr-traces-dds": "La DDS en TRACES",
             "eudr-anexo-1": "Anexo I del EUDR", "eudr-preguntas-frecuentes": "Preguntas frecuentes",
             "eudr-declaracion-simplificada": "Declaración simplificada", "eudr-validador-geojson": "Validador GeoJSON",
             "eudr-checklist-proveedor": "Checklist del proveedor", "eudr-software": "Cómo elegir un software EUDR",
+            "eudr-software-importadores": "Software EUDR para importadores",
+            "eudr-30-diciembre-2026": "EUDR desde el 30-dic-2026",
+            "eudr-caucho": "EUDR para el caucho", "eudr-palma": "EUDR para la palma", "eudr-soya": "EUDR para la soya",
+            "eudr-madera": "EUDR para la madera", "eudr-ganado": "EUDR para el ganado bovino",
             "empezar": "Empezar", "verificar": "Verificar dossier"}
 
 # Etiquetas: respeta atributos entre comillas (un ">" dentro de un atributo no corta la etiqueta).
@@ -101,6 +112,20 @@ _CACHE = {}
 
 def active():
     return ["es"] + [c for c in ORDER[1:] if c in LANGS]
+
+
+def available(key, lang):
+    """¿Existe la página `key` en `lang`? En español, siempre; en los demás idiomas, si su diccionario la define.
+    Así una página nueva puede salir primero en unos pocos idiomas sin publicar textos sin traducir."""
+    return lang == "es" or (lang in LANGS and key in LANGS[lang].get("pages", {}))
+
+
+def langs_for(key):
+    return [c for c in active() if available(key, c)]
+
+
+def x_default(key):
+    return "en" if available(key, "en") else "es"
 
 
 def path_for(key, lang):
@@ -186,7 +211,8 @@ def _rewrite_links(html_text, lang):
         key = ES_PATH_TO_KEY.get(path or "/")
         if key is None:
             return m.group(0)
-        return m.group(1) + path_for(key, lang) + sep + rest + m.group(3)
+        target = lang if available(key, lang) else x_default(key)   # si no existe en este idioma, a la versión x-default
+        return m.group(1) + path_for(key, target) + sep + rest + m.group(3)
     return re.sub(r'(\shref=")(/[^"]*|/)(")', repl, html_text)
 
 
@@ -223,7 +249,7 @@ def _faq(html_text):
     return {"@type": "FAQPage", "mainEntity": items} if items else None
 
 
-def _jsonld(key, lang, html_text, meta, base, articles, app_desc_es):
+def _jsonld(key, lang, html_text, meta, base, articles, app_desc_es, app_features_es=None):
     org_id = base + "/#org"
     graph = [{"@type": "Organization", "@id": org_id, "name": "Origen", "url": base + "/",
               "logo": base + "/static/icon-512.png",
@@ -236,11 +262,15 @@ def _jsonld(key, lang, html_text, meta, base, articles, app_desc_es):
         graph.append({"@type": "WebSite", "@id": home + "#website", "url": home, "name": "Origen",
                       "inLanguage": lang, "publisher": {"@id": org_id}})
         desc = app_desc_es if lang == "es" else LANGS[lang].get("app_description") or app_desc_es
-        graph.append({"@type": "SoftwareApplication", "name": "Origen", "url": home,
-                      "applicationCategory": "BusinessApplication", "operatingSystem": "Web, Android, iOS",
-                      "inLanguage": lang, "publisher": {"@id": org_id}, "description": desc,
-                      "offers": {"@type": "AggregateOffer", "priceCurrency": "USD", "lowPrice": "190",
-                                 "highPrice": "6000", "offerCount": "3"}})
+        app = {"@type": "SoftwareApplication", "name": "Origen", "url": home,
+               "applicationCategory": "BusinessApplication", "operatingSystem": "Web, Android, iOS",
+               "inLanguage": lang, "publisher": {"@id": org_id}, "description": desc,
+               "offers": {"@type": "AggregateOffer", "priceCurrency": "USD", "lowPrice": "190",
+                          "highPrice": "6000", "offerCount": "3"}}
+        feats = (app_features_es or []) if lang == "es" else (LANGS[lang].get("app_features") or [])
+        if feats:   # solo en los idiomas que tienen la lista traducida
+            app["featureList"] = feats
+        graph.append(app)
     if key in FAQ_PAGES:
         faq = _faq(html_text)
         if faq:
@@ -307,7 +337,7 @@ def _selector(button_html, key, lang):
     cls = attrs.get("class")
     label = (LANGS[lang].get("labels") or {}).get("language") if lang != "es" else ES_LABELS["language"]
     items = []
-    for code in active():
+    for code in langs_for(key):
         cur = ' aria-current="true"' if code == lang else ""
         items.append('<li><a href="%s" hreflang="%s" lang="%s"%s>%s</a></li>' % (
             path_for(key, code), code, code, cur, NATIVE[code]))
@@ -321,7 +351,7 @@ def _selector(button_html, key, lang):
 
 # ── Render ───────────────────────────────────────────────────────────────────
 
-def render(key, lang, base, seo_desc=None, articles=None, app_desc_es=""):
+def render(key, lang, base, seo_desc=None, articles=None, app_desc_es="", app_features_es=None):
     """HTML final de la página `key` en `lang` (con caché en memoria: las plantillas no cambian en caliente)."""
     ck = (key, lang, base)
     if ck in _CACHE:
@@ -351,9 +381,9 @@ def render(key, lang, base, seo_desc=None, articles=None, app_desc_es=""):
             '<meta name="description" content="%s">' % esc(meta["description"]),
             '<meta name="i18n-server" content="%s">' % lang,
             '<link rel="canonical" href="%s">' % url]
-    for code in active():
+    for code in langs_for(key):
         tags.append('<link rel="alternate" hreflang="%s" href="%s">' % (code, base + path_for(key, code)))
-    xdef = "en" if "en" in LANGS else "es"
+    xdef = x_default(key)
     tags.append('<link rel="alternate" hreflang="x-default" href="%s">' % (base + path_for(key, xdef)))
     og_locale = "es_LA" if lang == "es" else LANGS[lang].get("og_locale", lang)
     tags += ['<meta property="og:type" content="%s">' % ("article" if key in articles else "website"),
@@ -367,7 +397,7 @@ def render(key, lang, base, seo_desc=None, articles=None, app_desc_es=""):
     if lang != "es" and LANGS[lang].get("dyn"):
         tags.append("<script>window.ORIGEN_T=%s;</script>" % json.dumps(LANGS[lang]["dyn"], ensure_ascii=False).replace("</", "<\\/"))
     tags.append('<script type="application/ld+json">%s</script>' % json.dumps(
-        _jsonld(key, lang, text, meta, base, articles, app_desc_es), ensure_ascii=False).replace("</", "<\\/"))
+        _jsonld(key, lang, text, meta, base, articles, app_desc_es, app_features_es), ensure_ascii=False).replace("</", "<\\/"))
     tags.append(_SEL_CSS)
     if lang != "es":
         tags.append(_I18N_CSS)
@@ -383,10 +413,10 @@ def render(key, lang, base, seo_desc=None, articles=None, app_desc_es=""):
 def sitemap(base):
     urls = []
     for key in PAGES:
-        alts = "".join('<xhtml:link rel="alternate" hreflang="%s" href="%s"/>' % (c, base + path_for(key, c)) for c in active())
-        xdef = "en" if "en" in LANGS else "es"
-        alts += '<xhtml:link rel="alternate" hreflang="x-default" href="%s"/>' % (base + path_for(key, xdef))
-        for code in active():
+        langs = langs_for(key)
+        alts = "".join('<xhtml:link rel="alternate" hreflang="%s" href="%s"/>' % (c, base + path_for(key, c)) for c in langs)
+        alts += '<xhtml:link rel="alternate" hreflang="x-default" href="%s"/>' % (base + path_for(key, x_default(key)))
+        for code in langs:
             urls.append("<url><loc>%s</loc>%s</url>" % (base + path_for(key, code), alts))
     return ('<?xml version="1.0" encoding="UTF-8"?>\n'
             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">'
